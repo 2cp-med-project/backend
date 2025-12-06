@@ -2,13 +2,228 @@
   "definition": {
     "openapi": "3.0.0",
     "info": {
-      "title": "2CP Medical Backend API",
+      "title": "Digital Health Platform API",
       "version": "1.0.0",
-      "description": "API documentation for the medical backend."
+      "description": "API documentation for the Digital Health Platform (patients, doctors, authentication, medical card, appointments, AI assistant).",
+      "contact": {
+        "name": "Backend Team",
+        "email": "team@example.com"
+      }
     },
     "servers": [
-      { "url": "http://localhost:5000/api" }
-    ]
+      { "url": "http://localhost:5000/api-docs" }
+    ],
+
+    "paths": {
+      "/auth/register": {
+        "post": {
+          "summary": "Register a user",
+          "description": "Register a new patient or doctor.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RegisterUser" }
+              }
+            }
+          },
+          "responses": {
+            "201": { "description": "User registered successfully." },
+            "400": { "description": "Validation error." }
+          }
+        }
+      },
+
+      "/auth/login": {
+        "post": {
+          "summary": "Login",
+          "description": "Authenticate user and return token.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginUser" }
+              }
+            }
+          },
+          "responses": {
+            "200": { "description": "Login successful." },
+            "401": { "description": "Invalid credentials." }
+          }
+        }
+      },
+
+      "/patients/{id}": {
+        "get": {
+          "summary": "Get patient profile",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Patient profile",
+              "content": {
+                "application/json": {
+                  "schema": { "$ref": "#/components/schemas/Patient" }
+                }
+              }
+            },
+            "404": { "description": "Patient not found." }
+          }
+        }
+      },
+
+      "/doctors": {
+        "get": {
+          "summary": "List all doctors",
+          "responses": {
+            "200": {
+              "description": "List of doctors",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/Doctor" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "/medical-card/scan/{cardId}": {
+        "get": {
+          "summary": "Scan digital health card",
+          "parameters": [
+            {
+              "name": "cardId",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Patient data retrieved",
+              "content": {
+                "application/json": {
+                  "schema": { "$ref": "#/components/schemas/MedicalCardResponse" }
+                }
+              }
+            },
+            "404": { "description": "Card not found." }
+          }
+        }
+      },
+
+      "/ai/specialty": {
+        "post": {
+          "summary": "AI — Recommend medical specialty",
+          "description": "Send symptoms and receive predicted specialty.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SymptomRequest" }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Specialty predicted",
+              "content": {
+                "application/json": {
+                  "schema": { "$ref": "#/components/schemas/SpecialtyPrediction" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "components": {
+      "schemas": {
+        "RegisterUser": {
+          "type": "object",
+          "properties": {
+            "role": { "type": "string", "enum": ["patient", "doctor"] },
+            "fullName": { "type": "string" },
+            "email": { "type": "string" },
+            "password": { "type": "string" },
+            "specialty": { "type": "string" },
+            "location": { "type": "string" }
+          },
+          "required": ["role", "email", "password"]
+        },
+
+        "LoginUser": {
+          "type": "object",
+          "properties": {
+            "email": { "type": "string" },
+            "password": { "type": "string" }
+          },
+          "required": ["email", "password"]
+        },
+
+        "Patient": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "fullName": { "type": "string" },
+            "email": { "type": "string" }
+          }
+        },
+
+        "Doctor": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "fullName": { "type": "string" },
+            "specialty": { "type": "string" },
+            "location": { "type": "string" }
+          }
+        },
+
+        "MedicalCardResponse": {
+          "type": "object",
+          "properties": {
+            "patientId": { "type": "string" },
+            "fullName": { "type": "string" },
+            "age": { "type": "number" },
+            "medicalHistory": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+
+        "SymptomRequest": {
+          "type": "object",
+          "properties": {
+            "symptoms": { "type": "string" }
+          },
+          "required": ["symptoms"]
+        },
+
+        "SpecialtyPrediction": {
+          "type": "object",
+          "properties": {
+            "predictedSpecialty": { "type": "string" },
+            "confidence": { "type": "number" }
+          }
+        }
+      }
+    }
   },
-  "apis": ["./src/modules/**/*.js", "./src/routes.js"]
+
+  "apis": ["./src/modules/**/routes.js"]
 }
