@@ -1,6 +1,4 @@
 // /login, /register, /verify-otp
-<<<<<<< HEAD
-=======
 
 const express = require('express');
 const controller = require('./auth.controller');
@@ -14,4 +12,3 @@ router.post("/refresh-token", controller.refreshToken)
 router.post('/verify-otp', controller.verifyOTP);
 
 module.exports = router;
->>>>>>> 830a520 (rebase from main + implementing routes)
