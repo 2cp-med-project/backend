@@ -1,0 +1,1 @@
+//Checks if user is doctor / patient / admin
