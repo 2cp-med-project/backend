@@ -5,6 +5,8 @@
 const jwt = require("jsonwebtoken");
 =======
 import jwt from 'jsonwebtoken';
+import Doctor from '../users/doctor.model.js';
+import Patient from '../users/patient.model.js';
 
 >>>>>>> 1960560 (change to es-modules)
 
