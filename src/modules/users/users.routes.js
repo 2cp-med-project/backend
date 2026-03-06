@@ -1,5 +1,5 @@
-const express = require("express");
-const controller = require("./users.controller");
+import express from "express";
+import * as controller from "./users.controller.js";
 
 const router = express.Router();
 
@@ -15,4 +15,4 @@ router.get("/patients", controller.getPatients);
 // router.post("/admins", controller.createAdmin);
 // router.get("/admins", controller.getAdmins);
 
-module.exports = router;
+export default router;
