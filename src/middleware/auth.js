@@ -2,18 +2,17 @@
 //User must be logged in to access this route
 
 import jwt from "jsonwebtoken";
-import Doctor from "../users/doctor.model.js";
-import Patient from "../users/patient.model.js";
 
 function authMiddleware(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
-  if (!token) {
-    return res.status(401).json({ message: "Access token is missing" });
-  }
-
   try {
+    if (!token || authHeader.split(" ")[0] !== "Bearer") {
+      return res
+        .status(401)
+        .json({ message: "Access token missing or malformed" });
+    }
     req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
   } catch {

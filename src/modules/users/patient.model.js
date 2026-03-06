@@ -5,7 +5,7 @@ const patientSchema = new mongoose.Schema({
   lastName: { type: String, required: true },
 
   email: { type: String, required: true, unique: true },
-  passwordhash: { type: String, required: true },
+  password: { type: String, required: true },
   refreshToken: String, // for token refresh
   dateOfBirth: Date,
   placeOfBirth: String,
