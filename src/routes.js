@@ -1,6 +1,5 @@
- const express = require("express");
-const usersRoutes = require("./modules/users/users.routes");
-const authRoutes = require("./modules/auth/auth.routes");
+import express from "express";
+import usersRoutes from "./modules/users/users.routes.js";
 
 const router = express.Router();
 
@@ -8,4 +7,4 @@ console.log(typeof usersRoutes);
 
 router.use("/users", usersRoutes);
 
-module.exports = router; 
+export default router;
