@@ -1,11 +1,16 @@
-const express = require("express");
-const cors = require("cors");
-const dotenv = require("dotenv");
-const connectDB = require("./config/db");
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import connectDB from "./config/db.js";
 
-const swaggerJsdoc = require("swagger-jsdoc");
-const swaggerUi = require("swagger-ui-express");
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
+
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 const swaggerOptions = require("../swagger.json");
+
+import routes from "./routes.js";
 
 // Load ENV
 dotenv.config();
@@ -37,7 +42,6 @@ const swaggerUiOptions = {
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, swaggerUiOptions));
 
 // Load Main Routes
-const routes = require("./routes");
 app.use("/api", routes);
 
 // Test Route
