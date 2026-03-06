@@ -3,102 +3,89 @@ import service from "./auth.service.js";
 import Doctor from "../users/doctor.model.js";
 import Patient from "../users/patient.model.js";
 
-<<<<<<< HEAD
-async function register(res, req) {
-  const { firstName, lastName, email, password, licenseNumber, userType } =
-    req.body;
+async function signin(req, res) {
+  const { firstName, lastName, email, password, licenseNumber, role } =
+    req.body || {};
   if (
     !firstName ||
     !lastName ||
     !email ||
     !password ||
-    !userType ||
-    (userType === "doctor" && !licenseNumber)
+    !role ||
+    (role === "doctor" && !licenseNumber)
   ) {
-=======
-async function register(req, res) {
-  const { firstName, lastName, email, password, licenseNumber, userType } = req.body;
-  if (!firstName || !lastName || !email || !password || !userType || (userType === "doctor" && !licenseNumber)) {
->>>>>>> 4f794f6 (Bug fixes)
     res.status(400).json({ message: "Missing required fields" });
     return;
   }
   try {
-<<<<<<< HEAD
-    existingUser =
-      userType === "doctor"
-        ? await Doctor.findOne({ email })
-        : await Patient.findOne({ email });
-=======
-    const existingUser = userType === "doctor" ? await Doctor.findOne({ email }) : await Patient.findOne({ email });
->>>>>>> 4f794f6 (Bug fixes)
+    const existingUser =
+      (await Doctor.findOne({ email }, { _id: 1 })) ||
+      (await Patient.findOne({ email }, { _id: 1 }));
     if (existingUser) {
       res.status(400).json({ message: "This email is already registered" });
       return;
     }
-    const passwordhash = await service.generatehash(password);
+    const password = await service.generatehash(password);
     let newUser;
-    if (userType === "doctor") {
+    if (role === "doctor") {
       newUser = new Doctor({
         firstName,
         lastName,
         email,
-        passwordhash,
+        password,
         licenseNumber,
       });
-    } else if (userType === "patient") {
-      newUser = new Patient({ firstName, lastName, email, passwordhash });
+    } else if (role === "patient") {
+      newUser = new Patient({ firstName, lastName, email, password });
     } else {
       res.status(400).json({ message: "Invalid user type" });
       return;
     }
 
-    const refreshToken = service.generateToken(newUser, userType, "7d");
+    const refreshToken = service.generateToken(newUser, role, "7d");
     newUser.refreshToken = refreshToken;
     await newUser.save();
-    res.status(200).json({ message: "User registered successfully" });
+    res
+      .status(200)
+      .json({
+        message: "User registered successfully",
+        userId: newUser.id,
+        refreshToken,
+      });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 }
 
 async function login(req, res) {
-  const { email, password, userType } = req.body;
+  const { email, password, role } = req.body || {};
   try {
-    if (!email || !password || !userType) {
+    if (!email || !password || !role) {
       res.status(400).json({ message: "Missing required fields" });
       return;
     }
-    const isValid = await service.checkPassword(password, email, userType);
-    if (!isValid) {
-      res.status(400).json({ message: "Invalid credentials" });
-      return;
-    }
-
-    const user =
-      userType === "doctor"
-        ? await Doctor.findOne({ email })
-        : await Patient.findOne({ email });
-    const refreshToken = service.generateToken(user, userType, "30d");
+    const user = await service.checkPassword(password, email, role);
+    const refreshToken =
+      user.refreshToken || service.generateToken(user, role, "30d");
     user.refreshToken = refreshToken;
     await user.save();
-    res.status(200).json({ refreshToken });
+    res.status(200).json({ userId: user.id, refreshToken });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 }
 
 async function logout(req, res) {
-  const { email, userType } = req.body;
+  const { id, role } = req.user || {};
   try {
-    if (!email || !userType) {
+    if (!id || !role) {
       res.status(400).json({ message: "Missing required fields" });
       return;
     }
     const user =
-      userType === "doctor"
-        ? await Doctor.findOne({ email })
-        : await Patient.findOne({ email });
+      role === "doctor"
+        ? await Doctor.findById(id)
+        : await Patient.findById(id);
     if (!user) {
       res.status(404).json({ message: "email not found" });
       return;
@@ -111,8 +98,9 @@ async function logout(req, res) {
   }
 }
 
+// TODO: Implement Rolling tokens
 async function refreshToken(req, res) {
-  const { refreshToken } = req.body;
+  const { refreshToken } = req.body || {};
   try {
     if (!refreshToken) {
       res.status(400).json({ message: "Missing refresh token" });
@@ -127,7 +115,7 @@ async function refreshToken(req, res) {
       res.status(400).json({ message: "Invalid refresh token" });
       return;
     }
-    const newAccessToken = service.generateToken(user, payload.type, "30m");
+    const newAccessToken = service.generateToken(user, payload.type);
     res.status(200).json({ accessToken: newAccessToken });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -138,4 +126,4 @@ async function verifyOTP(req, res) {
   console.log("Verify OTP endpoint working...");
 }
 
-export default { register, login, logout, refreshToken, verifyOTP };
+export default { signin, login, logout, refreshToken, verifyOTP };

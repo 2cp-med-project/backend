@@ -4,46 +4,46 @@ import bcrypt from "bcryptjs";
 import Doctor from "../users/doctor.model.js";
 import Patient from "../users/patient.model.js";
 
-const secretKey = process.env.JWT_SECRET
-const saltRounds = parseInt(process.env.SALT_ROUNDS) || 10;
-
-async function checkPassword(plainPassword, email, userType) {
-
+async function checkPassword(plainPassword, email, role) {
   let user;
-  if (userType === "doctor") {
-    user = await Doctor.findOne({ email: email }, { passwordhash: 1 });
-  } else if (userType === "patient") {
-    user = await Patient.findOne({ email: email }, { passwordhash: 1 });
+  if (role === "doctor") {
+    user = await Doctor.findOne({ email: email }, { password: 1 });
+  } else if (role === "patient") {
+    user = await Patient.findOne({ email: email }, { password: 1 });
   }
   else {
-    throw new Error("Invalid user type");
+    throw new Error("Invalid role");
   }
   if (!user) {
     throw new Error("Invalid credentials");
   }
-  return await bcrypt.compare(plainPassword, user.passwordhash);
+  const valid = await bcrypt.compare(plainPassword, user.password);
+
+  if (!valid) {
+    throw new Error("Invalid credentials");
+  }
+  return user;
 }
 
 function verifyToken(token) {
   try {
-    return jwt.verify(token, secretKey);
+    return jwt.verify(token, process.env.JWT_SECRET);
   }
   catch (error) {
     throw new Error("Invalid token");
   }
 }
 
-function generateToken(user, userType, time = '30m') {
+function generateToken(user, role, time = '10m') {
   const payload = {
     id: user.id,
-    email: user.email,
-    type: userType
+    role: role
   };
-  return jwt.sign(payload, secretKey, { expiresIn: time });
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: time });
 }
 
 async function generatehash(password) {
-  return await bcrypt.hash(password, saltRounds);
+  return await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS));
 }
 
 export default {
