@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const consultationSchema = new mongoose.Schema({
   doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },
@@ -9,4 +9,4 @@ const consultationSchema = new mongoose.Schema({
   followUpDate: Date,
 });
 
-module.exports = mongoose.model('Consultation', consultationSchema);
+export default mongoose.model('Consultation', consultationSchema);

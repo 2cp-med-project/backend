@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const reportSchema = mongoose.Schema({
 
@@ -20,4 +20,4 @@ const reportSchema = mongoose.Schema({
   attachments: [String],
 })
 
-module.exports = mongoose.model('Report', reportSchema);
+export default mongoose.model('Report', reportSchema);
