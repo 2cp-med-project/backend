@@ -3,6 +3,7 @@ import service from "./auth.service.js";
 import Doctor from "../users/doctor.model.js";
 import Patient from "../users/patient.model.js";
 
+<<<<<<< HEAD
 async function register(res, req) {
   const { firstName, lastName, email, password, licenseNumber, userType } =
     req.body;
@@ -14,14 +15,23 @@ async function register(res, req) {
     !userType ||
     (userType === "doctor" && !licenseNumber)
   ) {
+=======
+async function register(req, res) {
+  const { firstName, lastName, email, password, licenseNumber, userType } = req.body;
+  if (!firstName || !lastName || !email || !password || !userType || (userType === "doctor" && !licenseNumber)) {
+>>>>>>> 4f794f6 (Bug fixes)
     res.status(400).json({ message: "Missing required fields" });
     return;
   }
   try {
+<<<<<<< HEAD
     existingUser =
       userType === "doctor"
         ? await Doctor.findOne({ email })
         : await Patient.findOne({ email });
+=======
+    const existingUser = userType === "doctor" ? await Doctor.findOne({ email }) : await Patient.findOne({ email });
+>>>>>>> 4f794f6 (Bug fixes)
     if (existingUser) {
       res.status(400).json({ message: "This email is already registered" });
       return;
@@ -52,7 +62,7 @@ async function register(res, req) {
   }
 }
 
-async function login(res, req) {
+async function login(req, res) {
   const { email, password, userType } = req.body;
   try {
     if (!email || !password || !userType) {
@@ -78,7 +88,7 @@ async function login(res, req) {
   }
 }
 
-async function logout(res, req) {
+async function logout(req, res) {
   const { email, userType } = req.body;
   try {
     if (!email || !userType) {
@@ -101,7 +111,7 @@ async function logout(res, req) {
   }
 }
 
-async function refreshToken(res, req) {
+async function refreshToken(req, res) {
   const { refreshToken } = req.body;
   try {
     if (!refreshToken) {
@@ -124,7 +134,7 @@ async function refreshToken(res, req) {
   }
 }
 
-async function verifyOTP(res, req) {
+async function verifyOTP(req, res) {
   console.log("Verify OTP endpoint working...");
 }
 
