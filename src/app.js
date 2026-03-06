@@ -42,12 +42,7 @@ const swaggerUiOptions = {
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, swaggerUiOptions));
 
 // Load Main Routes
-<<<<<<< HEAD
 app.use("/api", routes);
-=======
-const routes = require("./routes");
-app.use("/", routes);
->>>>>>> e81df1d (rebase from main + implementing routes)
 
 // Test Route
 app.get("/", (req, res) => {

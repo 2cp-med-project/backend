@@ -1,7 +1,12 @@
 //CHECK that the user has a valid token
 //User must be logged in to access this route
 
+<<<<<<< HEAD
 const jwt = require("jsonwebtoken");
+=======
+import jwt from 'jsonwebtoken';
+
+>>>>>>> 1960560 (change to es-modules)
 
 function authMiddleware(req, res, next) {
   const authHeader = req.headers["authorization"];
@@ -19,4 +24,4 @@ function authMiddleware(req, res, next) {
   }
 }
 
-module.exports = authMiddleware;
+export default authMiddleware;
