@@ -19,7 +19,7 @@ async function checkPassword(plainPassword, email, userType) {
     throw new Error("Invalid user type");
   }
   if (!user) {
-    throw new Error("User not found");
+    throw new Error("Invalid credentials");
   }
   return await bcrypt.compare(plainPassword, user.passwordhash);
 }
