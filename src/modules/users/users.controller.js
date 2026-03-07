@@ -1,3 +1,9 @@
-export const getPatients = (req, res) => {
-  res.json({ message: "Patients route working" });
-};
+async function getPatients(req, res) {
+  res.status(502).json({ message: "Not Implemented" });
+}
+
+async function getDoctors(req, res) {
+  res.status(502).json({ message: "Not Implemented" });
+}
+
+export { getPatients, getDoctors };
