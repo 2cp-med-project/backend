@@ -1,0 +1,1 @@
+//Handles: Upload medical reports (PDF), scan and profile image

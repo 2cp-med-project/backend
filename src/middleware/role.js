@@ -1,10 +1,9 @@
 // Checks if user is doctor / patient / admin
 
-
-export const authorize = (...allowedRoles) => {
+function authorize(...allowedRoles) {
   return (req, res, next) => {
     try {
-      // Make sure user exists 
+      // Make sure user exists
       if (!req.user || !req.user.role) {
         return res.status(401).json({
           message: "Not authenticated",
@@ -25,4 +24,6 @@ export const authorize = (...allowedRoles) => {
       });
     }
   };
-};
+}
+
+export default authorize;
