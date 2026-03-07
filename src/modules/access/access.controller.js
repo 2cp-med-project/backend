@@ -1,6 +1,6 @@
 import Access from "./access.model.js";
 
-// Doctor sends access request
+//Doctor sends access request
 
 export const requestAccess = async (req, res) => {
   try {

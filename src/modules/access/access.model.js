@@ -18,4 +18,4 @@ const accessSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-export default mongoose.model("Access", accessSchema);
+export default mongoose.model("Access", accessSchema); 
