@@ -50,13 +50,11 @@ async function signin(req, res) {
     const refreshToken = service.generateToken(newUser, role, "7d");
     newUser.refreshToken = refreshToken;
     await newUser.save();
-    res
-      .status(201)
-      .json({
-        message: "User registered successfully",
-        userId: newUser.id,
-        refreshToken,
-      });
+    res.status(201).json({
+      message: "User registered successfully",
+      userId: newUser.id,
+      refreshToken,
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

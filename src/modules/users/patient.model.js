@@ -14,7 +14,6 @@ const patientSchema = new mongoose.Schema({
   address: String,
   role : { type: String, default: "patient" },
 
-
   emergencyContacts: [
     {
       name: String,

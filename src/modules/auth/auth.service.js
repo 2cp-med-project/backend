@@ -10,8 +10,7 @@ async function checkPassword(plainPassword, email, role) {
     user = await Doctor.findOne({ email: email });
   } else if (role === "patient") {
     user = await Patient.findOne({ email: email });
-  }
-  else {
+  } else {
     throw new Error("Invalid role");
   }
   if (!user) {
@@ -28,19 +27,18 @@ async function checkPassword(plainPassword, email, role) {
 function verifyToken(token) {
   try {
     return jwt.verify(token, process.env.JWT_SECRET);
-  }
-  catch (error) {
+  } catch (error) {
     throw new Error("Invalid token");
   }
 }
 
-function generateToken(user, role, time = '10m') {
+function generateToken(user, role, time = "10m") {
   if (!user || !user.id || !role || !["doctor", "patient"].includes(role)) {
     throw new Error("Invalid user or role");
   }
   const payload = {
     id: user.id,
-    role: role
+    role: role,
   };
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: time });
 }
@@ -53,5 +51,5 @@ export default {
   checkPassword,
   generateToken,
   generatehash,
-  verifyToken
+  verifyToken,
 };
