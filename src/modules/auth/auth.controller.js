@@ -102,30 +102,28 @@ async function logout(req, res) {
 }
 
 async function refreshToken(req, res) {
-  const { refreshToken } = req.body || {};
+  const { oldRefreshToken } = req.body || {};
   try {
-    if (!refreshToken) {
+    if (!oldRefreshToken) {
       res.status(400).json({ message: "Missing refresh token" });
       return;
     }
-    const payload = service.verifyToken(refreshToken);
+    const payload = service.verifyToken(oldRefreshToken);
     const user =
       payload.role === "doctor"
         ? await Doctor.findById(payload.id)
         : await Patient.findById(payload.id);
-    if (!user || user.refreshToken !== refreshToken) {
+    if (!user || user.refreshToken !== oldRefreshToken) {
       res.status(400).json({ message: "Invalid refresh token" });
       return;
     }
-    const newRefreshToken = service.generateToken(user, payload.role, "30d");
-    user.refreshToken = newRefreshToken;
+    const refreshToken = service.generateToken(user, payload.role, "30d");
+    user.refreshToken = refreshToken;
     await user.save();
 
-    const newAccessToken = service.generateToken(user, payload.role);
+    const accessToken = service.generateToken(user, payload.role);
 
-    res
-      .status(200)
-      .json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+    res.status(200).json({ accessToken, refreshToken });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
