@@ -1,0 +1,1 @@
+//Prevents spam (chat, login attacks, etc.)
