@@ -6,7 +6,6 @@ import jwt from "jsonwebtoken";
 function authMiddleware(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
-
   try {
     if (!token || authHeader.split(" ")[0] !== "Bearer") {
       return res
