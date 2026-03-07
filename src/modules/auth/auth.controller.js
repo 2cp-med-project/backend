@@ -25,20 +25,25 @@ async function signin(req, res) {
       res.status(400).json({ message: "This email is already registered" });
       return;
     }
-    const password = await service.generatehash(password);
+    const hashedpassword = await service.generatehash(password);
     let newUser;
     if (role === "doctor") {
       newUser = new Doctor({
         firstName,
         lastName,
         email,
-        password,
+        password: hashedpassword,
         licenseNumber,
       });
     } else if (role === "patient") {
-      newUser = new Patient({ firstName, lastName, email, password });
+      newUser = new Patient({
+        firstName,
+        lastName,
+        email,
+        password: hashedpassword,
+      });
     } else {
-      res.status(400).json({ message: "Invalid user type" });
+      res.status(400).json({ message: "Invalid role" });
       return;
     }
 
@@ -46,7 +51,7 @@ async function signin(req, res) {
     newUser.refreshToken = refreshToken;
     await newUser.save();
     res
-      .status(200)
+      .status(201)
       .json({
         message: "User registered successfully",
         userId: newUser.id,
@@ -78,8 +83,8 @@ async function login(req, res) {
 async function logout(req, res) {
   const { id, role } = req.user || {};
   try {
-    if (!id || !role) {
-      res.status(400).json({ message: "Missing required fields" });
+    if (!id || !role || !["doctor", "patient"].includes(role)) {
+      res.status(400).json({ message: "Invalid user data" });
       return;
     }
     const user =
@@ -87,7 +92,7 @@ async function logout(req, res) {
         ? await Doctor.findById(id)
         : await Patient.findById(id);
     if (!user) {
-      res.status(404).json({ message: "email not found" });
+      res.status(404).json({ message: "User not found" });
       return;
     }
     user.refreshToken = null;
@@ -98,7 +103,6 @@ async function logout(req, res) {
   }
 }
 
-// TODO: Implement Rolling tokens
 async function refreshToken(req, res) {
   const { refreshToken } = req.body || {};
   try {
@@ -108,22 +112,29 @@ async function refreshToken(req, res) {
     }
     const payload = service.verifyToken(refreshToken);
     const user =
-      payload.type === "doctor"
+      payload.role === "doctor"
         ? await Doctor.findById(payload.id)
         : await Patient.findById(payload.id);
     if (!user || user.refreshToken !== refreshToken) {
       res.status(400).json({ message: "Invalid refresh token" });
       return;
     }
-    const newAccessToken = service.generateToken(user, payload.type);
-    res.status(200).json({ accessToken: newAccessToken });
+    const newRefreshToken = service.generateToken(user, payload.role, "30d");
+    user.refreshToken = newRefreshToken;
+    await user.save();
+
+    const newAccessToken = service.generateToken(user, payload.role);
+
+    res
+      .status(200)
+      .json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 }
 
 async function verifyOTP(req, res) {
-  console.log("Verify OTP endpoint working...");
+  res.status(501).json({ message: "OTP verification not implemented yet" });
 }
 
 export default { signin, login, logout, refreshToken, verifyOTP };
