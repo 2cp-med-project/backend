@@ -9,8 +9,8 @@ router.post('/signin', controller.signin);
 
 router.post('/login', controller.login);
 
-router.post('/logout', controller.logout);
 router.use('/logout', authMiddleware);
+router.post('/logout', controller.logout);
 
 router.post("/refresh-token", controller.refreshToken)
 
