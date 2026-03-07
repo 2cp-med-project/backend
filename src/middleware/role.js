@@ -1,4 +1,4 @@
-//Checks if user is doctor / patient / admin
+// Checks if user is doctor / patient / admin
 
 
 export const authorize = (...allowedRoles) => {
