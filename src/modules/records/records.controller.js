@@ -25,6 +25,11 @@ async function createConsultation(req, res) {
     additionalTests,
   } = req.body || {};
 
+  if (!doctorId || !patientId) {
+    res.status(400).json({ message: "Doctor ID and Patient ID are required" });
+    return;
+  }
+
   const doctor = await Doctor.findById(doctorId, { _id: 1 });
   const patient = await Patient.findById(patientId, { _id: 1 });
 
@@ -63,13 +68,18 @@ async function createConsultation(req, res) {
     await consultation.save();
     res.status(201).json(consultation.id);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 }
 
 async function deleteConsultation(req, res) {
   const { id } = req.params;
   try {
+    if (!id) {
+      res.status(400).json({ message: "Consultation ID is required" });
+      return;
+    }
+
     const consultation = await Consultation.findByIdAndDelete(id);
     if (!consultation) {
       res.status(404).json({ message: "Consultation not found" });
@@ -77,7 +87,7 @@ async function deleteConsultation(req, res) {
     }
     res.status(200).json({ message: "Consultation deleted successfully" });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 }
 
@@ -96,7 +106,7 @@ async function getConsultationById(req, res) {
     }
     res.status(200).json(consultation);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 }
 
@@ -138,13 +148,13 @@ async function getConsultations(req, res) {
       .limit(l);
     res.status(200).json(consultations);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 }
 
 async function updateConsultation(req, res) {
   const { id } = req.params || {};
-  const updateData = req.body;
+  const updateData = req.body || {};
 
   try {
     if (!id) {
@@ -160,7 +170,7 @@ async function updateConsultation(req, res) {
     }
     res.status(200).json(consultation);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 }
 
