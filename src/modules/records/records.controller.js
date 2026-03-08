@@ -127,6 +127,11 @@ async function getConsultations(req, res) {
     const p = parseInt(page);
     const l = parseInt(limit);
     const o = order === "asc" ? 1 : -1;
+
+    if (isNaN(p) || isNaN(l) || p < 0 || l <= 0) {
+      return res.status(400).json({ message: "Invalid page or limit value" });
+    }
+
     const consultations = await Consultation.find({ patient: patientId })
       .sort({ [sortBy]: o })
       .skip(p * l)
