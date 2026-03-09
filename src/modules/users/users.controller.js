@@ -73,4 +73,44 @@ async function getDoctors(req, res) {
   }
 }
 
-export { getPatients, getDoctors };
+async function getPatientById(req, res) {
+  const { id } = req.params || {};
+
+  try {
+    if (!id) {
+      return res.status(400).json({ message: "Patient ID is required" });
+    }
+
+    const patient = await Patient.findById(id, { password: 0 });
+
+    if (!patient) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    res.status(200).json(patient);
+  } catch {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+async function getDoctorById(req, res) {
+  const { id } = req.params || {};
+
+  try {
+    if (!id) {
+      return res.status(400).json({ message: "Doctor ID is required" });
+    }
+
+    const doctor = await Doctor.findById(id, { password: 0 });
+
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    res.status(200).json(doctor);
+  } catch {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+export { getPatients, getDoctors, getPatientById, getDoctorById };
