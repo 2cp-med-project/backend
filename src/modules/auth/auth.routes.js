@@ -5,6 +5,9 @@ import controller from "./auth.controller.js";
 import authMiddleware from "../../middleware/auth.js";
 const router = express.Router();
 
+router.use("/me", authMiddleware);
+router.get("/me", controller.getCurrentUser);
+
 router.post("/signin", controller.signin);
 
 router.post("/login", controller.login);

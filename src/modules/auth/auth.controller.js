@@ -129,6 +129,27 @@ async function refreshToken(req, res) {
   }
 }
 
+async function getCurrentUser(req, res) {
+  const { id, role } = req.user || {};
+  try {
+    if (!id || !role || !["doctor", "patient"].includes(role)) {
+      res.status(400).json({ message: "Invalid user data" });
+      return;
+    }
+    const user =
+      role === "doctor"
+        ? await Doctor.findById(id, { password: 0, refreshToken: 0 })
+        : await Patient.findById(id, { password: 0, refreshToken: 0 });
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 async function verifyOTP(req, res) {
   res.status(501).json({ message: "OTP verification not implemented yet" });
 }
