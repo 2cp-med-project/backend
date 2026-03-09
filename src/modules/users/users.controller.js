@@ -62,7 +62,7 @@ async function getDoctors(req, res) {
       return res.status(400).json({ message: "Invalid page or limit value" });
     }
 
-    const doctors = await Doctor.find({}, { password: 0 })
+    const doctors = await Doctor.find({}, { password: 0 }) //TODO: only return relevant fields like name, specialization, etc
       .sort({ [sortBy]: o })
       .skip(p * l)
       .limit(l);
@@ -81,7 +81,7 @@ async function getPatientById(req, res) {
       return res.status(400).json({ message: "Patient ID is required" });
     }
 
-    const patient = await Patient.findById(id, { password: 0 });
+    const patient = await Patient.findById(id, { password: 0 }); //TODO: only return relevant fields like name, medical history, etc
 
     if (!patient) {
       return res.status(404).json({ message: "Patient not found" });
