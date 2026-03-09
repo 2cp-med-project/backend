@@ -17,7 +17,7 @@ const consultationSchema = mongoose.Schema({
     default: "scheduled",
     required: true,
   },
-  date: { type: Date, default: Date.now },
+  date: { type: Date, required: true },
   typeofvisit: String,
   motive: String,
   synptoms: String,
