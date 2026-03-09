@@ -8,7 +8,7 @@ async function createConsultation(req, res) {
     patientId,
     date,
     status,
-    typeofvisits,
+    typeofvisit,
     motive,
     synptoms,
     severity,
@@ -25,8 +25,8 @@ async function createConsultation(req, res) {
     additionalTests,
   } = req.body || {};
 
-  if (!doctorId || !patientId) {
-    res.status(400).json({ message: "Doctor ID and Patient ID are required" });
+  if (!doctorId || !patientId || !date) {
+    res.status(400).json({ message: "Missing required fields" });
     return;
   }
 
@@ -49,7 +49,7 @@ async function createConsultation(req, res) {
       patient: patientId,
       date: date,
       status: status,
-      typeofvisits: typeofvisits,
+      typeofvisit: typeofvisit,
       motive: motive,
       synptoms: synptoms,
       severity: severity,
@@ -153,17 +153,50 @@ async function getConsultations(req, res) {
 }
 
 async function updateConsultation(req, res) {
+  const allowedFields = [
+    "date",
+    "status",
+    "typeofvisit",
+    "motive",
+    "synptoms",
+    "severity",
+    "followUpDate",
+    "diagnosis",
+    "treatmentPlan",
+    "notes",
+    "bloodPressure",
+    "heartRate",
+    "respiratoryRate",
+    "temperature",
+    "weight",
+    "systemReview",
+    "additionalTests",
+  ];
   const { id } = req.params || {};
-  const updateData = req.body || {};
 
   try {
+    if (!req.body) {
+      res.status(400).json({ message: "No data provided for update" });
+      return;
+    }
+
     if (!id) {
       res.status(400).json({ message: "Consultation ID is required" });
       return;
     }
+
+    let updateData = {};
+    for (const key of allowedFields) {
+      if (req.body[key] !== undefined) {
+        updateData[key] = req.body[key];
+      }
+    }
+
     const consultation = await Consultation.findByIdAndUpdate(id, updateData, {
       new: true,
+      runValidators: true,
     });
+
     if (!consultation) {
       res.status(404).json({ message: "Consultation not found" });
       return;
