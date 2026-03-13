@@ -10,7 +10,7 @@ async function createConsultation(req, res) {
     status,
     typeofvisit,
     motive,
-    synptoms,
+    symptoms,
     severity,
     followUpDate,
     diagnosis,
@@ -30,20 +30,20 @@ async function createConsultation(req, res) {
     return;
   }
 
-  const doctor = await Doctor.findById(doctorId, { _id: 1 });
-  const patient = await Patient.findById(patientId, { _id: 1 });
-
-  if (!doctor) {
-    res.status(404).json({ message: "Doctor not found" });
-    return;
-  }
-
-  if (!patient) {
-    res.status(404).json({ message: "Patient not found" });
-    return;
-  }
-
   try {
+    const doctor = await Doctor.findById(doctorId, { _id: 1 });
+    const patient = await Patient.findById(patientId, { _id: 1 });
+
+    if (!doctor) {
+      res.status(404).json({ message: "Doctor not found" });
+      return;
+    }
+
+    if (!patient) {
+      res.status(404).json({ message: "Patient not found" });
+      return;
+    }
+
     const consultation = new Consultation({
       doctorId,
       patientId,
@@ -51,7 +51,7 @@ async function createConsultation(req, res) {
       status,
       typeofvisit,
       motive,
-      synptoms,
+      symptoms,
       severity,
       followUpDate,
       diagnosis,
@@ -66,7 +66,7 @@ async function createConsultation(req, res) {
       additionalTests,
     });
     await consultation.save();
-    res.status(201).json(consultation.id);
+    res.status(201).json(consultation);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -142,7 +142,7 @@ async function getConsultations(req, res) {
       return res.status(400).json({ message: "Invalid page or limit value" });
     }
 
-    const consultations = await Consultation.find({ patient: patientId })
+    const consultations = await Consultation.find({ patientId: patientId })
       .sort({ [sortBy]: o })
       .skip(p * l)
       .limit(l);
@@ -158,7 +158,7 @@ async function updateConsultation(req, res) {
     "status",
     "typeofvisit",
     "motive",
-    "synptoms",
+    "symptoms",
     "severity",
     "followUpDate",
     "diagnosis",
