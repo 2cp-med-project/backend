@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 
 const consultationSchema = mongoose.Schema({
-  doctor: {
+  doctorId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Doctor",
     required: true,
   },
-  patient: {
+  patientId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Patient",
     required: true,
