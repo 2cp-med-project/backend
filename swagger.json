@@ -467,9 +467,6 @@
                 }
               }
             }
-          },
-          "responses": {
-            "200": { "description": "Access updated" }
           }
         }
       }
@@ -601,13 +598,13 @@
               "type": "string",
               "enum": ["scheduled", "completed", "cancelled"]
             },
-            "typeofvisits": {
+            "typeofvisit": {
               "type": "string"
             },
             "motive": {
               "type": "string"
             },
-            "synptoms": {
+            "symptoms": {
               "type": "string"
             },
             "severity": {
@@ -649,15 +646,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "doctorId",
-            "patientId",
-            "status",
-            "typeofvisits",
-            "motive",
-            "synptoms",
-            "severity"
-          ]
+          "required": ["doctorId", "patientId", "date"]
         },
         "Consultation": {
           "type": "object",
@@ -681,13 +670,13 @@
               "type": "string",
               "enum": ["scheduled", "completed", "cancelled"]
             },
-            "typeofvisits": {
+            "typeofvisit": {
               "type": "string"
             },
             "motive": {
               "type": "string"
             },
-            "synptoms": {
+            "symptoms": {
               "type": "string"
             },
             "severity": {

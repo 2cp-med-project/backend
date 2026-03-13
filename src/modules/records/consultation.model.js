@@ -20,7 +20,7 @@ const consultationSchema = mongoose.Schema({
   date: { type: Date, required: true },
   typeofvisit: String,
   motive: String,
-  synptoms: String,
+  symptoms: String,
   severity: { type: String, enum: ["light", "mild", "moderate", "severe"] },
   followUpDate: Date,
   diagnosis: String,
