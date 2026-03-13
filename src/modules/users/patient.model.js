@@ -12,9 +12,7 @@ const patientSchema = new mongoose.Schema({
   gender: { type: String, enum: ["male", "female"] },
   phone: String,
   address: String,
-  role : { type: String, default: "patient" },
-
-
+  role: { type: String, default: "patient" },
   emergencyContacts: [
     {
       name: String,
@@ -22,10 +20,8 @@ const patientSchema = new mongoose.Schema({
       relation: String,
     },
   ],
-
   medicalResume: String, // summary of health history
   cardQRCode: String, // id
-
   doctorsAccess: [
     {
       doctorId: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor" }, //or name/email
