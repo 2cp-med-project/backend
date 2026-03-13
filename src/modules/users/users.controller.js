@@ -6,11 +6,30 @@ async function getPatients(req, res) {
     page = "0",
     limit = "10",
     order = "asc",
-    sortBy = "name",
+    sortBy = "firstName",
   } = req.query || {};
 
+  const allowedSortFields = [
+    "firstName",
+    "lastName",
+    "email",
+    "createdAt",
+    "dateOfBirth",
+    "placeOfBirth",
+  ];
+
+  const returnedFields = {
+    firstName: 1,
+    lastName: 1,
+    email: 1,
+    phone: 1,
+    dateOfBirth: 1,
+    placeOfBirth: 1,
+    gender: 1,
+  }; //TODO: add the record field after merging with the record module.
+
   try {
-    if (!Patient.schema.path(sortBy) || sortBy === "password") {
+    if (!allowedSortFields.includes(sortBy)) {
       return res.status(400).json({ message: "Invalid sortBy field" });
     }
 
@@ -26,7 +45,7 @@ async function getPatients(req, res) {
       return res.status(400).json({ message: "Invalid page or limit value" });
     }
 
-    const patients = await Patient.find({}, { password: 0 })
+    const patients = await Patient.find({}, returnedFields)
       .sort({ [sortBy]: o })
       .skip(p * l)
       .limit(l);
@@ -45,8 +64,27 @@ async function getDoctors(req, res) {
     sortBy = "name",
   } = req.query || {};
 
+  const allowedSortFields = [
+    "firstName",
+    "lastName",
+    "email",
+    "createdAt",
+    "specialization",
+    "licenseNumber",
+  ];
+
+  const returnedFields = {
+    firstName: 1,
+    lastName: 1,
+    email: 1,
+    phone: 1,
+    specialization: 1,
+    licenseNumber: 1,
+    createdAt: 1,
+  };
+
   try {
-    if (!Doctor.schema.path(sortBy) || sortBy === "password") {
+    if (!allowedSortFields.includes(sortBy)) {
       return res.status(400).json({ message: "Invalid sortBy field" });
     }
 
@@ -62,7 +100,7 @@ async function getDoctors(req, res) {
       return res.status(400).json({ message: "Invalid page or limit value" });
     }
 
-    const doctors = await Doctor.find({}, { password: 0 }) //TODO: only return relevant fields like name, specialization, etc
+    const doctors = await Doctor.find({}, returnedFields)
       .sort({ [sortBy]: o })
       .skip(p * l)
       .limit(l);
@@ -75,13 +113,22 @@ async function getDoctors(req, res) {
 
 async function getPatientById(req, res) {
   const { id } = req.params || {};
+  const returnedFields = {
+    firstName: 1,
+    lastName: 1,
+    email: 1,
+    phone: 1,
+    dateOfBirth: 1,
+    placeOfBirth: 1,
+    gender: 1,
+  }; //TODO: add the record field after merging with the record module.
 
   try {
     if (!id) {
       return res.status(400).json({ message: "Patient ID is required" });
     }
 
-    const patient = await Patient.findById(id, { password: 0 }); //TODO: only return relevant fields like name, medical history, etc
+    const patient = await Patient.findById(id, returnedFields);
 
     if (!patient) {
       return res.status(404).json({ message: "Patient not found" });
@@ -95,13 +142,22 @@ async function getPatientById(req, res) {
 
 async function getDoctorById(req, res) {
   const { id } = req.params || {};
+  const returnedFields = {
+    firstName: 1,
+    lastName: 1,
+    email: 1,
+    phone: 1,
+    specialization: 1,
+    licenseNumber: 1,
+    createdAt: 1,
+  };
 
   try {
     if (!id) {
       return res.status(400).json({ message: "Doctor ID is required" });
     }
 
-    const doctor = await Doctor.findById(id, { password: 0 });
+    const doctor = await Doctor.findById(id, returnedFields);
 
     if (!doctor) {
       return res.status(404).json({ message: "Doctor not found" });
