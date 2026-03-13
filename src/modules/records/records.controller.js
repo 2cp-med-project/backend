@@ -45,25 +45,25 @@ async function createConsultation(req, res) {
 
   try {
     const consultation = new Consultation({
-      doctor: doctorId,
-      patient: patientId,
-      date: date,
-      status: status,
-      typeofvisit: typeofvisit,
-      motive: motive,
-      synptoms: synptoms,
-      severity: severity,
-      followUpDate: followUpDate,
-      diagnosis: diagnosis,
-      treatmentPlan: treatmentPlan,
-      notes: notes,
-      bloodPressure: bloodPressure,
-      heartRate: heartRate,
-      respiratoryRate: respiratoryRate,
-      temperature: temperature,
-      weight: weight,
-      systemReview: systemReview,
-      additionalTests: additionalTests,
+      doctorId,
+      patientId,
+      date,
+      status,
+      typeofvisit,
+      motive,
+      synptoms,
+      severity,
+      followUpDate,
+      diagnosis,
+      treatmentPlan,
+      notes,
+      bloodPressure,
+      heartRate,
+      respiratoryRate,
+      temperature,
+      weight,
+      systemReview,
+      additionalTests,
     });
     await consultation.save();
     res.status(201).json(consultation.id);
@@ -172,23 +172,19 @@ async function updateConsultation(req, res) {
     "systemReview",
     "additionalTests",
   ];
+  const newData = req.body || {};
   const { id } = req.params || {};
 
   try {
-    if (!req.body) {
-      res.status(400).json({ message: "No data provided for update" });
-      return;
-    }
-
     if (!id) {
       res.status(400).json({ message: "Consultation ID is required" });
       return;
     }
 
     let updateData = {};
-    for (const key of allowedFields) {
-      if (req.body[key] !== undefined) {
-        updateData[key] = req.body[key];
+    for (const key in req.body) {
+      if (allowedFields.includes(key) && newData[key] !== undefined) {
+        updateData[key] = newData[key];
       }
     }
 
