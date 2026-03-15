@@ -154,4 +154,11 @@ async function verifyOTP(req, res) {
   res.status(501).json({ message: "OTP verification not implemented yet" });
 }
 
-export default { signin, login, logout, refreshToken, verifyOTP };
+export default {
+  signin,
+  login,
+  logout,
+  refreshToken,
+  getCurrentUser,
+  verifyOTP,
+};
