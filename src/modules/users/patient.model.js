@@ -1,39 +1,42 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
-const patientSchema = new mongoose.Schema({
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
+const patientSchema = new mongoose.Schema(
+  {
+    firstName: { type: String, required: true, trim: true },
+    lastName: { type: String, required: true, trim: true },
+    gender: { type: String, enum: ["Male", "Female"] },
+    dateOfBirth: Date,
+    placeOfBirth: String,
 
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+    email: { type: String, required: true, unique: true, lowercase: true },
+    phone: String,
+    address: String,
 
-  dateOfBirth: Date,
-  placeOfBirth: String,
-  gender: { type: String, enum: ["male", "female"] },
-  phone: String,
-  address: String,
-  role : { type: String, default: "patient" },
+    password: { type: String, required: true },
 
+    emergencyContacts: [
+      {
+        name: { type: String, trim: true },
+        phone: String,
+        relation: String,
+      },
+    ],
 
-  emergencyContacts: [
-    {
-      name: String,
-      phone: String,
-      relation: String,
-    },
-  ],
+    medicalConsultations: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "Consultation" },
+    ],
 
-  medicalResume: String, // summary of health history
-  cardQRCode: String, // id
+    doctorsAccess: [
+      {
+        doctorId: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor" },
+        accepted: { type: Boolean, default: false },
+        requestedAt: { type: Date, default: Date.now },
+      },
+    ],
 
-  doctorsAccess: [
-    {
-      doctorId: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor" }, //or name/email
-      accepted: { type: Boolean, default: false },
-    },
-  ],
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true },
+);
 
-  createdAt: { type: Date, default: Date.now },
-});
-
-export default mongoose.model("Patient", patientSchema);
+module.exports = mongoose.model("Patient", patientSchema);
