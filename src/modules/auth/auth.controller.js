@@ -1,5 +1,6 @@
 //Handles login/signup HTTP requests
-import service from "./auth.service.js";
+import authService from "./auth.service.js";
+import OTPService from "./otp.service.js";
 import Doctor from "../users/doctor.model.js";
 import Patient from "../users/patient.model.js";
 
@@ -25,7 +26,7 @@ async function signin(req, res) {
       res.status(400).json({ message: "This email is already registered" });
       return;
     }
-    const hashedpassword = await service.generatehash(password);
+    const hashedpassword = await authService.generatehash(password);
     let newUser;
     if (role === "doctor") {
       newUser = new Doctor({
@@ -47,7 +48,7 @@ async function signin(req, res) {
       return;
     }
 
-    const refreshToken = service.generateToken(newUser, role, "7d");
+    const refreshToken = authService.generateToken(newUser, role, "7d");
     newUser.refreshToken = refreshToken;
     await newUser.save();
     res.status(201).json({
@@ -67,9 +68,9 @@ async function login(req, res) {
       res.status(400).json({ message: "Missing required fields" });
       return;
     }
-    const user = await service.checkPassword(password, email, role);
+    const user = await authService.checkPassword(password, email, role);
     const refreshToken =
-      user.refreshToken || service.generateToken(user, role, "30d");
+      user.refreshToken || authService.generateToken(user, role, "30d");
     user.refreshToken = refreshToken;
     await user.save();
     res.status(200).json({ userId: user.id, refreshToken });
@@ -108,7 +109,16 @@ async function refreshToken(req, res) {
       res.status(400).json({ message: "Missing refresh token" });
       return;
     }
-    const payload = service.verifyToken(oldRefreshToken);
+    const payload = authService.verifyToken(oldRefreshToken);
+    if (
+      !payload ||
+      !payload.id ||
+      !payload.role ||
+      !["doctor", "patient"].includes(payload.role)
+    ) {
+      res.status(400).json({ message: "Invalid refresh token" });
+      return;
+    }
     const user =
       payload.role === "doctor"
         ? await Doctor.findById(payload.id)
@@ -117,11 +127,11 @@ async function refreshToken(req, res) {
       res.status(400).json({ message: "Invalid refresh token" });
       return;
     }
-    const refreshToken = service.generateToken(user, payload.role, "30d");
+    const refreshToken = authService.generateToken(user, payload.role, "30d");
     user.refreshToken = refreshToken;
     await user.save();
 
-    const accessToken = service.generateToken(user, payload.role);
+    const accessToken = authService.generateToken(user, payload.role);
 
     res.status(200).json({ accessToken, refreshToken });
   } catch (error) {
@@ -150,8 +160,24 @@ async function getCurrentUser(req, res) {
   }
 }
 
+async function requestOTP(req, res) {
+  const { phone } = req.body || {};
+  try {
+    await OTPService.generate(phone);
+    res.status(200).json({ message: "OTP sent" });
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+}
+
 async function verifyOTP(req, res) {
-  res.status(501).json({ message: "OTP verification not implemented yet" });
+  const { phone, code } = req.body || {};
+  try {
+    const result = await OTPService.verify(phone, code);
+    res.status(200).json(result);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
 }
 
 export default {
@@ -160,5 +186,6 @@ export default {
   logout,
   refreshToken,
   getCurrentUser,
+  requestOTP,
   verifyOTP,
 };
