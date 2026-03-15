@@ -12,7 +12,7 @@ const patientSchema = new mongoose.Schema({
   gender: { type: String, enum: ["male", "female"] },
   phone: String,
   address: String,
-  role : { type: String, default: "patient" },
+  role: { type: String, default: "patient" },
 
   emergencyContacts: [
     {
@@ -31,6 +31,11 @@ const patientSchema = new mongoose.Schema({
       accepted: { type: Boolean, default: false },
     },
   ],
+
+  // ----------------- OTP Fields -----------------
+  otpVerified: { type: Boolean, default: false },
+  otpCode: String,
+  otpExpiresAt: Date,
 
   createdAt: { type: Date, default: Date.now },
 });

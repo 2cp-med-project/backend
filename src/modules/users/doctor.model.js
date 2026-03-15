@@ -13,6 +13,11 @@ const doctorSchema = new mongoose.Schema({
   cabinetAddress: String, // optional or could be hospital location
   patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Patient" }],
 
+  // ----------------- OTP Fields -----------------
+  otpVerified: { type: Boolean, default: false },
+  otpCode: String,
+  otpExpiresAt: Date,
+
   createdAt: { type: Date, default: Date.now },
 });
 
