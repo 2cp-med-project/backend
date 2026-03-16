@@ -11,12 +11,16 @@ function generateCode() {
 
 // -------- GENERATE OTP --------
 async function generate(phone, role) {
+  if (!phone || !role || !["doctor", "patient"].includes(role)) {
+    throw new Error("Missing required fields");
+  }
+
   const code = generateCode();
   const user =
     role === "doctor"
       ? await Doctor.findOne({ phone })
       : await Patient.findOne({ phone });
-  if (!user) throw new Error("Patient not found");
+  if (!user) throw new Error("User not found");
 
   // store OTP in DB
   user.otpCode = code;
@@ -33,6 +37,10 @@ async function generate(phone, role) {
 
 // -------- VERIFY OTP --------
 async function verify(phone, code, role) {
+  if (!phone || !code || !role || !["doctor", "patient"].includes(role)) {
+    throw new Error("Missing required fields");
+  }
+
   const user =
     role === "doctor"
       ? await Doctor.findOne({ phone })
