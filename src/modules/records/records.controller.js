@@ -182,7 +182,7 @@ async function updateConsultation(req, res) {
     }
 
     let updateData = {};
-    for (const key in req.body) {
+    for (const key in newData) {
       if (allowedFields.includes(key) && newData[key] !== undefined) {
         updateData[key] = newData[key];
       }
