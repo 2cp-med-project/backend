@@ -101,34 +101,46 @@ async function logout(req, res) {
 }
 
 async function refreshToken(req, res) {
-  const { oldRefreshToken } = req.body || {};
+  const { refreshToken } = req.body || {};
   try {
-    if (!oldRefreshToken) {
+    if (!refreshToken) {
       res.status(400).json({ message: "Missing refresh token" });
       return;
     }
-    const payload = authService.verifyToken(oldRefreshToken);
+    const payload = authService.verifyToken(refreshToken);
     const user =
       payload.role === "doctor"
         ? await Doctor.findById(payload.id)
         : await Patient.findById(payload.id);
 
-    if (!user || user.refreshToken !== oldRefreshToken) {
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    if (!user.refreshToken) {
+      res
+        .status(400)
+        .json({ message: "No active session, please log in again" });
+      return;
+    }
+
+    if (user.refreshToken !== refreshToken) {
       res.status(400).json({ message: "Invalid refresh token" });
       return;
     }
 
-    const refreshToken = authService.generateToken(
+    const newRefreshToken = authService.generateToken(
       user.id,
       payload.role,
       "30d",
     );
-    user.refreshToken = refreshToken;
+    user.refreshToken = newRefreshToken;
     await user.save();
 
     const accessToken = authService.generateToken(user.id, payload.role);
 
-    res.status(200).json({ accessToken, refreshToken });
+    res.status(200).json({ accessToken, refreshToken: newRefreshToken });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -141,15 +153,44 @@ async function getCurrentUser(req, res) {
       res.status(400).json({ message: "Invalid user data" });
       return;
     }
+
+    const returnedFields =
+      role === "doctor"
+        ? {
+            firstName: 1,
+            lastName: 1,
+            licenseNumber: 1,
+            specialization: 1,
+            email: 1,
+            phone: 1,
+            address: 1,
+            patients: 1,
+            createdAt: 1,
+          }
+        : {
+            firstName: 1,
+            lastName: 1,
+            email: 1,
+            phone: 1,
+            dateOfBirth: 1,
+            placeOfBirth: 1,
+            gender: 1,
+            address: 1,
+            emergencyContacts: 1,
+            medicalResume: 1,
+            doctorsAccess: 1,
+            createdAt: 1,
+          };
+
     const user =
       role === "doctor"
-        ? await Doctor.findById(id, { password: 0, refreshToken: 0 })
-        : await Patient.findById(id, { password: 0, refreshToken: 0 });
+        ? await Doctor.findById(id, returnedFields)
+        : await Patient.findById(id, returnedFields);
     if (!user) {
       res.status(404).json({ message: "User not found" });
       return;
     }
-    res.status(200).json({ user });
+    res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

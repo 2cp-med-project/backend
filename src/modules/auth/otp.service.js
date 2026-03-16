@@ -1,7 +1,7 @@
 // services/OTPService.js
 
-import Patient from "../users/patient.model";
-import Doctor from "../users/doctor.model";
+import Patient from "../users/patient.model.js";
+import Doctor from "../users/doctor.model.js";
 
 const OTP_EXPIRATION = 5 * 60 * 1000; // 5 minutes
 

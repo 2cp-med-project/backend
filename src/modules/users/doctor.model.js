@@ -10,7 +10,7 @@ const doctorSchema = new mongoose.Schema({
   refreshToken: String, // for token refresh
   specialization: String,
   phone: String,
-  cabinetAddress: String, // optional or could be hospital location
+  Address: String, // optional or could be hospital location
   patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Patient" }],
 
   // ----------------- OTP Fields -----------------
