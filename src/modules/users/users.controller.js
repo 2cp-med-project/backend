@@ -6,4 +6,4 @@ async function getDoctors(req, res) {
   res.status(502).json({ message: "Not Implemented" });
 }
 
-export { getPatients, getDoctors };
+export default { getPatients, getDoctors };

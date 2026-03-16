@@ -6,7 +6,7 @@ const patientSchema = new mongoose.Schema({
 
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-
+  refreshToken: String, // for token refresh
   dateOfBirth: Date,
   placeOfBirth: String,
   gender: { type: String, enum: ["male", "female"], required: true },
@@ -32,6 +32,11 @@ const patientSchema = new mongoose.Schema({
       accepted: { type: Boolean, default: false },
     },
   ],
+
+  // ----------------- OTP Fields -----------------
+  otpVerified: { type: Boolean, default: false },
+  otpCode: String,
+  otpExpiresAt: Date,
 
   createdAt: { type: Date, default: Date.now },
 });
