@@ -17,7 +17,7 @@ router.post("/logout", controller.logout);
 
 router.post("/refresh-token", controller.refreshToken);
 
-reouter.post("/request-otp", controller.requestOTP);
+router.post("/request-otp", controller.requestOTP);
 
 router.post("/verify-otp", controller.verifyOTP);
 
