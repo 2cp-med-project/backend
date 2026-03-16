@@ -12,6 +12,13 @@ const doctorSchema = new mongoose.Schema({
   address: String, // optional or could be hospital location
   patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Patient" }],
 
+  refreshToken: String, // for token refresh
+
+  // ----------------- OTP Fields -----------------
+  otpVerified: { type: Boolean, default: false },
+  otpCode: String,
+  otpExpiresAt: Date,
+
   createdAt: { type: Date, default: Date.now },
 });
 
