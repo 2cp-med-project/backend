@@ -16,7 +16,7 @@
         "post": {
           "tags": ["Auth"],
           "summary": "Register a user",
-          "description": "Register a new patient or doctor.",
+          "description": "Register a new patient or doctor. If userType is 'doctor', licenseNumber is required.",
           "requestBody": {
             "required": true,
             "content": {
@@ -28,11 +28,24 @@
             }
           },
           "responses": {
-            "201": {
-              "description": "User registered successfully."
+            "200": {
+              "description": "User registered successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string",
+                        "example": "User registered successfully"
+                      }
+                    }
+                  }
+                }
+              }
             },
             "400": {
-              "description": "Validation error."
+              "description": "Missing required fields, invalid user type, or email already registered."
             }
           }
         }
@@ -41,7 +54,44 @@
         "post": {
           "tags": ["Auth"],
           "summary": "Login",
-          "description": "Authenticate user and return token.",
+          "description": "Authenticate a patient or doctor and return a refresh token.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginUser"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Login successful. Returns a refresh token.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "refreshToken": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Missing required fields or invalid credentials."
+            }
+          }
+        }
+      },
+      "/auth/logout": {
+        "post": {
+          "tags": ["Auth"],
+          "summary": "Logout",
+          "description": "Log out a user by clearing their stored refresh token.",
           "requestBody": {
             "required": true,
             "content": {
@@ -99,45 +149,18 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "email": {
-                      "type": "string"
-                    },
-                    "otp": {
-                      "type": "string"
-                    }
-                  },
-                  "required": ["email", "otp"]
+                  "$ref": "#/components/schemas/SymptomRequest"
                 }
               }
             }
           },
           "responses": {
             "200": {
-              "description": "OTP verified successfully."
-            },
-            "400": {
-              "description": "Invalid or expired OTP."
-            }
-          }
-        }
-      },
-      "/users/patients": {
-        "get": {
-          "tags": ["Users"],
-          "summary": "List all patients",
-          "description": "Retrieve a list of all patients.",
-          "responses": {
-            "200": {
-              "description": "List of patients",
+              "description": "Specialty predicted",
               "content": {
                 "application/json": {
                   "schema": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Patient"
-                    }
+                    "$ref": "#/components/schemas/SpecialtyPrediction"
                   }
                 }
               }
@@ -229,246 +252,6 @@
             }
           }
         }
-      },
-      "/records/consultation/{id}": {
-        "get": {
-          "tags": ["Consultations"],
-          "summary": "Get a consultation by ID",
-          "description": "Retrieve a single consultation by its ID.",
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Consultation found",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Consultation"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Consultation not found."
-            },
-            "400": {
-              "description": "Bad request."
-            }
-          }
-        },
-        "patch": {
-          "tags": ["Consultations"],
-          "summary": "Update a consultation",
-          "description": "Partially update an existing consultation by its ID.",
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConsultationInput"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Consultation updated",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Consultation"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Consultation not found."
-            },
-            "400": {
-              "description": "Validation error."
-            }
-          }
-        },
-        "delete": {
-          "tags": ["Consultations"],
-          "summary": "Delete a consultation",
-          "description": "Delete a consultation by its ID.",
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Consultation deleted successfully."
-            },
-            "404": {
-              "description": "Consultation not found."
-            },
-            "400": {
-              "description": "Bad request."
-            }
-          }
-        }
-      },
-      "/records/consultations/{patientId}": {
-        "get": {
-          "tags": ["Consultations"],
-          "summary": "List consultations for a patient",
-          "description": "Retrieve a paginated, sortable list of consultations for a given patient.",
-          "parameters": [
-            {
-              "name": "patientId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            },
-            {
-              "name": "page",
-              "in": "query",
-              "required": false,
-              "description": "Page number (0-based). Defaults to 0.",
-              "schema": {
-                "type": "integer",
-                "default": 0
-              }
-            },
-            {
-              "name": "limit",
-              "in": "query",
-              "required": false,
-              "description": "Number of results per page. Defaults to 10.",
-              "schema": {
-                "type": "integer",
-                "default": 10
-              }
-            },
-            {
-              "name": "sortBy",
-              "in": "query",
-              "required": false,
-              "description": "Field to sort by. Defaults to 'date'.",
-              "schema": {
-                "type": "string",
-                "default": "date"
-              }
-            },
-            {
-              "name": "order",
-              "in": "query",
-              "required": false,
-              "description": "Sort order: 'asc' or 'desc'. Defaults to 'desc'.",
-              "schema": {
-                "type": "string",
-                "enum": ["asc", "desc"],
-                "default": "desc"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Paginated list of consultations",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Consultation"
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Invalid sort field or sort order."
-            }
-          }
-        }
-      },
-      "/medical-card/scan/{cardId}": {
-        "get": {
-          "tags": ["Medical Card"],
-          "summary": "Scan digital health card",
-          "parameters": [
-            {
-              "name": "cardId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Patient data retrieved",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/MedicalCardResponse"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Card not found."
-            }
-          }
-        }
-      },
-      "/ai/specialty": {
-        "post": {
-          "tags": ["AI"],
-          "summary": "AI — Recommend medical specialty",
-          "description": "Send symptoms and receive predicted specialty.",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SymptomRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Specialty predicted",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/SpecialtyPrediction"
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     },
     "components": {
@@ -476,46 +259,6 @@
         "RegisterUser": {
           "type": "object",
           "properties": {
-            "role": {
-              "type": "string",
-              "enum": ["patient", "doctor"]
-            },
-            "fullName": {
-              "type": "string"
-            },
-            "email": {
-              "type": "string"
-            },
-            "password": {
-              "type": "string"
-            },
-            "specialty": {
-              "type": "string"
-            },
-            "location": {
-              "type": "string"
-            }
-          },
-          "required": ["role", "email", "password"]
-        },
-        "LoginUser": {
-          "type": "object",
-          "properties": {
-            "email": {
-              "type": "string"
-            },
-            "password": {
-              "type": "string"
-            }
-          },
-          "required": ["email", "password"]
-        },
-        "Patient": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
             "firstName": {
               "type": "string"
             },
@@ -525,27 +268,46 @@
             "email": {
               "type": "string"
             },
-            "dateOfBirth": {
+            "password": {
+              "type": "string"
+            },
+            "userType": {
               "type": "string",
-              "format": "date"
+              "enum": ["patient", "doctor"]
             },
-            "placeOfBirth": {
-              "type": "string"
-            },
-            "gender": {
+            "licenseNumber": {
               "type": "string",
-              "enum": ["male", "female"]
-            },
-            "phone": {
+              "description": "Required if userType is 'doctor'"
+            }
+          },
+          "required": ["firstName", "lastName", "email", "password", "userType"]
+        },
+        "LoginUser": {
+          "type": "object",
+          "properties": {
+            "email": {
               "type": "string"
             },
-            "address": {
+            "password": {
               "type": "string"
             },
-            "medicalResume": {
+            "userType": {
+              "type": "string",
+              "enum": ["patient", "doctor"]
+            }
+          },
+          "required": ["email", "password", "userType"]
+        },
+        "Patient": {
+          "type": "object",
+          "properties": {
+            "id": {
               "type": "string"
             },
-            "cardQRCode": {
+            "fullName": {
+              "type": "string"
+            },
+            "email": {
               "type": "string"
             }
           }
@@ -556,172 +318,14 @@
             "id": {
               "type": "string"
             },
-            "firstName": {
+            "fullName": {
               "type": "string"
             },
-            "lastName": {
+            "specialty": {
               "type": "string"
             },
-            "email": {
+            "location": {
               "type": "string"
-            },
-            "specialization": {
-              "type": "string"
-            },
-            "phone": {
-              "type": "string"
-            },
-            "licenseNumber": {
-              "type": "string"
-            },
-            "cabinetAddress": {
-              "type": "string"
-            }
-          }
-        },
-        "ConsultationInput": {
-          "type": "object",
-          "properties": {
-            "doctorId": {
-              "type": "string",
-              "description": "Doctor ObjectId"
-            },
-            "patientId": {
-              "type": "string",
-              "description": "Patient ObjectId"
-            },
-            "date": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "status": {
-              "type": "string",
-              "enum": ["scheduled", "completed", "cancelled"]
-            },
-            "typeofvisit": {
-              "type": "string"
-            },
-            "motive": {
-              "type": "string"
-            },
-            "symptoms": {
-              "type": "string"
-            },
-            "severity": {
-              "type": "string",
-              "enum": ["mild", "moderate", "severe"]
-            },
-            "followUpDate": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "diagnosis": {
-              "type": "string"
-            },
-            "treatmentPlan": {
-              "type": "string"
-            },
-            "notes": {
-              "type": "string"
-            },
-            "bloodPressure": {
-              "type": "string"
-            },
-            "heartRate": {
-              "type": "string"
-            },
-            "respiratoryRate": {
-              "type": "string"
-            },
-            "temperature": {
-              "type": "string"
-            },
-            "weight": {
-              "type": "string"
-            },
-            "systemReview": {
-              "type": "string"
-            },
-            "additionalTests": {
-              "type": "string"
-            }
-          },
-          "required": ["doctorId", "patientId", "date"]
-        },
-        "Consultation": {
-          "type": "object",
-          "properties": {
-            "_id": {
-              "type": "string"
-            },
-            "doctor": {
-              "type": "string",
-              "description": "Doctor ObjectId"
-            },
-            "patient": {
-              "type": "string",
-              "description": "Patient ObjectId"
-            },
-            "date": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "status": {
-              "type": "string",
-              "enum": ["scheduled", "completed", "cancelled"]
-            },
-            "typeofvisit": {
-              "type": "string"
-            },
-            "motive": {
-              "type": "string"
-            },
-            "symptoms": {
-              "type": "string"
-            },
-            "severity": {
-              "type": "string",
-              "enum": ["mild", "moderate", "severe"]
-            },
-            "followUpDate": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "diagnosis": {
-              "type": "string"
-            },
-            "treatmentPlan": {
-              "type": "string"
-            },
-            "notes": {
-              "type": "string"
-            },
-            "bloodPressure": {
-              "type": "string"
-            },
-            "heartRate": {
-              "type": "string"
-            },
-            "respiratoryRate": {
-              "type": "string"
-            },
-            "temperature": {
-              "type": "string"
-            },
-            "weight": {
-              "type": "string"
-            },
-            "systemReview": {
-              "type": "string"
-            },
-            "additionalTests": {
-              "type": "string"
-            },
-            "attachments": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
             }
           }
         },
