@@ -169,4 +169,4 @@ async function getDoctorById(req, res) {
   }
 }
 
-export { getPatients, getDoctors, getPatientById, getDoctorById };
+export default { getPatients, getDoctors, getPatientById, getDoctorById };
