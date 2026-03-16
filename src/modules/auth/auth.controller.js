@@ -13,6 +13,7 @@ async function signin(req, res) {
     !email ||
     !password ||
     !role ||
+    !["doctor", "patient"].includes(role) ||
     (role === "doctor" && !licenseNumber)
   ) {
     res.status(400).json({ message: "Missing required fields" });
@@ -26,30 +27,27 @@ async function signin(req, res) {
       res.status(400).json({ message: "This email is already registered" });
       return;
     }
-    const hashedpassword = await authService.generatehash(password);
-    let newUser;
-    if (role === "doctor") {
-      newUser = new Doctor({
-        firstName,
-        lastName,
-        email,
-        password: hashedpassword,
-        licenseNumber,
-      });
-    } else if (role === "patient") {
-      newUser = new Patient({
-        firstName,
-        lastName,
-        email,
-        password: hashedpassword,
-      });
-    } else {
-      res.status(400).json({ message: "Invalid role" });
-      return;
-    }
 
-    const refreshToken = authService.generateToken(newUser, role, "7d");
+    const hashedpassword = await authService.generatehash(password);
+    const newUser =
+      role === "doctor"
+        ? new Doctor({
+            firstName,
+            lastName,
+            email,
+            password: hashedpassword,
+            licenseNumber,
+          })
+        : new Patient({
+            firstName,
+            lastName,
+            email,
+            password: hashedpassword,
+          });
+
+    const refreshToken = authService.generateToken(newUser.id, role, "7d");
     newUser.refreshToken = refreshToken;
+
     await newUser.save();
     res.status(201).json({
       message: "User registered successfully",
@@ -70,7 +68,7 @@ async function login(req, res) {
     }
     const user = await authService.checkPassword(password, email, role);
     const refreshToken =
-      user.refreshToken || authService.generateToken(user, role, "30d");
+      user.refreshToken || authService.generateToken(user.id, role, "30d");
     user.refreshToken = refreshToken;
     await user.save();
     res.status(200).json({ userId: user.id, refreshToken });
@@ -110,28 +108,25 @@ async function refreshToken(req, res) {
       return;
     }
     const payload = authService.verifyToken(oldRefreshToken);
-    if (
-      !payload ||
-      !payload.id ||
-      !payload.role ||
-      !["doctor", "patient"].includes(payload.role)
-    ) {
-      res.status(400).json({ message: "Invalid refresh token" });
-      return;
-    }
     const user =
       payload.role === "doctor"
         ? await Doctor.findById(payload.id)
         : await Patient.findById(payload.id);
+
     if (!user || user.refreshToken !== oldRefreshToken) {
       res.status(400).json({ message: "Invalid refresh token" });
       return;
     }
-    const refreshToken = authService.generateToken(user, payload.role, "30d");
+
+    const refreshToken = authService.generateToken(
+      user.id,
+      payload.role,
+      "30d",
+    );
     user.refreshToken = refreshToken;
     await user.save();
 
-    const accessToken = authService.generateToken(user, payload.role);
+    const accessToken = authService.generateToken(user.id, payload.role);
 
     res.status(200).json({ accessToken, refreshToken });
   } catch (error) {
@@ -161,9 +156,14 @@ async function getCurrentUser(req, res) {
 }
 
 async function requestOTP(req, res) {
-  const { phone } = req.body || {};
+  const { phone, role } = req.body || {};
   try {
-    await OTPService.generate(phone);
+    if (!phone || !role || !["doctor", "patient"].includes(role)) {
+      res.status(400).json({ message: "Missing required fields" });
+      return;
+    }
+
+    await OTPService.generate(phone, role);
     res.status(200).json({ message: "OTP sent" });
   } catch (e) {
     res.status(500).json({ message: e.message });
@@ -171,9 +171,14 @@ async function requestOTP(req, res) {
 }
 
 async function verifyOTP(req, res) {
-  const { phone, code } = req.body || {};
+  const { phone, code, role } = req.body || {};
   try {
-    const result = await OTPService.verify(phone, code);
+    if (!phone || !code || !role || !["doctor", "patient"].includes(role)) {
+      res.status(400).json({ message: "Missing required fields" });
+      return;
+    }
+
+    const result = await OTPService.verify(phone, code, role);
     res.status(200).json(result);
   } catch (e) {
     res.status(500).json({ message: e.message });
