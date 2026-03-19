@@ -26,7 +26,7 @@ async function getPatients(req, res) {
     dateOfBirth: 1,
     placeOfBirth: 1,
     gender: 1,
-  }; //TODO: add the record field after merging with the record module.
+  };
 
   try {
     if (!allowedSortFields.includes(sortBy)) {
@@ -79,7 +79,6 @@ async function getDoctors(req, res) {
     email: 1,
     phone: 1,
     specialization: 1,
-    licenseNumber: 1,
     createdAt: 1,
   };
 
@@ -148,7 +147,7 @@ async function getDoctorById(req, res) {
     email: 1,
     phone: 1,
     specialization: 1,
-    licenseNumber: 1,
+    address: 1,
     createdAt: 1,
   };
 
@@ -169,4 +168,63 @@ async function getDoctorById(req, res) {
   }
 }
 
-export default { getPatients, getDoctors, getPatientById, getDoctorById };
+async function getProfile(req, res) {
+  const { id, role } = req.user || {};
+  try {
+    if (!id || !role || !["doctor", "patient"].includes(role)) {
+      res.status(400).json({ message: "Invalid user data" });
+      return;
+    }
+
+    const returnedFields =
+      role === "doctor"
+        ? {
+            firstName: 1,
+            lastName: 1,
+            licenseNumber: 1,
+            specialization: 1,
+            email: 1,
+            phone: 1,
+            address: 1,
+            patients: 1,
+            createdAt: 1,
+          }
+        : {
+            firstName: 1,
+            lastName: 1,
+            email: 1,
+            phone: 1,
+            dateOfBirth: 1,
+            placeOfBirth: 1,
+            gender: 1,
+            address: 1,
+            emergencyContacts: 1,
+            medicalResume: 1,
+            doctorsAccess: 1,
+            createdAt: 1,
+          }; //TODO: add the list of consultations
+
+    const user =
+      role === "doctor"
+        ? await Doctor.findById(id, returnedFields)
+        : await Patient.findById(id, returnedFields);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+async function updateProfile(req, res) {}
+
+export default {
+  getPatients,
+  getDoctors,
+  getPatientById,
+  getDoctorById,
+  getProfile,
+  updateProfile,
+};

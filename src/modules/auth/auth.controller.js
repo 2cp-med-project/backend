@@ -146,56 +146,6 @@ async function refreshToken(req, res) {
   }
 }
 
-async function getCurrentUser(req, res) {
-  const { id, role } = req.user || {};
-  try {
-    if (!id || !role || !["doctor", "patient"].includes(role)) {
-      res.status(400).json({ message: "Invalid user data" });
-      return;
-    }
-
-    const returnedFields =
-      role === "doctor"
-        ? {
-            firstName: 1,
-            lastName: 1,
-            licenseNumber: 1,
-            specialization: 1,
-            email: 1,
-            phone: 1,
-            address: 1,
-            patients: 1,
-            createdAt: 1,
-          }
-        : {
-            firstName: 1,
-            lastName: 1,
-            email: 1,
-            phone: 1,
-            dateOfBirth: 1,
-            placeOfBirth: 1,
-            gender: 1,
-            address: 1,
-            emergencyContacts: 1,
-            medicalResume: 1,
-            doctorsAccess: 1,
-            createdAt: 1,
-          };
-
-    const user =
-      role === "doctor"
-        ? await Doctor.findById(id, returnedFields)
-        : await Patient.findById(id, returnedFields);
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-    res.status(200).json(user);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-}
-
 async function requestOTP(req, res) {
   const { phone, role } = req.body || {};
   try {
@@ -231,7 +181,6 @@ export default {
   login,
   logout,
   refreshToken,
-  getCurrentUser,
   requestOTP,
   verifyOTP,
 };
