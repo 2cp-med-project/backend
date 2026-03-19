@@ -1,10 +1,8 @@
 import express from "express";
-import usersRoutes from "./modules/users/users.routes.js";
+import chatbotRoutes from "./modules/chatbot/chatbot.routes.js";
 
 const router = express.Router();
 
-console.log(typeof usersRoutes);
-
-router.use("/users", usersRoutes);
+router.use("/chat", chatbotRoutes);
 
 export default router;
