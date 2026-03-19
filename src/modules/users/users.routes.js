@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Patients
 // router.post("/patients", controller.createPatient);
-router.get("/patients", controller.getPatients);
+// router.get("/patients", controller.getPatients);
 
 // // Doctors
 // router.post("/doctors", controller.createDoctor);

@@ -1,41 +1,44 @@
 const mongoose = require("mongoose");
 
 const reportSchema = new mongoose.Schema(
-  {
-    typeOfVisit: { type: String, required: true },
-    motive: { type: String, required: true },
+	{
+		typeOfVisit: { type: String, required: true },
+		motive: { type: String, required: true },
 
-    vitals: {
-      bloodPressure: String,
-      heartRate: String,
-      respiratoryRate: String,
-      temperature: String,
-      weight: String,
-    },
+		vitals: {
+			bloodPressure: String,
+			heartRate: String,
+			respiratoryRate: String,
+			temperature: String,
+			weight: String,
+		},
 
-    symptoms: { type: String, required: true },
-    severity: {
-      type: String,
-      enum: ["Mild", "Moderate", "Severe"],
-      required: true,
-    },
-    systemReview: String,
+		symptoms: { type: String, required: true },
+		severity: {
+			type: String,
+			enum: ["Mild", "Moderate", "Severe"],
+			required: true,
+		},
+		systemReview: String,
 
-    diagnosis: String,
-    notes: String,
+		diagnosis: String,
+		notes: String,
 
-    treatmentPlan: String,
-    additionalTests: String,
-    attachments: [{ type: String }],
-    followUp: { type: Boolean, required: true, default: false },
+		treatmentPlan: String,
+		additionalTests: String,
+		attachments: [{ type: String }],
+		followUp: { type: Boolean, required: true, default: false },
 
-    doctorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Doctor",
-      required: true,
-    },
-  },
-  { timestamps: true },
+		doctorId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Doctor",
+			required: true,
+		},
+	},
+	{
+		timestamps: true,
+		minimize: false,
+	},
 );
 
-module.exports = mongoose.model("Report", reportSchema);
+export const Report = mongoose.model("Report", reportSchema);
