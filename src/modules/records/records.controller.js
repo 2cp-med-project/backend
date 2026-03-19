@@ -153,6 +153,9 @@ async function getConsultations(req, res) {
 }
 
 async function updateConsultation(req, res) {
+  const newData = req.body || {};
+  const { id } = req.params || {};
+
   const allowedFields = [
     "date",
     "status",
@@ -172,8 +175,6 @@ async function updateConsultation(req, res) {
     "systemReview",
     "additionalTests",
   ];
-  const newData = req.body || {};
-  const { id } = req.params || {};
 
   try {
     if (!id) {
