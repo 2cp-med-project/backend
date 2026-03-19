@@ -5,20 +5,22 @@ import authorize from "../../middleware/role.js";
 
 const router = express.Router();
 
-router.use("/patients", authenticate);
-router.use("/patients", authorize("admin", "doctor"));
-router.get("/patients", controller.getPatients);
+router.use("/me", authMiddleware);
+router.get("/me", controller.getProfile);
+router.patch("/me", controller.updateProfile);
 
 router.use("/patient/:id", authenticate);
-router.use("/patient/:id", authorize("admin", "doctor", "patient"));
+router.use("/patient/:id", authorize("doctor"));
 router.get("/patient/:id", controller.getPatientById);
 
-router.use("/doctors", authenticate);
-router.use("/doctors", authorize("admin", "doctor"));
-router.get("/doctors", controller.getDoctors);
+router.use("/patients", authenticate);
+router.use("/patients", authorize("doctor"));
+router.get("/patients", controller.getPatients);
 
 router.use("/doctor/:id", authenticate);
-router.use("/doctor/:id", authorize("admin", "doctor", "patient"));
 router.get("/doctor/:id", controller.getDoctorById);
+
+router.use("/doctors", authenticate);
+router.get("/doctors", controller.getDoctors);
 
 export default router;
