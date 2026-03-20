@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
+import { createServer } from "http";
+import { Server as SocketIOServer } from "socket.io";
 import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
 import connectDB from "./config/db.js";
 import { workflow } from "./modules/chatbot/chatbot.service.js";
@@ -13,7 +15,7 @@ const require = createRequire(import.meta.url);
 const swaggerOptions = require("../swagger.json");
 
 import routes from "./routes.js";
-import mongoose from "mongoose";
+import { handleSocketConnection } from "./modules/chat/socket.controller.js";
 
 // Initialize app
 const app = express();
@@ -30,6 +32,17 @@ const checkpointer = new MongoDBSaver({ client });
 
 // Initialize AI Agent
 export const medicalAgentApp = workflow.compile({ checkpointer });
+
+// Initialize HTTP Server
+const httpServer = createServer(app);
+
+// Initialize SocketIO Server
+const io = new SocketIOServer(httpServer, {
+	cors: { origin: "*", methods: ["GET", "POST"] },
+});
+
+// Handle Socket Connection
+handleSocketConnection(io);
 
 // Swagger Docs
 const specs = swaggerJsdoc({
@@ -52,5 +65,6 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, swaggerUiOptions));
 app.use("/api", routes);
 
 // Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+httpServer.listen(process.env.PORT, () =>
+	console.log(`Server running on port ${process.env.PORT}`),
+);
