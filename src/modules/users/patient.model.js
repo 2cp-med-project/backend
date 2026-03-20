@@ -1,37 +1,46 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const patientSchema = new mongoose.Schema(
+const patientSchema = new Schema(
 	{
 		firstName: { type: String, required: true, trim: true },
 		lastName: { type: String, required: true, trim: true },
-		gender: { type: String, enum: ["Male", "Female"] },
-		dateOfBirth: Date,
-		placeOfBirth: String,
-
-		email: { type: String, required: true, unique: true, lowercase: true },
-		phone: String,
-		address: String,
-
+		userName: {
+			type: String,
+			unique: true,
+			lowercase: true,
+			trim: true,
+			sparse: true,
+		},
+		email: {
+			type: String,
+			required: true,
+			unique: true,
+			lowercase: true,
+			trim: true,
+		},
 		password: { type: String, required: true },
+		phoneNumber: { type: String, trim: true },
+		gender: { type: String, enum: ["Male", "Female"] },
+
+		dateOfBirth: { type: Date },
+		placeOfBirth: { type: String, trim: true },
+		address: { type: String, trim: true },
 
 		emergencyContacts: [
 			{
 				name: { type: String, trim: true },
-				phone: String,
-				relation: String,
+				phoneNumber: { type: String, trim: true },
+				relation: { type: String, trim: true },
 			},
 		],
 
 		medicalConsultations: [
-			{ type: mongoose.Schema.Types.ObjectId, ref: "Consultation" },
+			{ type: Schema.Types.ObjectId, ref: "Consultation" },
 		],
 
 		doctorsAccess: [
 			{
-				doctorId: {
-					type: mongoose.Schema.Types.ObjectId,
-					ref: "Doctor",
-				},
+				doctorId: { type: Schema.Types.ObjectId, ref: "Doctor" },
 				accepted: { type: Boolean, default: false },
 				requestedAt: { type: Date, default: Date.now },
 			},
@@ -45,4 +54,4 @@ const patientSchema = new mongoose.Schema(
 	},
 );
 
-export const Patient = mongoose.model("Patient", patientSchema);
+export const Patient = model("Patient", patientSchema);

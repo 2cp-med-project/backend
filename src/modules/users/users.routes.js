@@ -1,5 +1,5 @@
-const express = require("express");
-const controller = require("./users.controller");
+import express from "express";
+import { identifyDoctor, getAllDoctors } from "./users.controller.js";
 
 const router = express.Router();
 
@@ -15,4 +15,7 @@ const router = express.Router();
 // router.post("/admins", controller.createAdmin);
 // router.get("/admins", controller.getAdmins);
 
-module.exports = router;
+router.post("/doctors/identify", identifyDoctor);
+router.get("/doctors", getAllDoctors);
+
+export default router;
