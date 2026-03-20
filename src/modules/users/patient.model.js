@@ -12,7 +12,12 @@ const patientSchema = new mongoose.Schema({
   gender: { type: String, enum: ["male", "female"] },
   phone: String,
   address: String,
-  role: { type: String, default: "patient" },
+  role: {
+    type: String,
+    default: "patient",
+    enum: ["patient"],
+    immutable: true,
+  },
   emergencyContacts: [
     {
       name: String,

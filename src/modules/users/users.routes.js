@@ -5,7 +5,7 @@ import authorize from "../../middleware/role.js";
 
 const router = express.Router();
 
-router.use("/me", authMiddleware);
+router.use("/me", authenticate);
 router.get("/me", controller.getProfile);
 router.patch("/me", controller.updateProfile);
 
