@@ -5,7 +5,7 @@ const doctorSchema = new mongoose.Schema({
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, default: "doctor" },
+  role: { type: String, default: "doctor", enum: ["doctor"], immutable: true },
   specialization: String,
   phone: String,
   licenseNumber: { type: String, required: true, unique: true }, //scanning diplomat

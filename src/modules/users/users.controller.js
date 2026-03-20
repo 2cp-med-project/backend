@@ -134,7 +134,7 @@ async function getPatientById(req, res) {
     }
 
     res.status(200).json(patient);
-  } catch {
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 }
@@ -163,7 +163,7 @@ async function getDoctorById(req, res) {
     }
 
     res.status(200).json(doctor);
-  } catch {
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 }
@@ -218,7 +218,59 @@ async function getProfile(req, res) {
   }
 }
 
-async function updateProfile(req, res) {}
+async function updateProfile(req, res) {
+  const { id, role } = req.user || {};
+  const newData = req.body || {};
+
+  const allowFields =
+    role === "doctor"
+      ? ["firstName", "lastName", "email", "phone", "address", "specialization"]
+      : [
+          "firstName",
+          "lastName",
+          "phone",
+          "email",
+          "address",
+          "dateOfBirth",
+          "placeOfBirth",
+          "emergencyContacts",
+          "medicalResume",
+        ];
+  try {
+    if (!id || !role || !["doctor", "patient"].includes(role)) {
+      res.status(400).json({ message: "Invalid user data" });
+      return;
+    }
+
+    const update = {};
+    for (field in newData) {
+      if (allowFields.includes(field) && newData[field] !== undefined) {
+        update[field] = newData[field];
+      }
+    }
+
+    if (Object.keys(update).length === 0) {
+      res.status(400).json({ message: "No valid fields to update" });
+      return;
+    }
+
+    const opts = { new: true, runValidators: true }; // return the updated document
+
+    const updatedUser =
+      role === "doctor"
+        ? await Doctor.findByIdAndUpdate(id, update, opts).select(allowFields)
+        : await Patient.findByIdAndUpdate(id, update, opts).select(allowFields);
+
+    if (!updatedUser) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
 
 export default {
   getPatients,
