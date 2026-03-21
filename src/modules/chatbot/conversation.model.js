@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import { Schema, model } from "mongoose";
 
-const ConversationSchema = new mongoose.Schema(
+const ConversationSchema = new Schema(
 	{
 		userId: { type: String, required: true, index: true },
 		title: { type: String, default: "New Conversation" },
@@ -11,4 +11,4 @@ const ConversationSchema = new mongoose.Schema(
 	},
 );
 
-export const Conversation = mongoose.model("Conversation", ConversationSchema);
+export const Conversation = model("Conversation", ConversationSchema);

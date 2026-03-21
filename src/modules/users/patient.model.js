@@ -6,10 +6,11 @@ const patientSchema = new Schema(
 		lastName: { type: String, required: true, trim: true },
 		userName: {
 			type: String,
+			required: true,
 			unique: true,
 			lowercase: true,
 			trim: true,
-			sparse: true,
+			index: true,
 		},
 		email: {
 			type: String,
