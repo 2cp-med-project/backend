@@ -1,7 +1,7 @@
-import mongoose, { Schema } from "mongoose";
+import { Schema, model } from "mongoose";
 
 const RoomSchema = new Schema({
 	participants: [{ type: String, required: true }],
 });
 
-export const Room = mongoose.model("Room", RoomSchema);
+export const Room = model("Room", RoomSchema);
