@@ -3,7 +3,7 @@ import Access from "./access.model.js";
 //Doctor sends access request
 
 async function requestAccess(req, res) {
-  const { patientId } = req.body;
+  const patientId = req.body.patientId;
   const doctorId = req.user.id;
 
   try {
@@ -51,7 +51,7 @@ async function getPatientRequests(req, res) {
 // Patient approves or rejects
 
 async function respondAccess(req, res) {
-  const { accepted } = req.body;
+  const accepted = req.body.accepted;
   const accessId = req.params.id;
   const patientId = req.user.id;
 

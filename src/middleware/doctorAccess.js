@@ -5,6 +5,11 @@ async function doctorAccess(req, res, next) {
   const patientId = req.params.patientId;
 
   try {
+    if (!patientId) {
+      res.status(400).json({ message: "Patient ID is required" });
+      return;
+    }
+
     const access = await Access.findOne({
       doctor: doctorId,
       patient: patientId,
