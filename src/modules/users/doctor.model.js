@@ -5,18 +5,20 @@ const doctorSchema = new mongoose.Schema({
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role : { type: String, default: "doctor" },
-
-
+  role: { type: String, default: "doctor" },
+  licenseNumber: { type: String, required: true, unique: true }, //scanning diplomat
+  refreshToken: String, // for token refresh
   specialization: String,
   phone: String,
-  licenseNumber: { type: String, required: true, unique: true }, //scanning diplomat
-  cabinetAddress: String, // optional or could be hospital location
-  patients: [
-    { type: mongoose.Schema.Types.ObjectId, ref: "Patient" }
-  ],
+  Address: String, // optional or could be hospital location
+  patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Patient" }],
 
-  createdAt: { type: Date, default: Date.now }
+  // ----------------- OTP Fields -----------------
+  otpVerified: { type: Boolean, default: false },
+  otpCode: String,
+  otpExpiresAt: Date,
+
+  createdAt: { type: Date, default: Date.now },
 });
 
 export default mongoose.model("Doctor", doctorSchema);
