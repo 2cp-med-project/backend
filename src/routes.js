@@ -5,8 +5,10 @@ import accessRoutes from "./modules/access/access.routes.js";
 
 const router = express.Router();
 
+console.log(typeof usersRoutes);
+
 router.use("/users", usersRoutes);
 router.use("/auth", authRoutes);
 router.use("/access", accessRoutes);
 
-export default router;
+module.exports = router; 
