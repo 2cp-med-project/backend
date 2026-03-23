@@ -5,6 +5,10 @@ import Doctor from "../users/doctor.model.js";
 import Patient from "../users/patient.model.js";
 
 async function signin(req, res) {
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Register a new user (doctor or patient)'
+  // #swagger.description = 'Roles: doctor, patient'
+
   const { firstName, lastName, email, password, licenseNumber, role } =
     req.body || {};
   if (
@@ -60,6 +64,10 @@ async function signin(req, res) {
 }
 
 async function login(req, res) {
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Login a user (doctor or patient) and return a refresh token'
+  // #swagger.description = 'Roles: doctor, patient'
+
   const { email, password, role } = req.body || {};
   try {
     if (!email || !password || !role) {
@@ -78,6 +86,11 @@ async function login(req, res) {
 }
 
 async function logout(req, res) {
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Logout the current user by invalidating their refresh token'
+  // #swagger.security = [{ BearerAuth: [] }]
+  // #swagger.description = 'Roles: doctor, patient'
+
   const { id, role } = req.user || {};
   try {
     if (!id || !role || !["doctor", "patient"].includes(role)) {
@@ -101,6 +114,10 @@ async function logout(req, res) {
 }
 
 async function refreshToken(req, res) {
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Refresh access token using a valid refresh token'
+  // #swagger.description = 'Roles: doctor, patient'
+
   const { refreshToken } = req.body || {};
   try {
     if (!refreshToken) {
@@ -147,6 +164,11 @@ async function refreshToken(req, res) {
 }
 
 async function getCurrentUser(req, res) {
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Get the current logged-in user details'
+  // #swagger.security = [{ BearerAuth: [] }]
+  // #swagger.description = 'Roles: doctor, patient'
+
   const { id, role } = req.user || {};
   try {
     if (!id || !role || !["doctor", "patient"].includes(role)) {
@@ -197,6 +219,10 @@ async function getCurrentUser(req, res) {
 }
 
 async function requestOTP(req, res) {
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Request a One-Time Password (OTP) for phone verification'
+  // #swagger.description = 'Roles: doctor, patient'
+
   const { phone, role } = req.body || {};
   try {
     if (!phone || !role || !["doctor", "patient"].includes(role)) {
@@ -212,6 +238,10 @@ async function requestOTP(req, res) {
 }
 
 async function verifyOTP(req, res) {
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Verify a One-Time Password (OTP) for phone verification'
+  // #swagger.description = 'Roles: doctor, patient'
+
   const { phone, code, role } = req.body || {};
   try {
     if (!phone || !code || !role || !["doctor", "patient"].includes(role)) {
