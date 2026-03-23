@@ -1,666 +1,460 @@
 {
-  "definition": {
-    "openapi": "3.0.0",
-    "info": {
-      "title": "Medical Access API",
-      "version": "1.0.0",
-      "description": "Doctor - Patient Medical Platform with Access Control"
-    },
-    "servers": [
-      {
-        "url": "http://localhost:5000/api"
+  "openapi": "3.0.0",
+  "info": {
+    "title": "2CP API Documentation",
+    "version": "1.0.0",
+    "description": "API documentation for the 2CP project"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
       }
-    ],
-    "tags": [
-      {
-        "name": "Auth",
-        "description": "Authentication and session management"
-      },
-      { "name": "Users", "description": "User listing endpoints" },
-      { "name": "Records", "description": "Consultation records" }
-    ],
-    "paths": {
-      "/auth/signin": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Register a new user",
-          "description": "Create a doctor or patient account.",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/SigninRequest" }
-              }
-            }
+    },
+    "/api/users/patients": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get all patients",
+        "description": "Roles: doctor",
+        "responses": {
+          "502": {
+            "description": "Bad Gateway"
+          }
+        }
+      }
+    },
+    "/api/users/doctors": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Get all doctors",
+        "description": "Roles: patient",
+        "responses": {
+          "502": {
+            "description": "Bad Gateway"
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Get the current logged-in user details",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "200": {
+            "description": "OK"
           },
-          "responses": {
-            "201": {
-              "description": "User registered successfully",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/SigninResponse" }
-                }
-              }
-            },
-            "400": {
-              "description": "Missing required fields or email already registered"
-            },
-            "500": { "description": "Server error" }
-          }
-        }
-      },
-      "/auth/login": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Login user",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/LoginRequest" }
-              }
-            }
+          "400": {
+            "description": "Bad Request"
           },
-          "responses": {
-            "200": {
-              "description": "Login successful",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/LoginResponse" }
-                }
-              }
-            },
-            "400": { "description": "Missing required fields" },
-            "500": { "description": "Server error" }
-          }
-        }
-      },
-      "/auth/logout": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Logout current user",
-          "security": [{ "bearerAuth": [] }],
-          "responses": {
-            "200": {
-              "description": "Logged out successfully",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/MessageResponse" }
-                }
-              }
-            },
-            "400": { "description": "Invalid user data" },
-            "401": { "description": "Access token missing or malformed" },
-            "403": { "description": "Invalid access token" },
-            "404": { "description": "User not found" },
-            "500": { "description": "Server error" }
-          }
-        }
-      },
-      "/auth/refresh-token": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Refresh access and refresh tokens",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/RefreshTokenRequest" }
-              }
-            }
+          "404": {
+            "description": "Not Found"
           },
-          "responses": {
-            "200": {
-              "description": "Tokens refreshed",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/RefreshTokenResponse"
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Missing/invalid refresh token or no active session"
-            },
-            "404": { "description": "User not found" },
-            "500": { "description": "Server error" }
-          }
-        }
-      },
-      "/auth/request-otp": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Request OTP",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/RequestOtpRequest" }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "OTP sent",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/MessageResponse" }
-                }
-              }
-            },
-            "400": { "description": "Missing required fields" },
-            "500": { "description": "Server error" }
-          }
-        }
-      },
-      "/auth/verify-otp": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Verify OTP",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/VerifyOtpRequest" }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "OTP verification result",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/OtpVerifyResponse" }
-                }
-              }
-            },
-            "400": { "description": "Missing required fields" },
-            "500": { "description": "Server error" }
-          }
-        }
-      },
-      "/auth/me": {
-        "get": {
-          "tags": ["Auth"],
-          "summary": "Get current authenticated user",
-          "security": [{ "bearerAuth": [] }],
-          "responses": {
-            "200": {
-              "description": "Current user profile",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "oneOf": [
-                      { "$ref": "#/components/schemas/DoctorProfile" },
-                      { "$ref": "#/components/schemas/PatientProfile" }
-                    ]
-                  }
-                }
-              }
-            },
-            "400": { "description": "Invalid user data" },
-            "401": { "description": "Access token missing or malformed" },
-            "403": { "description": "Invalid access token" },
-            "404": { "description": "User not found" },
-            "500": { "description": "Server error" }
-          }
-        }
-      },
-      "/users/patients": {
-        "get": {
-          "tags": ["Users"],
-          "summary": "List patients",
-          "responses": {
-            "502": {
-              "description": "Not implemented",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/MessageResponse" }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/users/doctors": {
-        "get": {
-          "tags": ["Users"],
-          "summary": "List doctors",
-          "responses": {
-            "502": {
-              "description": "Not implemented",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/MessageResponse" }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/records/consultation": {
-        "post": {
-          "tags": ["Records"],
-          "summary": "Create consultation",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateConsultationRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Consultation created",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/Consultation" }
-                }
-              }
-            },
-            "400": { "description": "Missing required fields" },
-            "404": { "description": "Doctor or patient not found" },
-            "500": { "description": "Server error" }
-          }
-        }
-      },
-      "/records/consultation/{id}": {
-        "get": {
-          "tags": ["Records"],
-          "summary": "Get consultation by ID",
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": { "type": "string" }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Consultation",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/Consultation" }
-                }
-              }
-            },
-            "400": { "description": "Consultation ID is required" },
-            "404": { "description": "Consultation not found" },
-            "500": { "description": "Server error" }
+          "500": {
+            "description": "Internal Server Error"
           }
         },
-        "patch": {
-          "tags": ["Records"],
-          "summary": "Update consultation",
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": { "type": "string" }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpdateConsultationRequest"
-                }
-              }
-            }
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/signin": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register a new user (doctor or patient)",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "201": {
+            "description": "Created"
           },
-          "responses": {
-            "200": {
-              "description": "Updated consultation",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/Consultation" }
-                }
-              }
-            },
-            "400": { "description": "Consultation ID is required" },
-            "404": { "description": "Consultation not found" },
-            "500": { "description": "Server error" }
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         },
-        "delete": {
-          "tags": ["Records"],
-          "summary": "Delete consultation",
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": { "type": "string" }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Consultation deleted successfully",
-              "content": {
-                "application/json": {
-                  "schema": { "$ref": "#/components/schemas/MessageResponse" }
-                }
-              }
-            },
-            "400": { "description": "Consultation ID is required" },
-            "404": { "description": "Consultation not found" },
-            "500": { "description": "Server error" }
-          }
-        }
-      },
-      "/records/record/{patientId}": {
-        "get": {
-          "tags": ["Records"],
-          "summary": "List consultations by patient",
-          "parameters": [
-            {
-              "name": "patientId",
-              "in": "path",
-              "required": true,
-              "schema": { "type": "string" }
-            },
-            {
-              "name": "page",
-              "in": "query",
-              "required": false,
-              "schema": { "type": "integer", "minimum": 0, "default": 0 }
-            },
-            {
-              "name": "limit",
-              "in": "query",
-              "required": false,
-              "schema": { "type": "integer", "minimum": 1, "default": 10 }
-            },
-            {
-              "name": "sortBy",
-              "in": "query",
-              "required": false,
-              "schema": { "type": "string", "default": "date" }
-            },
-            {
-              "name": "order",
-              "in": "query",
-              "required": false,
+        "requestBody": {
+          "content": {
+            "application/json": {
               "schema": {
-                "type": "string",
-                "enum": ["asc", "desc"],
-                "default": "desc"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "List of consultations",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": { "$ref": "#/components/schemas/Consultation" }
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "example": "any"
+                  },
+                  "lastName": {
+                    "example": "any"
+                  },
+                  "email": {
+                    "example": "any"
+                  },
+                  "password": {
+                    "example": "any"
+                  },
+                  "licenseNumber": {
+                    "example": "any"
+                  },
+                  "role": {
+                    "example": "any"
                   }
                 }
               }
-            },
-            "400": {
-              "description": "Invalid patient ID, sort field, order, page, or limit"
-            },
-            "500": { "description": "Server error" }
+            }
           }
         }
       }
     },
-    "components": {
-      "securitySchemes": {
-        "bearerAuth": {
-          "type": "http",
-          "scheme": "bearer",
-          "bearerFormat": "JWT"
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login a user (doctor or patient) and return a refresh token",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "example": "any"
+                  },
+                  "password": {
+                    "example": "any"
+                  },
+                  "role": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
         }
-      },
-      "schemas": {
-        "MessageResponse": {
-          "type": "object",
-          "properties": {
-            "message": {
-              "type": "string",
-              "example": "Operation completed successfully"
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Logout the current user by invalidating their refresh token",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/refresh-token": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Refresh access token using a valid refresh token",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "example": "any"
+                  }
+                }
+              }
             }
           }
+        }
+      }
+    },
+    "/api/auth/request-otp": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Request a One-Time Password (OTP) for phone verification",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
         },
-        "Role": {
-          "type": "string",
-          "enum": ["doctor", "patient"]
-        },
-        "SigninRequest": {
-          "type": "object",
-          "required": ["firstName", "lastName", "email", "password", "role"],
-          "properties": {
-            "firstName": { "type": "string" },
-            "lastName": { "type": "string" },
-            "email": { "type": "string", "format": "email" },
-            "password": { "type": "string", "format": "password" },
-            "role": { "$ref": "#/components/schemas/Role" },
-            "licenseNumber": {
-              "type": "string",
-              "description": "Required when role is doctor"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "example": "any"
+                  },
+                  "role": {
+                    "example": "any"
+                  }
+                }
+              }
             }
           }
-        },
-        "SigninResponse": {
-          "type": "object",
-          "properties": {
-            "message": {
-              "type": "string",
-              "example": "User registered successfully"
-            },
-            "userId": { "type": "string" },
-            "refreshToken": { "type": "string" }
+        }
+      }
+    },
+    "/api/auth/verify-otp": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Verify a One-Time Password (OTP) for phone verification",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         },
-        "LoginRequest": {
-          "type": "object",
-          "required": ["email", "password", "role"],
-          "properties": {
-            "email": { "type": "string", "format": "email" },
-            "password": { "type": "string", "format": "password" },
-            "role": { "$ref": "#/components/schemas/Role" }
-          }
-        },
-        "LoginResponse": {
-          "type": "object",
-          "properties": {
-            "userId": { "type": "string" },
-            "refreshToken": { "type": "string" }
-          }
-        },
-        "RefreshTokenRequest": {
-          "type": "object",
-          "required": ["refreshToken"],
-          "properties": {
-            "refreshToken": { "type": "string" }
-          }
-        },
-        "RefreshTokenResponse": {
-          "type": "object",
-          "properties": {
-            "accessToken": { "type": "string" },
-            "refreshToken": { "type": "string" }
-          }
-        },
-        "RequestOtpRequest": {
-          "type": "object",
-          "required": ["phone", "role"],
-          "properties": {
-            "phone": { "type": "string" },
-            "role": { "$ref": "#/components/schemas/Role" }
-          }
-        },
-        "VerifyOtpRequest": {
-          "type": "object",
-          "required": ["phone", "code", "role"],
-          "properties": {
-            "phone": { "type": "string" },
-            "code": { "type": "string" },
-            "role": { "$ref": "#/components/schemas/Role" }
-          }
-        },
-        "OtpVerifyResponse": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Passthrough response from OTP verification service"
-        },
-        "DoctorProfile": {
-          "type": "object",
-          "properties": {
-            "_id": { "type": "string" },
-            "firstName": { "type": "string" },
-            "lastName": { "type": "string" },
-            "licenseNumber": { "type": "string" },
-            "specialization": { "type": "string" },
-            "email": { "type": "string", "format": "email" },
-            "phone": { "type": "string" },
-            "address": { "type": "string" },
-            "patients": {
-              "type": "array",
-              "items": { "type": "string" }
-            },
-            "createdAt": { "type": "string", "format": "date-time" }
-          }
-        },
-        "PatientProfile": {
-          "type": "object",
-          "properties": {
-            "_id": { "type": "string" },
-            "firstName": { "type": "string" },
-            "lastName": { "type": "string" },
-            "email": { "type": "string", "format": "email" },
-            "phone": { "type": "string" },
-            "dateOfBirth": { "type": "string", "format": "date-time" },
-            "placeOfBirth": { "type": "string" },
-            "gender": { "type": "string" },
-            "address": { "type": "string" },
-            "emergencyContacts": {
-              "type": "array",
-              "items": { "type": "object", "additionalProperties": true }
-            },
-            "medicalResume": {
-              "type": "object",
-              "additionalProperties": true
-            },
-            "doctorsAccess": {
-              "type": "array",
-              "items": { "type": "string" }
-            },
-            "createdAt": { "type": "string", "format": "date-time" }
-          }
-        },
-        "Consultation": {
-          "type": "object",
-          "properties": {
-            "_id": { "type": "string" },
-            "doctorId": { "type": "string" },
-            "patientId": { "type": "string" },
-            "date": { "type": "string", "format": "date-time" },
-            "status": { "type": "string" },
-            "typeofvisit": { "type": "string" },
-            "motive": { "type": "string" },
-            "symptoms": {
-              "type": "array",
-              "items": { "type": "string" }
-            },
-            "severity": { "type": "string" },
-            "followUpDate": { "type": "string", "format": "date-time" },
-            "diagnosis": { "type": "string" },
-            "treatmentPlan": { "type": "string" },
-            "notes": { "type": "string" },
-            "bloodPressure": { "type": "string" },
-            "heartRate": { "type": "number" },
-            "respiratoryRate": { "type": "number" },
-            "temperature": { "type": "number" },
-            "weight": { "type": "number" },
-            "systemReview": {
-              "type": "object",
-              "additionalProperties": true
-            },
-            "additionalTests": {
-              "type": "array",
-              "items": { "type": "string" }
-            },
-            "createdAt": { "type": "string", "format": "date-time" },
-            "updatedAt": { "type": "string", "format": "date-time" }
-          }
-        },
-        "CreateConsultationRequest": {
-          "type": "object",
-          "required": ["doctorId", "patientId", "date"],
-          "properties": {
-            "doctorId": { "type": "string" },
-            "patientId": { "type": "string" },
-            "date": { "type": "string", "format": "date-time" },
-            "status": { "type": "string" },
-            "typeofvisit": { "type": "string" },
-            "motive": { "type": "string" },
-            "symptoms": {
-              "oneOf": [
-                { "type": "array", "items": { "type": "string" } },
-                { "type": "string" }
-              ]
-            },
-            "severity": { "type": "string" },
-            "followUpDate": { "type": "string", "format": "date-time" },
-            "diagnosis": { "type": "string" },
-            "treatmentPlan": { "type": "string" },
-            "notes": { "type": "string" },
-            "bloodPressure": { "type": "string" },
-            "heartRate": { "type": "number" },
-            "respiratoryRate": { "type": "number" },
-            "temperature": { "type": "number" },
-            "weight": { "type": "number" },
-            "systemReview": { "type": "object", "additionalProperties": true },
-            "additionalTests": {
-              "type": "array",
-              "items": { "type": "string" }
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "example": "any"
+                  },
+                  "code": {
+                    "example": "any"
+                  },
+                  "role": {
+                    "example": "any"
+                  }
+                }
+              }
             }
           }
+        }
+      }
+    },
+    "/api/access/request": {
+      "post": {
+        "tags": ["Access"],
+        "summary": "Doctor sends access request to a patient",
+        "description": "Roles: patient",
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
         },
-        "UpdateConsultationRequest": {
-          "type": "object",
-          "properties": {
-            "date": { "type": "string", "format": "date-time" },
-            "status": { "type": "string" },
-            "typeofvisit": { "type": "string" },
-            "motive": { "type": "string" },
-            "symptoms": {
-              "oneOf": [
-                { "type": "array", "items": { "type": "string" } },
-                { "type": "string" }
-              ]
-            },
-            "severity": { "type": "string" },
-            "followUpDate": { "type": "string", "format": "date-time" },
-            "diagnosis": { "type": "string" },
-            "treatmentPlan": { "type": "string" },
-            "notes": { "type": "string" },
-            "bloodPressure": { "type": "string" },
-            "heartRate": { "type": "number" },
-            "respiratoryRate": { "type": "number" },
-            "temperature": { "type": "number" },
-            "weight": { "type": "number" },
-            "systemReview": { "type": "object", "additionalProperties": true },
-            "additionalTests": {
-              "type": "array",
-              "items": { "type": "string" }
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "patientId": {
+                    "example": "any"
+                  }
+                }
+              }
             }
+          }
+        }
+      }
+    },
+    "/api/access/patient/requests": {
+      "get": {
+        "tags": ["Access"],
+        "summary": "Patient sees pending access requests",
+        "description": "Roles: patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/access/{id}/respond": {
+      "put": {
+        "tags": ["Access"],
+        "summary": "Patient approves or rejects an access request",
+        "description": "Roles: patient",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "accepted": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/access/doctor/patients": {
+      "get": {
+        "tags": ["Access"],
+        "summary": "Doctor sees approved patients",
+        "description": "Roles: doctor",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/access/patient/doctors": {
+      "get": {
+        "tags": ["Access"],
+        "summary": "Patient sees approved doctors",
+        "description": "Roles: patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/access/{id}": {
+      "delete": {
+        "tags": ["Access"],
+        "summary": "Patient removes a doctor (deletes access)",
+        "description": "Roles: patient",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
     }
   },
-  "apis": ["./src/modules/**/routes.js"]
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
 }
