@@ -169,6 +169,11 @@ async function getDoctorById(req, res) {
 }
 
 async function getProfile(req, res) {
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Get the current logged-in user details'
+  // #swagger.security = [{ BearerAuth: [] }]
+  // #swagger.description = 'Roles: doctor, patient'
+
   const { id, role } = req.user || {};
   try {
     if (!id || !role || !["doctor", "patient"].includes(role)) {
