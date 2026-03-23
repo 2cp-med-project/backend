@@ -7,7 +7,7 @@ import authorize from "../../middleware/role.js";
 const router = express.Router();
 
 // Doctor sends request
-router.use(protect);
+router.use(authenticate);
 
 router.use("/request", authorize("doctor"));
 router.post("/request", controller.requestAccess);
