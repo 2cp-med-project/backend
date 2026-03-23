@@ -2,6 +2,7 @@ import express from "express";
 import controller from "./users.controller.js";
 import authenticate from "../../middleware/auth.js";
 import authorize from "../../middleware/role.js";
+import doctorAccess from "../../middleware/doctorAccess.js";
 
 const router = express.Router();
 
@@ -11,6 +12,7 @@ router.patch("/me", controller.updateProfile);
 
 router.use("/patient/:id", authenticate);
 router.use("/patient/:id", authorize("doctor"));
+router.use("/patient/:id", doctorAccess);
 router.get("/patient/:id", controller.getPatientById);
 
 router.use("/patients", authenticate);
