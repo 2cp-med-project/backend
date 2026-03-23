@@ -2,105 +2,132 @@ import Access from "./access.model.js";
 
 //Doctor sends access request
 
-export const requestAccess = async (req, res) => {
-  try {
-    const existing = await Access.findOne({
-      doctor: req.user.id,
-      patient: req.body.patientId,
-    });
+async function requestAccess(req, res) {
+  const { patientId } = req.body;
+  const doctorId = req.user.id;
 
-    if (existing) {
-      return res.status(400).json({ message: "Request already exists" });
+  try {
+    if (!patientId) {
+      res.status(400).json({ message: "Patient ID is required" });
+      return;
     }
 
-    const access = await Access.create({
-      doctor: req.user.id,
+    const payload = {
+      doctor: doctorId,
       patient: req.body.patientId,
-    });
+    };
+    const existing = await Access.findOne(payload);
+
+    if (existing) {
+      res.status(400).json({ message: "A request is already sent" });
+      return;
+    }
+
+    const access = await Access.create(payload);
 
     res.status(201).json(access);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-};
+}
 
 // Patient sees pending requests
 
-export const getPatientRequests = async (req, res) => {
+async function getPatientRequests(req, res) {
+  const patientId = req.user.id;
+
   try {
     const requests = await Access.find({
-      patient: req.user.id,
-      status: "pending",
-    }).populate("doctor");
+      patient: patientId,
+      status: { $in: ["pending", "active"] },
+    }).populate("id doctor timestamp");
 
     res.json(requests);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-};
+}
 
 // Patient approves or rejects
 
-export const respondAccess = async (req, res) => {
+async function respondAccess(req, res) {
+  const { accepted } = req.body;
+  const accessId = req.params.id;
+  const patientId = req.user.id;
+
   try {
-    const access = await Access.findById(req.params.id);
+    if (typeof accepted !== "boolean") {
+      return res.status(400).json({ message: "Accepted must be a boolean" });
+    }
+
+    const access = await Access.findById(accessId);
 
     if (!access)
       return res.status(404).json({ message: "Access request not found" });
 
     // Making sure that the logged user is the patient
-    if (access.patient.toString() !== req.user.id) {
+    if (access.patient.toString() !== patientId) {
       return res.status(403).json({ message: "Not allowed" });
     }
 
-    access.status = req.body.status; // approved/rejected
+    const status = accepted ? "active" : "rejected";
+
+    access.status = status;
     await access.save();
 
     res.json(access);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-};
+}
 
 // Doctor gets approved patients
 
-export const getDoctorPatients = async (req, res) => {
+async function getDoctorPatients(req, res) {
+  const doctorId = req.user.id;
   try {
     const accesses = await Access.find({
-      doctor: req.user.id,
+      doctor: doctorId,
       status: "approved",
-    }).populate("patient");
+    }).populate("id patient timestamp ");
 
     res.json(accesses);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-};
+}
 
 // Patient gets approved doctors
 
-export const getPatientDoctors = async (req, res) => {
+async function getPatientDoctors(req, res) {
+  const patientId = req.user.id;
+
   try {
     const accesses = await Access.find({
-      patient: req.user.id,
-      status: "approved",
-    }).populate("doctor");
+      patient: patientId,
+      status: "active",
+    }).populate("id doctor timestamp");
 
     res.json(accesses);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-};
+}
 
 // Patient removes doctor (delete access)
 
-export const removeDoctor = async (req, res) => {
+async function removeDoctor(req, res) {
+  const patientId = req.user.id;
+  const accessId = req.params.id;
   try {
-    const access = await Access.findById(req.params.id);
+    const access = await Access.findById(accessId);
 
-    if (!access) return res.status(404).json({ message: "Access not found" });
+    if (!access) {
+      res.status(404).json({ message: "Access not found" });
+      return;
+    }
 
-    if (access.patient.toString() !== req.user.id) {
+    if (access.patient.toString() !== patientId) {
       return res.status(403).json({ message: "Not allowed" });
     }
 
@@ -110,4 +137,13 @@ export const removeDoctor = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+}
+
+export default {
+  requestAccess,
+  getPatientRequests,
+  respondAccess,
+  getDoctorPatients,
+  getPatientDoctors,
+  removeDoctor,
 };
