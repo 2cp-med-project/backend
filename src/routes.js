@@ -11,4 +11,4 @@ router.use("/users", usersRoutes);
 router.use("/auth", authRoutes);
 router.use("/access", accessRoutes);
 
-module.exports = router; 
+export default router;

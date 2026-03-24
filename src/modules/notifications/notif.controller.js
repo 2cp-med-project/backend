@@ -4,7 +4,7 @@ import service from "./notif.service.js";
  async function registerFcmToken(req, res) {
   try {
     const { userId, fcmToken } = req.body;
-    await saveFcmToken(userId, fcmToken);
+    await service.saveFcmToken(userId, fcmToken);
     res.status(200).json({ message: "FCM token saved successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -13,7 +13,7 @@ import service from "./notif.service.js";
   try {
     const { doctorId, patientId } = req.body;
 
-    await sendAccessRequestNotification(doctorId, patientId);
+    await service.sendAccessRequestNotification(doctorId, patientId);
 
     res.status(200).json({
       message: "Access request notification sent successfully"
@@ -23,4 +23,20 @@ import service from "./notif.service.js";
       error: error.message
     });
   }}
-export default { registerFcmToken,requestAccess };
+  
+ async function patientResponse(req, res) {
+  try {
+    const { patientId, doctorId, accepted } = req.body;
+
+    await service.sendPatientResponseNotification(
+      patientId,
+      doctorId,
+      accepted
+    );
+
+    res.status(200).json({ message: "Notification sent to doctor" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+export default { registerFcmToken,requestAccess,patientResponse };
