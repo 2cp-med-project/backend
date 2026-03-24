@@ -38,6 +38,30 @@ const patientSchema = new mongoose.Schema({
   otpExpiresAt: Date,
 
   createdAt: { type: Date, default: Date.now },
+  // apppointment field
+  appointments: [
+  {
+    type: { 
+      type: String, 
+      enum: ["IRM", "ANALYSE", "CONSULTATION"], 
+      required: true 
+    },
+    doctorId: { type: mongoose.Schema.Types.ObjectId, ref: "doctorSchema", required: true },
+    date: { type: Date, required: true },
+    status: { 
+      type: String, 
+      enum: ["scheduled", "done", "cancelled"], 
+      default: "scheduled" 
+    },
+    reminders: [
+      {
+        date: { type: Date, required: true }, // when to send the reminder
+        sent: { type: Boolean, default: false } // to track if reminder was sent
+      }
+    ]
+  }
+]
+
 });
 
 export default mongoose.model("Patient", patientSchema);

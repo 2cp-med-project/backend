@@ -5,5 +5,6 @@ const router = express.Router();
 
 router.post("/register-token", controller.registerFcmToken);
 router.post("/request-access", controller.requestAccess);
+router.post("/patient-response", controller.patientResponse);
 
 export default router;
