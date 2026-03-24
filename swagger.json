@@ -50,23 +50,13 @@
         }
       }
     },
-    "/api/records/{patientId}/consultation": {
+    "/api/record/consultation": {
       "post": {
         "tags": [
           "Consultations"
         ],
         "summary": "Create a new consultation record",
-        "description": "Roles: doctor",
-        "parameters": [
-          {
-            "name": "patientId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "description": "Roles: doctor. only doctors who have access to the patient can create consultations for that patient",
         "responses": {
           "201": {
             "description": "Created"
@@ -159,20 +149,16 @@
         }
       }
     },
-    "/api/records/{patientId}/consultation/{id}": {
+    "/api/record/consultation/{consultationId}": {
       "patch": {
-        "description": "",
+        "tags": [
+          "Consultations"
+        ],
+        "summary": "Update a consultation record",
+        "description": "Roles: doctor. Only the doctor who created the consultation and have access to the patient can update it. Only specific fields can be updated",
         "parameters": [
           {
-            "name": "patientId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "id",
+            "name": "consultationId",
             "in": "path",
             "required": true,
             "schema": {
@@ -187,27 +173,31 @@
           "400": {
             "description": "Bad Request"
           },
+          "403": {
+            "description": "Forbidden"
+          },
           "404": {
             "description": "Not Found"
           },
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
       "get": {
-        "description": "",
+        "tags": [
+          "Consultations"
+        ],
+        "summary": "Get a consultation by ID",
+        "description": "Roles: doctor, patient. Doctors can only access consultations of patients they have access to. Patients can only access their own consultations",
         "parameters": [
           {
-            "name": "patientId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "id",
+            "name": "consultationId",
             "in": "path",
             "required": true,
             "schema": {
@@ -222,18 +212,30 @@
           "400": {
             "description": "Bad Request"
           },
+          "403": {
+            "description": "Forbidden"
+          },
           "404": {
             "description": "Not Found"
           },
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/api/records/{patientId}": {
+    "/api/record/{patientId}": {
       "get": {
-        "description": "",
+        "tags": [
+          "Consultations"
+        ],
+        "summary": "Get consultations for a patient with pagination and sorting",
+        "description": "Roles: doctor, patient. Doctors can only access consultations of patients they have access to. Patients can only access their own consultations. Query params: page (default 0), page size (default 10), sortBy (default date), order (asc or desc, default desc)",
         "parameters": [
           {
             "name": "patientId",
@@ -279,10 +281,18 @@
           "400": {
             "description": "Bad Request"
           },
+          "403": {
+            "description": "Forbidden"
+          },
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/auth/me": {
@@ -295,9 +305,6 @@
         "responses": {
           "200": {
             "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
           },
           "404": {
             "description": "Not Found"
@@ -412,9 +419,6 @@
         "responses": {
           "200": {
             "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
           },
           "404": {
             "description": "Not Found"

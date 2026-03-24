@@ -23,17 +23,11 @@ router.patch(
 );
 router.get(
   "/consultation/:consultationId",
-  authorize("doctor", "patient"),
   doctorAccess,
   controller.getConsultationById,
 );
 // router.delete("/consultation/:consultationId", controller.deleteConsultation);
 
-router.get(
-  "/:patientId",
-  authorize("doctor", "patient"),
-  doctorAccess,
-  controller.getConsultations,
-);
+router.get("/:patientId", doctorAccess, controller.getConsultations);
 
 export default router;

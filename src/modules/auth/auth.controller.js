@@ -91,12 +91,8 @@ async function logout(req, res) {
   // #swagger.security = [{ BearerAuth: [] }]
   // #swagger.description = 'Roles: doctor, patient'
 
-  const { id, role } = req.user || {};
+  const { id, role } = req.user;
   try {
-    if (!id || !role || !["doctor", "patient"].includes(role)) {
-      res.status(400).json({ message: "Invalid user data" });
-      return;
-    }
     const user =
       role === "doctor"
         ? await Doctor.findById(id)
@@ -169,13 +165,9 @@ async function getCurrentUser(req, res) {
   // #swagger.security = [{ BearerAuth: [] }]
   // #swagger.description = 'Roles: doctor, patient'
 
-  const { id, role } = req.user || {};
-  try {
-    if (!id || !role || !["doctor", "patient"].includes(role)) {
-      res.status(400).json({ message: "Invalid user data" });
-      return;
-    }
+  const { id, role } = req.user;
 
+  try {
     const returnedFields =
       role === "doctor"
         ? {
