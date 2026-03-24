@@ -6,7 +6,7 @@ async function createConsultation(req, res) {
   // #swagger.tags = ['Consultations']
   // #swagger.security = [{ bearerAuth: [] }]
   // #swagger.summary = 'Create a new consultation record'
-  // #swagger.description = 'Roles: doctor'
+  // #swagger.description = 'Roles: doctor. only doctors who have access to the patient can create consultations for that patient'
 
   const { id, role, patients } = req.user || {};
 
@@ -94,6 +94,11 @@ async function createConsultation(req, res) {
 }
 
 async function deleteConsultation(req, res) {
+  // #swagger.tags = ['Consultations']
+  // #swagger.security = [{ bearerAuth: [] }]
+  // #swagger.summary = 'Delete a consultation record'
+  // #swagger.description = 'Roles: doctor. Only the doctor who created the consultation and have access to the patient can delete it'
+
   const { consultationId } = req.params;
   const { id, role, patients } = req.user || {};
 
@@ -131,6 +136,11 @@ async function deleteConsultation(req, res) {
 }
 
 async function getConsultationById(req, res) {
+  // #swagger.tags = ['Consultations']
+  // #swagger.security = [{ bearerAuth: [] }]
+  // #swagger.summary = 'Get a consultation by ID'
+  // #swagger.description = 'Roles: doctor, patient. Doctors can only access consultations of patients they have access to. Patients can only access their own consultations'
+
   const { consultationId } = req.params || {};
   const { id, role, patients } = req.user || {};
 
@@ -171,6 +181,11 @@ async function getConsultationById(req, res) {
 }
 
 async function getConsultations(req, res) {
+  // #swagger.tags = ['Consultations']
+  // #swagger.security = [{ bearerAuth: [] }]
+  // #swagger.summary = 'Get consultations for a patient with pagination and sorting'
+  // #swagger.description = 'Roles: doctor, patient. Doctors can only access consultations of patients they have access to. Patients can only access their own consultations. Query params: page (default 0), page size (default 10), sortBy (default date), order (asc or desc, default desc)'
+
   const { patientId } = req.params || {};
   const { id, role, patients } = req.user || {};
   const {
@@ -230,6 +245,11 @@ async function getConsultations(req, res) {
 }
 
 async function updateConsultation(req, res) {
+  // #swagger.tags = ['Consultations']
+  // #swagger.security = [{ bearerAuth: [] }]
+  // #swagger.summary = 'Update a consultation record'
+  // #swagger.description = 'Roles: doctor. Only the doctor who created the consultation and have access to the patient can update it. Only specific fields can be updated'
+
   const newData = req.body || {};
   const { consultationId } = req.params || {};
   const { id, role, patients } = req.user || {};

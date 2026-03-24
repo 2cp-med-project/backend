@@ -10,7 +10,7 @@ function authorize(...allowedRoles) {
       }
       // Check if user's role is allowed
       if (!allowedRoles.includes(req.user.role)) {
-        res.status(403).json({ message: "Forbidden" });
+        res.status(403).json({ message: "Invalid role" });
         return;
       }
 
