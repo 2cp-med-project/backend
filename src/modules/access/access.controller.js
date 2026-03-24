@@ -45,10 +45,13 @@ async function getPatientRequests(req, res) {
   const patientId = req.user.id;
 
   try {
-    const requests = await Access.find({
-      patient: patientId,
-      status: { $in: ["pending", "active"] },
-    }).populate("id doctor timestamp");
+    const requests = await Access.find(
+      {
+        patient: patientId,
+        status: { $in: ["pending", "active"] },
+      },
+      { patient: 1, createdAt: 1 },
+    ).lean();
 
     res.json(requests);
   } catch (error) {
@@ -102,10 +105,13 @@ async function getDoctorPatients(req, res) {
 
   const doctorId = req.user.id;
   try {
-    const accesses = await Access.find({
-      doctor: doctorId,
-      status: "approved",
-    }).populate("id patient timestamp ");
+    const accesses = await Access.find(
+      {
+        doctor: doctorId,
+        status: "approved",
+      },
+      { patient: 1, createdAt: 1 },
+    ).lean();
 
     res.json(accesses);
   } catch (error) {
@@ -123,10 +129,13 @@ async function getPatientDoctors(req, res) {
   const patientId = req.user.id;
 
   try {
-    const accesses = await Access.find({
-      patient: patientId,
-      status: "active",
-    }).populate("id doctor timestamp");
+    const accesses = await Access.find(
+      {
+        patient: patientId,
+        status: "active",
+      },
+      { doctor: 1, createdAt: 1 },
+    ).lean();
 
     res.json(accesses);
   } catch (error) {

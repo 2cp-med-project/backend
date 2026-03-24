@@ -3,6 +3,13 @@ import Patient from "../users/patient.model.js";
 import Consultation from "./consultation.model.js";
 
 async function createConsultation(req, res) {
+  // #swagger.tags = ['Consultations']
+  // #swagger.security = [{ bearerAuth: [] }]
+  // #swagger.summary = 'Create a new consultation record'
+  // #swagger.description = 'Roles: doctor'
+
+  const { id, role, patients } = req.user || {};
+
   const {
     doctorId,
     patientId,
@@ -27,6 +34,20 @@ async function createConsultation(req, res) {
 
   if (!doctorId || !patientId || !date) {
     res.status(400).json({ message: "Missing required fields" });
+    return;
+  }
+
+  if (doctorId !== id) {
+    res.status(403).json({
+      message: "Unauthorized: Doctor ID does not match authenticated user",
+    });
+    return;
+  }
+
+  if (!patients.includes(patientId)) {
+    res.status(403).json({
+      message: "Unauthorized: Doctor does not have access to this patient",
+    });
     return;
   }
 
@@ -73,18 +94,36 @@ async function createConsultation(req, res) {
 }
 
 async function deleteConsultation(req, res) {
-  const { id } = req.params;
+  const { consultationId } = req.params;
+  const { id, role, patients } = req.user || {};
+
   try {
-    if (!id) {
+    if (!consultationId) {
       res.status(400).json({ message: "Consultation ID is required" });
       return;
     }
 
-    const consultation = await Consultation.findByIdAndDelete(id);
+    const consultation = await Consultation.findByIdAndDelete(consultationId);
     if (!consultation) {
       res.status(404).json({ message: "Consultation not found" });
       return;
     }
+
+    if (!patients.includes(consultation.patientId.toString())) {
+      res.status(403).json({
+        message: "Unauthorized: Doctor does not have access to this patient",
+      });
+      return;
+    }
+
+    if (consultation.doctorId.toString() !== id) {
+      res.status(403).json({
+        message:
+          "Unauthorized: Only the doctor who created the consultation can delete it",
+      });
+      return;
+    }
+
     res.status(200).json({ message: "Consultation deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -92,18 +131,39 @@ async function deleteConsultation(req, res) {
 }
 
 async function getConsultationById(req, res) {
-  const { id } = req.params || {};
+  const { consultationId } = req.params || {};
+  const { id, role, patients } = req.user || {};
+
   try {
-    if (!id) {
+    if (!consultationId) {
       res.status(400).json({ message: "Consultation ID is required" });
       return;
     }
 
-    const consultation = await Consultation.findById(id);
+    const consultation = await Consultation.findById(consultationId);
     if (!consultation) {
       res.status(404).json({ message: "Consultation not found" });
       return;
     }
+
+    if (
+      role === "doctor" &&
+      !patients.includes(consultation.patientId.toString())
+    ) {
+      res.status(403).json({
+        message: "Unauthorized: Doctor does not have access to this patient",
+      });
+      return;
+    }
+
+    if (role === "patient" && consultation.patientId.toString() !== id) {
+      res.status(403).json({
+        message:
+          "Unauthorized: Patients can only access their own consultations",
+      });
+      return;
+    }
+
     res.status(200).json(consultation);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -112,15 +172,32 @@ async function getConsultationById(req, res) {
 
 async function getConsultations(req, res) {
   const { patientId } = req.params || {};
+  const { id, role, patients } = req.user || {};
   const {
     page = "0",
     limit = "10",
     sortBy = "date",
     order = "desc",
   } = req.query || {};
+
   try {
     if (!patientId) {
       res.status(400).json({ message: "Patient ID is required" });
+      return;
+    }
+
+    if (role === "doctor" && !patients.includes(patientId)) {
+      res.status(403).json({
+        message: "Unauthorized: Doctor does not have access to this patient",
+      });
+      return;
+    }
+
+    if (role === "patient" && patientId !== id) {
+      res.status(403).json({
+        message:
+          "Unauthorized: Patients can only access their own consultations",
+      });
       return;
     }
 
@@ -154,7 +231,8 @@ async function getConsultations(req, res) {
 
 async function updateConsultation(req, res) {
   const newData = req.body || {};
-  const { id } = req.params || {};
+  const { consultationId } = req.params || {};
+  const { id, role, patients } = req.user || {};
 
   const allowedFields = [
     "date",
@@ -177,8 +255,30 @@ async function updateConsultation(req, res) {
   ];
 
   try {
-    if (!id) {
+    if (!consultationId) {
       res.status(400).json({ message: "Consultation ID is required" });
+      return;
+    }
+
+    const consultation = await Consultation.findById(consultationId);
+
+    if (!consultation) {
+      res.status(404).json({ message: "Consultation not found" });
+      return;
+    }
+
+    if (!patients.includes(consultation.patientId.toString())) {
+      res.status(403).json({
+        message: "Unauthorized: Doctor does not have access to this patient",
+      });
+      return;
+    }
+
+    if (consultation.doctorId.toString() !== id) {
+      res.status(403).json({
+        message:
+          "Unauthorized: Only the doctor who created the consultation can update it",
+      });
       return;
     }
 
@@ -189,16 +289,15 @@ async function updateConsultation(req, res) {
       }
     }
 
-    const consultation = await Consultation.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!consultation) {
-      res.status(404).json({ message: "Consultation not found" });
+    if (Object.keys(updateData).length === 0) {
+      res.status(400).json({ message: "No valid fields to update" });
       return;
     }
-    res.status(200).json(consultation);
+
+    consultation.set(updateData);
+    const updatedConsultation = await consultation.save();
+
+    res.status(200).json(updatedConsultation);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
