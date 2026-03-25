@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const patientSchema = new mongoose.Schema({
@@ -43,7 +44,7 @@ const patientSchema = new mongoose.Schema({
   {
     type: { 
       type: String, 
-      enum: ["IRM", "ANALYSE", "CONSULTATION"], 
+      enum: ["IRM,RADIO,SCANNER", "ANALYSE", "CONSULTATION"], 
       required: true 
     },
     doctorId: { type: mongoose.Schema.Types.ObjectId, ref: "doctorSchema", required: true },
@@ -53,6 +54,9 @@ const patientSchema = new mongoose.Schema({
       enum: ["scheduled", "done", "cancelled"], 
       default: "scheduled" 
     },
+    location: String, 
+    time:{type:String, required:true},
+    appointmentnotes: String,
     reminders: [
       {
         date: { type: Date, required: true }, // when to send the reminder
