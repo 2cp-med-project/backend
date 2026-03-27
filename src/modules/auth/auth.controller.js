@@ -253,7 +253,6 @@ export default {
   login,
   logout,
   refreshToken,
-  getCurrentUser,
   requestOTP,
   verifyOTP,
 };
