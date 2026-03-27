@@ -235,7 +235,7 @@
           "Consultations"
         ],
         "summary": "Get consultations for a patient with pagination and sorting",
-        "description": "Roles: doctor, patient. Doctors can only access consultations of patients they have access to. Patients can only access their own consultations. Query params: page (default 0), page size (default 10), sortBy (default date), order (asc or desc, default desc)",
+        "description": "Roles: doctor, patient.",
         "parameters": [
           {
             "name": "patientId",
@@ -247,13 +247,26 @@
           },
           {
             "name": "page",
+            "description": "Page number (starting from 0)",
+            "default": 0,
             "in": "query",
             "schema": {
-              "type": "string"
+              "type": "integer"
             }
           },
           {
             "name": "limit",
+            "description": "Number of items per page",
+            "default": 10,
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "order",
+            "description": "Sort order (asc or desc)",
+            "default": "asc",
             "in": "query",
             "schema": {
               "type": "string"
@@ -261,13 +274,8 @@
           },
           {
             "name": "sortBy",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "order",
+            "description": "Field to sort by",
+            "default": "firstName",
             "in": "query",
             "schema": {
               "type": "string"
