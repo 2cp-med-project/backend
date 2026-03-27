@@ -11,7 +11,7 @@ function authenticate(req, res, next) {
       res.status(401).json({ message: "Access token missing or malformed" });
       return;
     }
-    const user = jwt.verify(token, process.env.JWT_SECRET);
+    const user = jwt.verify(token, process.env.JWT_SECRET); // the jwt have these fields : id, role
 
     if (
       !user ||

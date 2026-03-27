@@ -8,7 +8,7 @@ async function createConsultation(req, res) {
   // #swagger.summary = 'Create a new consultation record'
   // #swagger.description = 'Roles: doctor. only doctors who have access to the patient can create consultations for that patient'
 
-  const { id, role, patients } = req.user || {};
+  const { id, patients } = req.user || {};
 
   const {
     doctorId,
@@ -100,7 +100,7 @@ async function deleteConsultation(req, res) {
   // #swagger.description = 'Roles: doctor. Only the doctor who created the consultation and have access to the patient can delete it'
 
   const { consultationId } = req.params;
-  const { id, role, patients } = req.user || {};
+  const { id, patients } = req.user || {};
 
   try {
     if (!consultationId) {
@@ -252,7 +252,7 @@ async function updateConsultation(req, res) {
 
   const newData = req.body || {};
   const { consultationId } = req.params || {};
-  const { id, role, patients } = req.user || {};
+  const { id, patients } = req.user || {};
 
   const allowedFields = [
     "date",
