@@ -108,7 +108,7 @@ async function deleteConsultation(req, res) {
       return;
     }
 
-    const consultation = await Consultation.findByIdAndDelete(consultationId);
+    const consultation = await Consultation.findById(consultationId);
     if (!consultation) {
       res.status(404).json({ message: "Consultation not found" });
       return;
@@ -129,7 +129,11 @@ async function deleteConsultation(req, res) {
       return;
     }
 
-    res.status(200).json({ message: "Consultation deleted successfully" });
+    await Consultation.findByIdAndDelete(consultationId);
+
+    consultation.res
+      .status(200)
+      .json({ message: "Consultation deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -184,7 +188,11 @@ async function getConsultations(req, res) {
   // #swagger.tags = ['Consultations']
   // #swagger.security = [{ bearerAuth: [] }]
   // #swagger.summary = 'Get consultations for a patient with pagination and sorting'
-  // #swagger.description = 'Roles: doctor, patient. Doctors can only access consultations of patients they have access to. Patients can only access their own consultations. Query params: page (default 0), page size (default 10), sortBy (default date), order (asc or desc, default desc)'
+  // #swagger.description = 'Roles: doctor, patient.'
+  // #swagger.parameters['page'] = { description: 'Page number (starting from 0)', type: 'integer', default: 0 }
+  // #swagger.parameters['limit'] = { description: 'Number of items per page', type: 'integer', default: 10 }
+  // #swagger.parameters['order'] = { description: 'Sort order (asc or desc)', type: 'string', default: 'asc' }
+  // #swagger.parameters['sortBy'] = { description: 'Field to sort by', type: 'string', default: 'firstName' }
 
   const { patientId } = req.params || {};
   const { id, role, patients } = req.user || {};
