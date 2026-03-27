@@ -9,11 +9,12 @@ const patientSchema = new mongoose.Schema({
   refreshToken: String, // for token refresh
   dateOfBirth: Date,
   placeOfBirth: String,
-  gender: { type: String, enum: ["male", "female"] },
+  gender: { type: String, enum: ["male", "female"], required: true },
   phone: String,
   address: String,
   role: { type: String, default: "patient" },
-
+  record: [{ type: mongoose.Schema.Types.ObjectId, ref: "Consultation" }],
+  bio: String,
   emergencyContacts: [
     {
       name: String,
