@@ -50,6 +50,259 @@
         }
       }
     },
+    "/api/record/consultation": {
+      "post": {
+        "tags": [
+          "Consultations"
+        ],
+        "summary": "Create a new consultation record",
+        "description": "Roles: doctor. only doctors who have access to the patient can create consultations for that patient",
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "doctorId": {
+                    "example": "any"
+                  },
+                  "patientId": {
+                    "example": "any"
+                  },
+                  "date": {
+                    "example": "any"
+                  },
+                  "status": {
+                    "example": "any"
+                  },
+                  "typeofvisit": {
+                    "example": "any"
+                  },
+                  "motive": {
+                    "example": "any"
+                  },
+                  "symptoms": {
+                    "example": "any"
+                  },
+                  "severity": {
+                    "example": "any"
+                  },
+                  "followUpDate": {
+                    "example": "any"
+                  },
+                  "diagnosis": {
+                    "example": "any"
+                  },
+                  "treatmentPlan": {
+                    "example": "any"
+                  },
+                  "notes": {
+                    "example": "any"
+                  },
+                  "bloodPressure": {
+                    "example": "any"
+                  },
+                  "heartRate": {
+                    "example": "any"
+                  },
+                  "respiratoryRate": {
+                    "example": "any"
+                  },
+                  "temperature": {
+                    "example": "any"
+                  },
+                  "weight": {
+                    "example": "any"
+                  },
+                  "systemReview": {
+                    "example": "any"
+                  },
+                  "additionalTests": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/record/consultation/{consultationId}": {
+      "patch": {
+        "tags": [
+          "Consultations"
+        ],
+        "summary": "Update a consultation record",
+        "description": "Roles: doctor. Only the doctor who created the consultation and have access to the patient can update it. Only specific fields can be updated",
+        "parameters": [
+          {
+            "name": "consultationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Consultations"
+        ],
+        "summary": "Get a consultation by ID",
+        "description": "Roles: doctor, patient. Doctors can only access consultations of patients they have access to. Patients can only access their own consultations",
+        "parameters": [
+          {
+            "name": "consultationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/record/{patientId}": {
+      "get": {
+        "tags": [
+          "Consultations"
+        ],
+        "summary": "Get consultations for a patient with pagination and sorting",
+        "description": "Roles: doctor, patient.",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "description": "Page number (starting from 0)",
+            "default": 0,
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "description": "Number of items per page",
+            "default": 10,
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "order",
+            "description": "Sort order (asc or desc)",
+            "default": "asc",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "description": "Field to sort by",
+            "default": "firstName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/api/auth/me": {
       "get": {
         "tags": [
@@ -60,9 +313,6 @@
         "responses": {
           "200": {
             "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
           },
           "404": {
             "description": "Not Found"
@@ -177,9 +427,6 @@
         "responses": {
           "200": {
             "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
           },
           "404": {
             "description": "Not Found"
