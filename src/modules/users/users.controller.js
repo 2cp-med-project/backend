@@ -2,6 +2,15 @@ import Doctor from "./doctor.model.js";
 import Patient from "./patient.model.js";
 
 async function getPatients(req, res) {
+  // #swagger.tags = ['Users']
+  // #swagger.summary = 'Get a paginated list of patients'
+  // #swagger.security = [{ BearerAuth: [] }]
+  // #swagger.description = 'Roles: doctor, patient'
+  // #swagger.parameters['page'] = { description: 'Page number (starting from 0)', type: 'integer', default: 0 }
+  // #swagger.parameters['limit'] = { description: 'Number of items per page', type: 'integer', default: 10 }
+  // #swagger.parameters['order'] = { description: 'Sort order (asc or desc)', type: 'string', default: 'asc' }
+  // #swagger.parameters['sortBy'] = { description: 'Field to sort by', type: 'string', default: 'firstName' }
+
   const {
     page = "0",
     limit = "10",
@@ -57,6 +66,15 @@ async function getPatients(req, res) {
 }
 
 async function getDoctors(req, res) {
+  // #swagger.tags = ['Users']
+  // #swagger.summary = 'Get a paginated list of doctors'
+  // #swagger.security = [{ BearerAuth: [] }]
+  // #swagger.description = 'Roles: any'
+  // #swagger.parameters['page'] = { description: 'Page number (starting from 0)', type: 'integer', default: 0 }
+  // #swagger.parameters['limit'] = { description: 'Number of items per page', type: 'integer', default: 10 }
+  // #swagger.parameters['order'] = { description: 'Sort order (asc or desc)', type: 'string', default: 'asc' }
+  // #swagger.parameters['sortBy'] = { description: 'Field to sort by', type: 'string', default: 'firstName' }
+
   const {
     page = "0",
     limit = "10",
@@ -111,7 +129,13 @@ async function getDoctors(req, res) {
 }
 
 async function getPatientById(req, res) {
+  // #swagger.tags = ['Users']
+  // #swagger.summary = 'Get patient details by ID'
+  // #swagger.security = [{ BearerAuth: [] }]
+  // #swagger.description = 'Roles: doctor'
+
   const { id } = req.params || {};
+  const patients = req.user.patients || [];
   const returnedFields = {
     firstName: 1,
     lastName: 1,
@@ -127,6 +151,10 @@ async function getPatientById(req, res) {
       return res.status(400).json({ message: "Patient ID is required" });
     }
 
+    if (!patients.includes(id)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
     const patient = await Patient.findById(id, returnedFields);
 
     if (!patient) {
@@ -140,6 +168,11 @@ async function getPatientById(req, res) {
 }
 
 async function getDoctorById(req, res) {
+  // #swagger.tags = ['Users']
+  // #swagger.summary = 'Get doctor details by ID'
+  // #swagger.security = [{ BearerAuth: [] }]
+  // #swagger.description = 'Roles: any'
+
   const { id } = req.params || {};
   const returnedFields = {
     firstName: 1,
@@ -169,18 +202,13 @@ async function getDoctorById(req, res) {
 }
 
 async function getProfile(req, res) {
-  // #swagger.tags = ['Auth']
+  // #swagger.tags = ['Users']
   // #swagger.summary = 'Get the current logged-in user details'
   // #swagger.security = [{ BearerAuth: [] }]
   // #swagger.description = 'Roles: doctor, patient'
 
   const { id, role } = req.user || {};
   try {
-    if (!id || !role || !["doctor", "patient"].includes(role)) {
-      res.status(400).json({ message: "Invalid user data" });
-      return;
-    }
-
     const returnedFields =
       role === "doctor"
         ? {
@@ -224,6 +252,11 @@ async function getProfile(req, res) {
 }
 
 async function updateProfile(req, res) {
+  // #swagger.tags = ['Users']
+  // #swagger.summary = 'Update the current logged-in user details'
+  // #swagger.security = [{ BearerAuth: [] }]
+  // #swagger.description = 'Roles: doctor, patient'
+
   const { id, role } = req.user || {};
   const newData = req.body || {};
 
