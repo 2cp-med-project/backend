@@ -6,13 +6,6 @@ import authenticate from "../../middleware/auth.js";
 import authorize from "../../middleware/role.js";
 const router = express.Router();
 
-router.get(
-  "/me",
-  authenticate,
-  authorize("patient", "doctor"),
-  controller.getCurrentUser,
-);
-
 router.post("/signin", controller.signin);
 
 router.post("/login", controller.login);
