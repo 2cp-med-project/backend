@@ -7,9 +7,9 @@ const doctorSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, default: "doctor", enum: ["doctor"], immutable: true },
   specialization: String,
+  address: String, // optional or could be hospital location
   phone: String,
   licenseNumber: { type: String, required: true, unique: true }, //scanning diplomat
-  address: String, // optional or could be hospital location
   patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Patient" }],
 
   refreshToken: String, // for token refresh

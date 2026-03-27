@@ -9,7 +9,7 @@ const patientSchema = new mongoose.Schema({
   refreshToken: String, // for token refresh
   dateOfBirth: Date,
   placeOfBirth: String,
-  gender: { type: String, enum: ["male", "female"] },
+  gender: { type: String, enum: ["male", "female"], required: true },
   phone: String,
   address: String,
   role: {
@@ -18,6 +18,7 @@ const patientSchema = new mongoose.Schema({
     enum: ["patient"],
     immutable: true,
   },
+
   emergencyContacts: [
     {
       name: String,
