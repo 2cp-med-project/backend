@@ -10,19 +10,24 @@ router.use("/me", authenticate);
 router.get("/me", controller.getProfile);
 router.patch("/me", controller.updateProfile);
 
-router.use("/patient/:id", authenticate);
-router.use("/patient/:id", authorize("doctor"));
-router.use("/patient/:id", doctorAccess);
-router.get("/patient/:id", controller.getPatientById);
+router.get(
+  "/patient/:id",
+  authenticate,
+  authorize("doctor"),
+  doctorAccess,
+  controller.getPatientById,
+);
 
-router.use("/patients", authenticate);
-router.use("/patients", authorize("doctor"));
-router.get("/patients", controller.getPatients);
+// router.get(
+//   "/patients",
+//   authenticate,
+//   authorize("doctor"),
+//   controller.getPatients,
+// );
+// WARN: This endpoint is not protected by doctorAccess middleware, so it will return all patients in the system. Use with caution.
 
-router.use("/doctor/:id", authenticate);
-router.get("/doctor/:id", controller.getDoctorById);
+router.get("/doctor/:id", authenticate, controller.getDoctorById);
 
-router.use("/doctors", authenticate);
-router.get("/doctors", controller.getDoctors);
+router.get("/doctors", authenticate, controller.getDoctors);
 
 export default router;

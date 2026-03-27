@@ -22,34 +22,35 @@
         }
       }
     },
-    "/api/users/patients": {
+    "/api/users/me": {
       "get": {
-        "tags": ["Users"],
-        "summary": "Get all patients",
-        "description": "Roles: doctor",
-        "responses": {
-          "502": {
-            "description": "Bad Gateway"
-          }
-        }
-      }
-    },
-    "/api/users/doctors": {
-      "get": {
-        "tags": ["Users"],
-        "summary": "Get all doctors",
-        "description": "Roles: patient",
-        "responses": {
-          "502": {
-            "description": "Bad Gateway"
-          }
-        }
-      }
-    },
-    "/api/auth/me": {
-      "get": {
-        "tags": ["Auth"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Get the current logged-in user details",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update the current logged-in user details",
         "description": "Roles: doctor, patient",
         "responses": {
           "200": {
@@ -72,9 +73,145 @@
         ]
       }
     },
+    "/api/users/patient/{id}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get patient details by ID",
+        "description": "Roles: doctor",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/users/doctor/{id}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get doctor details by ID",
+        "description": "Roles: any",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/users/doctors": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get a paginated list of doctors",
+        "description": "Roles: any",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
     "/api/auth/signin": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Register a new user (doctor or patient)",
         "description": "Roles: doctor, patient",
         "responses": {
@@ -121,7 +258,9 @@
     },
     "/api/auth/login": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Login a user (doctor or patient) and return a refresh token",
         "description": "Roles: doctor, patient",
         "responses": {
@@ -159,7 +298,9 @@
     },
     "/api/auth/logout": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Logout the current user by invalidating their refresh token",
         "description": "Roles: doctor, patient",
         "responses": {
@@ -185,7 +326,9 @@
     },
     "/api/auth/refresh-token": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Refresh access token using a valid refresh token",
         "description": "Roles: doctor, patient",
         "responses": {
@@ -220,7 +363,9 @@
     },
     "/api/auth/request-otp": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Request a One-Time Password (OTP) for phone verification",
         "description": "Roles: doctor, patient",
         "responses": {
@@ -255,7 +400,9 @@
     },
     "/api/auth/verify-otp": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Verify a One-Time Password (OTP) for phone verification",
         "description": "Roles: doctor, patient",
         "responses": {
@@ -293,7 +440,9 @@
     },
     "/api/access/request": {
       "post": {
-        "tags": ["Access"],
+        "tags": [
+          "Access"
+        ],
         "summary": "Doctor sends access request to a patient",
         "description": "Roles: patient",
         "responses": {
@@ -325,7 +474,9 @@
     },
     "/api/access/patient/requests": {
       "get": {
-        "tags": ["Access"],
+        "tags": [
+          "Access"
+        ],
         "summary": "Patient sees pending access requests",
         "description": "Roles: patient",
         "responses": {
@@ -340,7 +491,9 @@
     },
     "/api/access/{id}/respond": {
       "put": {
-        "tags": ["Access"],
+        "tags": [
+          "Access"
+        ],
         "summary": "Patient approves or rejects an access request",
         "description": "Roles: patient",
         "parameters": [
@@ -388,7 +541,9 @@
     },
     "/api/access/doctor/patients": {
       "get": {
-        "tags": ["Access"],
+        "tags": [
+          "Access"
+        ],
         "summary": "Doctor sees approved patients",
         "description": "Roles: doctor",
         "responses": {
@@ -403,7 +558,9 @@
     },
     "/api/access/patient/doctors": {
       "get": {
-        "tags": ["Access"],
+        "tags": [
+          "Access"
+        ],
         "summary": "Patient sees approved doctors",
         "description": "Roles: patient",
         "responses": {
@@ -418,7 +575,9 @@
     },
     "/api/access/{id}": {
       "delete": {
-        "tags": ["Access"],
+        "tags": [
+          "Access"
+        ],
         "summary": "Patient removes a doctor (deletes access)",
         "description": "Roles: patient",
         "parameters": [
