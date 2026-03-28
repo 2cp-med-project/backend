@@ -19,7 +19,7 @@ export function initSocket(server) {
       console.log("User registered:", userId);
     });
 
-    // ❌ Disconnect
+    //  Disconnect
     socket.on("disconnect", () => {
       for (const userId in onlineUsers) {
         if (onlineUsers[userId] === socket.id) {
@@ -30,4 +30,9 @@ export function initSocket(server) {
       }
     });
   });
+}
+export default {
+   io,
+   onlineUsers,
+   initSocket
 }
