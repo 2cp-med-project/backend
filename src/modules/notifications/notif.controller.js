@@ -1,7 +1,9 @@
 //receive rdv notifications ,access request notifications
 
 import service from "./notif.service.js";
- async function registerFcmToken(req, res) {
+// Register FCM token for a user
+async function registerFcmToken(req, res) {
+   //swagger.security = [{ "BearerAuth": [] }]
   try {
     const { userId, fcmToken } = req.body;
     await service.saveFcmToken(userId, fcmToken);
@@ -9,7 +11,9 @@ import service from "./notif.service.js";
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+  // Handle doctor access request to patient file
 } async function requestAccess(req, res) {
+   //swagger.security = [{ "BearerAuth": [] }]
   try {
     const { doctorId, patientId } = req.body;
 
@@ -22,9 +26,11 @@ import service from "./notif.service.js";
     res.status(500).json({
       error: error.message
     });
-  }}
-  
- async function patientResponse(req, res) {
+  }
+}
+// Handle patient response to access request
+async function patientResponse(req, res) {
+   //swagger.security = [{ "BearerAuth": [] }]
   try {
     const { patientId, doctorId, accepted } = req.body;
 
@@ -38,5 +44,6 @@ import service from "./notif.service.js";
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+  
 }
-export default { registerFcmToken,requestAccess,patientResponse };
+export default { registerFcmToken, requestAccess, patientResponse };

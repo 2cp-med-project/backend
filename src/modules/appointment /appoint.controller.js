@@ -2,6 +2,7 @@ import Service from "./appoints.service.js";
 
 // Add an appointment
 export async function addAppointment(req, res) {
+  //swagger.security = [{ "BearerAuth": [] }]
   try {
     const patientId = req.user._id; 
     const { type, doctorId, date } = req.body;
@@ -20,6 +21,7 @@ export async function addAppointment(req, res) {
 
 // Modify an appointment 
 export async function updateAppointment(req, res) {
+   //swagger.security = [{ "BearerAuth": [] }]
   try {
     const patientId = req.user._id;
     const appointmentId = req.params.id;
@@ -39,6 +41,7 @@ export async function updateAppointment(req, res) {
 
 // Delete an appointment
 export async function deleteAppointment(req, res) {
+   //swagger.security = [{ "BearerAuth": [] }]
   try {
     const patientId = req.user._id;
     const appointmentId = req.params.id;
@@ -53,6 +56,7 @@ export async function deleteAppointment(req, res) {
 
 // List all appointments 
 export async function getMyAppointments(req, res) {
+   //swagger.security = [{ "BearerAuth": [] }]
   try {
     const patientId = req.user._id;
 

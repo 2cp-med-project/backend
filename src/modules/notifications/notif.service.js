@@ -1,7 +1,7 @@
 import Patient from "../users/patient.model.js"; 
 import admin from "firebase-admin";
 import Doctor from "../users/doctor.model.js";
-import { io, onlineUsers } from "../../channels/socket.js";
+import { io, onlineUsers } from "./channels/socket.js";
  async function saveFcmToken(userId, fcmToken) {
   await Patient.updateOne(
     { _id: userId },
@@ -63,4 +63,66 @@ import { io, onlineUsers } from "../../channels/socket.js";
   }
 }
 
-export default {saveFcmToken,sendAccessRequestNotification,sendPatientResponseNotification};
+
+// Sends appointment reminders via FCM
+async function sendAppointmentReminders() {
+  const now = new Date();
+
+  // Only get patients who have reminders that are not sent and are due
+  const patients = await Patient.find({
+    "appointments.reminders.sent": false,
+    "appointments.reminders.date": { $lte: now },
+  });
+  if (!patients || patients.length === 0) {
+    console.log("No reminders to send.");
+    return { message: "No reminders to send." };
+  }
+
+  for (const patient of patients) {
+
+    for (const appointment of patient.appointments) {
+      const doctor = await Doctor.findById(appointment.doctorId);
+
+      if (!doctor) continue;
+
+      for (const reminder of appointment.reminders) {
+        if (!reminder.sent && reminder.date <= now) {
+          const diffTime = appointment.date.getTime() - now.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          let message = "";
+
+          if (diffDays > 1) {
+            message = `Vous avez un rendez-vous avec Dr ${doctor.name} dans ${diffDays} jours à ${appointment.time}.`;
+          } else {
+            message = `Rappel : Vous avez un ${appointment.type} demain à ${appointment.time} avec Dr ${doctor.name} à ${appointment.Location}.`;
+          }
+
+          // Send notification via FCM
+          if (patient.fcmToken) {
+            await admin.messaging().send({
+              token: patient.fcmToken,
+              notification: {
+                title: "Rappel de rendez-vous",
+                body: message,
+              },
+            });
+          }
+
+          // Mark the reminder as sent
+          reminder.sent = true;
+        }
+        else {
+      }
+    }
+
+    // Save patient with updated reminders
+    await patient.save();
+  }
+
+  return { message: "Notifications envoyées" };
+}}
+
+
+
+export default {saveFcmToken,sendAccessRequestNotification,sendPatientResponseNotification,sendAppointmentReminders};
