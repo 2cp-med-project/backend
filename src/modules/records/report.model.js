@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const reportSchema = new mongoose.Schema(
+const reportSchema = new Schema(
 	{
 		typeOfVisit: { type: String, required: true },
 		motive: { type: String, required: true },
@@ -28,12 +28,6 @@ const reportSchema = new mongoose.Schema(
 		additionalTests: String,
 		attachments: [{ type: String }],
 		followUp: { type: Boolean, required: true, default: false },
-
-		doctorId: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "Doctor",
-			required: true,
-		},
 	},
 	{
 		timestamps: true,
@@ -41,4 +35,4 @@ const reportSchema = new mongoose.Schema(
 	},
 );
 
-export const Report = mongoose.model("Report", reportSchema);
+export const Report = model("Report", reportSchema);

@@ -1,4 +1,5 @@
 import { Doctor } from "./doctor.model.js";
+import { Patient } from "./patient.model.js";
 
 export const identifyDoctor = async (req, res) => {
 	try {
@@ -33,15 +34,61 @@ export const identifyDoctor = async (req, res) => {
 			});
 		}
 
-		res.status(200).json(doctor);
+		res.status(201).json({ success: true, doctorId: doctor.id.toString() });
 	} catch (error) {
 		if (error.code === 11000) {
 			return res.status(400).json({
-				message: "A user with this Email or Degree ID already exists.",
+				message:
+					"A doctor with this Email or Degree ID already exists.",
 			});
 		}
 
 		console.error("Error identifying doctor:", error);
+		res.status(500).json({ message: "Internal Server Error" });
+	}
+};
+
+export const identifyPatient = async (req, res) => {
+	try {
+		const {
+			firstName,
+			lastName,
+			userName,
+			gender,
+			email,
+			phoneNumber,
+			password,
+		} = req.body;
+
+		let patient = await Patient.findOne({
+			userName: userName.toLowerCase(),
+		});
+
+		if (!patient) {
+			patient = await Patient.create({
+				firstName,
+				lastName,
+				userName,
+				gender,
+				email,
+				phoneNumber,
+				password,
+			});
+		}
+
+		res.status(201).json({
+			success: true,
+			patientId: patient.id.toString(),
+		});
+	} catch (error) {
+		if (error.code === 11000) {
+			return res.status(400).json({
+				message:
+					"A patient with this Email or Degree ID already exists.",
+			});
+		}
+
+		console.error("Error identifying patient:", error);
 		res.status(500).json({ message: "Internal Server Error" });
 	}
 };

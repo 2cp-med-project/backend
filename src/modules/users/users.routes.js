@@ -1,5 +1,9 @@
 import express from "express";
-import { identifyDoctor, getAllDoctors } from "./users.controller.js";
+import {
+	identifyDoctor,
+	getAllDoctors,
+	identifyPatient,
+} from "./users.controller.js";
 
 const router = express.Router();
 
@@ -14,6 +18,8 @@ const router = express.Router();
 // // Admins
 // router.post("/admins", controller.createAdmin);
 // router.get("/admins", controller.getAdmins);
+
+router.post("/patients/identify", identifyPatient);
 
 router.post("/doctors/identify", identifyDoctor);
 router.get("/doctors", getAllDoctors);

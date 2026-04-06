@@ -12,6 +12,7 @@ const patientSchema = new Schema(
 			trim: true,
 			index: true,
 		},
+		gender: { type: String, enum: ["Male", "Female"] },
 		email: {
 			type: String,
 			required: true,
@@ -21,7 +22,6 @@ const patientSchema = new Schema(
 		},
 		password: { type: String, required: true },
 		phoneNumber: { type: String, trim: true },
-		gender: { type: String, enum: ["Male", "Female"] },
 
 		dateOfBirth: { type: Date },
 		placeOfBirth: { type: String, trim: true },

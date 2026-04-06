@@ -1,9 +1,9 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const consultationSchema = new mongoose.Schema(
+const consultationSchema = new Schema(
 	{
-		doctor: {
-			type: mongoose.Schema.Types.ObjectId,
+		doctorId: {
+			type: Schema.Types.ObjectId,
 			ref: "Doctor",
 			required: true,
 		},
@@ -15,8 +15,12 @@ const consultationSchema = new mongoose.Schema(
 			default: "scheduled",
 			required: true,
 		},
-		report: { type: mongoose.Schema.Types.ObjectId, ref: "Report" },
-		followUpDate: Date,
+		reportId: {
+			type: Schema.Types.ObjectId,
+			ref: "Report",
+			required: true,
+		},
+		followUpDate: { type: Date },
 	},
 	{
 		timestamp: true,
@@ -24,4 +28,4 @@ const consultationSchema = new mongoose.Schema(
 	},
 );
 
-export const Consultation = mongoose.model("Consultation", consultationSchema);
+export const Consultation = model("Consultation", consultationSchema);

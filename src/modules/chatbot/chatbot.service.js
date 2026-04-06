@@ -1,21 +1,35 @@
+import { StateGraph, START, END } from "@langchain/langgraph";
 import { MedicalAgentAnnotation } from "./chatbot.schema.js";
 import {
-	classifyQuery,
-	webSearch,
+	manageMemory,
+	safeguardNode,
+	classifyPrompt,
+	formulateQueries,
+	retrieveData,
+	handleMedical,
+	handleNonMedical,
 	handleUrgent,
-	handleNonUrgent,
-	handleGeneralQuestion,
+	handleUnsafe,
 } from "./chatbot.nodes.js";
-import { StateGraph, START, END } from "@langchain/langgraph";
 
 export const workflow = new StateGraph(MedicalAgentAnnotation)
-	.addEdge(START, "classifyQuery")
-	.addNode("classifyQuery", classifyQuery, {
-		ends: ["handleUrgent", "webSearch", "handleGeneralQuestion"],
+	.addNode("manageMemory", manageMemory, {
+		ends: ["safeguardNode"],
 	})
-	.addNode("webSearch", webSearch, {
-		ends: ["handleUrgent", "handleNonUrgent", "handleGeneralQuestion"],
+	.addNode("safeguardNode", safeguardNode, {
+		ends: ["handleUnsafe", "handleNonMedical", "classifyPrompt"],
 	})
+	.addNode("classifyPrompt", classifyPrompt, {
+		ends: ["handleUrgent", "formulateQueries", "handleMedical"],
+	})
+	.addNode("formulateQueries", formulateQueries, {
+		ends: ["retrieveData"],
+	})
+	.addNode("retrieveData", retrieveData, {
+		ends: ["handleMedical"],
+	})
+	.addNode("handleMedical", handleMedical, { ends: [END] })
+	.addNode("handleNonMedical", handleNonMedical, { ends: [END] })
 	.addNode("handleUrgent", handleUrgent, { ends: [END] })
-	.addNode("handleNonUrgent", handleNonUrgent, { ends: [END] })
-	.addNode("handleGeneralQuestion", handleGeneralQuestion, { ends: [END] });
+	.addNode("handleUnsafe", handleUnsafe, { ends: [END] })
+	.addEdge(START, "manageMemory");

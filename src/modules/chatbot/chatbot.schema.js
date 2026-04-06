@@ -1,46 +1,98 @@
-import { SystemMessage } from "@langchain/core/messages";
 import { Annotation, messagesStateReducer } from "@langchain/langgraph";
 import { z } from "zod";
 
-const systemPrompt = `
-You are an empathetic and professional Medical AI Assistant.
-
-- You are not a doctor and never attempt definitive diagnoses.
-- You are warm and direct — no filler, no fluff.
-- You refuse harmful requests by stating you are a clinical assistant.
-`.trim();
+export const SafeguardSchema = z.object({
+	isSafe: z
+		.boolean()
+		.describe(
+			"False only if the message requests instructions to harm others or synthesize illegal substances.",
+		),
+	domain: z
+		.enum(["medical", "non_medical"])
+		.describe(
+			"'medical' if related to health, body, medicine, or personal records. 'non_medical' otherwise.",
+		),
+});
 
 export const ClassificationSchema = z.object({
 	intent: z
-		.enum(["general_question", "intervention"])
+		.enum(["general_inquiry", "symptom_report"])
 		.describe(
-			"Classify the user's core intent: Select 'intervention' if the user is actively experiencing symptoms, feeling sick, or injured. Select 'general_question' for educational medical facts, general health advice, or simple greetings.",
+			"'symptom_report' if user describes active symptoms. 'general_inquiry' for everything else.",
 		),
-
 	urgency: z
-		.enum(["none", "not_urgent", "urgent"])
+		.enum(["not_urgent", "urgent"])
 		.describe(
-			"Rate the immediate severity: Select 'urgent' for severe, potentially life-threatening emergencies (e.g., chest pain, heavy bleeding, difficulty breathing). Select 'not_urgent' for minor, manageable symptoms. Select 'none' if the intent is a general_question.",
+			"'urgent' only for immediate life threats: chest pain, can't breathe, overdose, stroke.",
 		),
-
-	search: z
+	requiresPatientHistory: z
 		.boolean()
 		.describe(
-			"Set to true ONLY if you feel you need additional information from the web or updated information to answer the user safely and accurately.",
+			"True if user references their own past visits, records, diagnoses, or results.",
 		),
-
-	query: z
-		.string()
+	requiresWebSearch: z
+		.boolean()
 		.describe(
-			"A concise, optimized search query to fetch the necessary information. Incorporate context from previous messages to make the search effective. If needsSearch is false, return an empty string.",
+			"True if answering requires clinical guidelines, drug info, or condition facts.",
+		),
+});
+
+export const QuerySchema = z.object({
+	webQuery: z
+		.string()
+		.optional()
+		.describe(
+			"5-10 keyword clinical search string. Omit if no external facts needed.",
+		),
+	patientDbQuery: z
+		.object({
+			dateFrom: z
+				.string()
+				.optional()
+				.describe(
+					"ISO 8601 start date. Translate relative dates like 'last week' to exact ISO dates.",
+				),
+			dateTo: z
+				.string()
+				.optional()
+				.describe("ISO 8601 end date. Omit to default to now."),
+			status: z
+				.enum(["scheduled", "completed", "cancelled"])
+				.optional()
+				.describe("Filter by consultation status."),
+			limit: z
+				.number()
+				.int()
+				.min(1)
+				.max(20)
+				.optional()
+				.describe(
+					"Max records to return. 1 for 'last visit', N for 'last N visits', default 5.",
+				),
+		})
+		.optional()
+		.describe(
+			"DB query for patient records. Omit entirely if user is not referencing personal history.",
 		),
 });
 
 export const MedicalAgentAnnotation = Annotation.Root({
-	messages: Annotation({
+	patientId: Annotation,
+	activeMessages: Annotation({
 		reducer: messagesStateReducer,
-		default: () => [new SystemMessage(systemPrompt)],
+		default: () => [],
 	}),
+	summaryBlocks: Annotation({
+		reducer: (existing, update) => {
+			if (!update || update.length === 0) return existing ?? [];
+			return [...(existing ?? []), ...update];
+		},
+		default: () => [],
+	}),
+	safeguard: Annotation,
 	classification: Annotation,
-	searchResults: Annotation,
+	webQuery: Annotation,
+	patientDbQuery: Annotation,
+	webContext: Annotation,
+	patientContext: Annotation,
 });
