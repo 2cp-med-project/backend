@@ -1,10 +1,10 @@
 import express from "express";
 import controller from "./notif.controller.js";
-import service from "./notif.service.js";
+import { authenticate } from "../../middleware/auth.js";
 const router = express.Router();
 
-router.post("/register-token", controller.registerFcmToken);
-router.post("/request-access", controller.requestAccess);
-router.post("/patient-response", controller.patientResponse);
+router.post("/register-token", authenticate, controller.registerFcmToken);
+router.post("/request-access", authenticate ,controller.requestAccess);
+router.post("/patient-response", authenticate, controller.patientResponse);
 
 export default router;
