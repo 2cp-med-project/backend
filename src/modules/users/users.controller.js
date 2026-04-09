@@ -79,7 +79,7 @@ async function getDoctors(req, res) {
     page = "0",
     limit = "10",
     order = "asc",
-    sortBy = "name",
+    sortBy = "firstName",
   } = req.query || {};
 
   const allowedSortFields = [
@@ -281,7 +281,7 @@ async function updateProfile(req, res) {
     }
 
     const update = {};
-    for (field in newData) {
+    for (const field in newData) {
       if (allowFields.includes(field) && newData[field] !== undefined) {
         update[field] = newData[field];
       }
