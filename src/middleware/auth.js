@@ -25,6 +25,7 @@ function authenticate(req, res, next) {
 
     req.user = user;
     next();
+    return;
   } catch {
     res.status(403).json({ message: "Invalid access token" });
   }

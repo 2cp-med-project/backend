@@ -131,9 +131,7 @@ async function deleteConsultation(req, res) {
 
     await Consultation.findByIdAndDelete(consultationId);
 
-    consultation.res
-      .status(200)
-      .json({ message: "Consultation deleted successfully" });
+    res.status(200).json({ message: "Consultation deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
