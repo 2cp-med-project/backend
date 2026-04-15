@@ -501,6 +501,9 @@
                   "email": {
                     "example": "any"
                   },
+                  "phone": {
+                    "example": "any"
+                  },
                   "password": {
                     "example": "any"
                   },
@@ -541,7 +544,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "email": {
+                  "phone": {
                     "example": "any"
                   },
                   "password": {
