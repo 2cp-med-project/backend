@@ -9,12 +9,13 @@ async function signin(req, res) {
   // #swagger.summary = 'Register a new user (doctor or patient)'
   // #swagger.description = 'Roles: doctor, patient'
 
-  const { firstName, lastName, email, password, licenseNumber, role } =
+  const { firstName, lastName, email, phone, password, licenseNumber, role } =
     req.body || {};
   if (
     !firstName ||
     !lastName ||
     !email ||
+    !phone ||
     !password ||
     !role ||
     !["doctor", "patient"].includes(role) ||
@@ -25,10 +26,12 @@ async function signin(req, res) {
   }
   try {
     const existingUser =
-      (await Doctor.findOne({ email }, { _id: 1 })) ||
-      (await Patient.findOne({ email }, { _id: 1 }));
+      (await Doctor.findOne({ $or: [{ email }, { phone }] }, { _id: 1 })) ||
+      (await Patient.findOne({ $or: [{ email }, { phone }] }, { _id: 1 }));
     if (existingUser) {
-      res.status(400).json({ message: "This email is already registered" });
+      res
+        .status(400)
+        .json({ message: "The email or phone number are already used" });
       return;
     }
 
@@ -39,12 +42,14 @@ async function signin(req, res) {
             firstName,
             lastName,
             email,
+            phone,
             password: hashedpassword,
             licenseNumber,
           })
         : new Patient({
             firstName,
             lastName,
+            phone,
             email,
             password: hashedpassword,
           });
@@ -68,13 +73,13 @@ async function login(req, res) {
   // #swagger.summary = 'Login a user (doctor or patient) and return a refresh token'
   // #swagger.description = 'Roles: doctor, patient'
 
-  const { email, password, role } = req.body || {};
+  const { phone, password, role } = req.body || {};
   try {
-    if (!email || !password || !role) {
+    if (!phone || !password || !role) {
       res.status(400).json({ message: "Missing required fields" });
       return;
     }
-    const user = await authService.checkPassword(password, email, role);
+    const user = await authService.checkPassword(password, phone, role);
     const refreshToken =
       user.refreshToken || authService.generateToken(user.id, role, "30d");
     user.refreshToken = refreshToken;
