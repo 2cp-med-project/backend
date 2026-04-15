@@ -3,14 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 
-import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
-
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const swaggerDoc = require("../swagger.json");
-
-// console.log("Swagger Options:", swaggerOptions);
+import swaggerDoc from "../swagger.json" with { type: "json" };
 
 import routes from "./routes.js";
 
