@@ -35,12 +35,6 @@ const patientSchema = new mongoose.Schema({
     },
   ],
 
-  // ----------------- OTP Fields -----------------
-  otpVerified: { type: Boolean, default: false },
-  otpCode: String,
-  otpExpiresAt: Date,
-
-  createdAt: { type: Date, default: Date.now },
 });
 
 export default mongoose.model("Patient", patientSchema);
