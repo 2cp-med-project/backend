@@ -3,6 +3,10 @@ import Access from "./access.model.js";
 //Doctor sends access request
 
 async function requestAccess(req, res) {
+  // #swagger.tags = ['Access']
+  // #swagger.summary = 'Doctor sends access request to a patient'
+  // #swagger.description = 'Roles: patient'
+
   const patientId = req.body.patientId;
   const doctorId = req.user.id;
 
@@ -34,13 +38,20 @@ async function requestAccess(req, res) {
 // Patient sees pending requests
 
 async function getPatientRequests(req, res) {
+  // #swagger.tags = ['Access']
+  // #swagger.summary = 'Patient sees pending access requests'
+  // #swagger.description = 'Roles: patient'
+
   const patientId = req.user.id;
 
   try {
-    const requests = await Access.find({
-      patient: patientId,
-      status: { $in: ["pending", "active"] },
-    }).populate("id doctor timestamp");
+    const requests = await Access.find(
+      {
+        patient: patientId,
+        status: { $in: ["pending", "active"] },
+      },
+      { patient: 1, createdAt: 1 },
+    ).lean();
 
     res.json(requests);
   } catch (error) {
@@ -51,6 +62,10 @@ async function getPatientRequests(req, res) {
 // Patient approves or rejects
 
 async function respondAccess(req, res) {
+  // #swagger.tags = ['Access']
+  // #swagger.summary = 'Patient approves or rejects an access request'
+  // #swagger.description = 'Roles: patient'
+
   const accepted = req.body.accepted;
   const accessId = req.params.id;
   const patientId = req.user.id;
@@ -84,12 +99,19 @@ async function respondAccess(req, res) {
 // Doctor gets approved patients
 
 async function getDoctorPatients(req, res) {
+  // #swagger.tags = ['Access']
+  // #swagger.summary = 'Doctor sees approved patients'
+  // #swagger.description = 'Roles: doctor'
+
   const doctorId = req.user.id;
   try {
-    const accesses = await Access.find({
-      doctor: doctorId,
-      status: "approved",
-    }).populate("id patient timestamp ");
+    const accesses = await Access.find(
+      {
+        doctor: doctorId,
+        status: "approved",
+      },
+      { patient: 1, createdAt: 1 },
+    ).lean();
 
     res.json(accesses);
   } catch (error) {
@@ -100,13 +122,20 @@ async function getDoctorPatients(req, res) {
 // Patient gets approved doctors
 
 async function getPatientDoctors(req, res) {
+  // #swagger.tags = ['Access']
+  // #swagger.summary = 'Patient sees approved doctors'
+  // #swagger.description = 'Roles: patient'
+
   const patientId = req.user.id;
 
   try {
-    const accesses = await Access.find({
-      patient: patientId,
-      status: "active",
-    }).populate("id doctor timestamp");
+    const accesses = await Access.find(
+      {
+        patient: patientId,
+        status: "active",
+      },
+      { doctor: 1, createdAt: 1 },
+    ).lean();
 
     res.json(accesses);
   } catch (error) {
@@ -117,6 +146,10 @@ async function getPatientDoctors(req, res) {
 // Patient removes doctor (delete access)
 
 async function removeDoctor(req, res) {
+  // #swagger.tags = ['Access']
+  // #swagger.summary = 'Patient removes a doctor (deletes access)'
+  // #swagger.description = 'Roles: patient'
+
   const patientId = req.user.id;
   const accessId = req.params.id;
   try {

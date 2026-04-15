@@ -8,7 +8,9 @@ import swaggerUi from "swagger-ui-express";
 
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const swaggerOptions = require("../swagger.json");
+const swaggerDoc = require("../swagger.json");
+
+// console.log("Swagger Options:", swaggerOptions);
 
 import routes from "./routes.js";
 
@@ -24,12 +26,6 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Swagger Docs
-const specs = swaggerJsdoc({
-  definition: swaggerOptions.definition,
-  apis: swaggerOptions.apis,
-});
-
 const swaggerUiOptions = {
   customCssUrl:
     "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css",
@@ -39,7 +35,11 @@ const swaggerUiOptions = {
   ],
 };
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, swaggerUiOptions));
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDoc, swaggerUiOptions),
+);
 
 // Load Main Routes
 app.use("/api", routes);
@@ -51,4 +51,5 @@ app.get("/", (req, res) => {
 
 // Start Server
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
