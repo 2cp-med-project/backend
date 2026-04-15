@@ -4,10 +4,10 @@ import bcrypt from "bcryptjs";
 import Doctor from "../users/doctor.model.js";
 import Patient from "../users/patient.model.js";
 
-async function checkPassword(plainPassword, email, role) {
+async function checkPassword(plainPassword, phone, role) {
   if (
     !plainPassword ||
-    !email ||
+    !phone ||
     !role ||
     !["doctor", "patient"].includes(role)
   ) {
@@ -16,8 +16,8 @@ async function checkPassword(plainPassword, email, role) {
 
   const user =
     role === "doctor"
-      ? await Doctor.findOne({ email })
-      : await Patient.findOne({ email });
+      ? await Doctor.findOne({ phone })
+      : await Patient.findOne({ phone });
 
   if (!user) {
     throw new Error("Invalid credentials");
