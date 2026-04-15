@@ -11,4 +11,4 @@ router.use("/record/", recordsRoutes);
 router.use("/auth/", authRoutes);
 router.use("/access/", accessRoutes);
 
-export default router;
+module.exports = router; 
