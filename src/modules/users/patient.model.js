@@ -9,7 +9,7 @@ const patientSchema = new mongoose.Schema({
   refreshToken: String, // for token refresh
   dateOfBirth: Date,
   placeOfBirth: String,
-  gender: { type: String, enum: ["male", "female"], required: true },
+  gender: { type: String, enum: ["male", "female"] },
   phone: String,
   address: String,
   role: {
@@ -34,7 +34,6 @@ const patientSchema = new mongoose.Schema({
       accepted: { type: Boolean, default: false },
     },
   ],
-
 });
 
 export default mongoose.model("Patient", patientSchema);
