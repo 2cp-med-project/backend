@@ -214,12 +214,12 @@ async function getProfile(req, res) {
         ? {
             firstName: 1,
             lastName: 1,
-            licenseNumber: 1,
-            specialization: 1,
             email: 1,
             phone: 1,
+            gender: 1,
             address: 1,
-            patients: 1,
+            licenseNumber: 1,
+            specialization: 1,
             createdAt: 1,
           }
         : {
@@ -227,13 +227,12 @@ async function getProfile(req, res) {
             lastName: 1,
             email: 1,
             phone: 1,
+            address: 1,
             dateOfBirth: 1,
             placeOfBirth: 1,
             gender: 1,
-            address: 1,
             emergencyContacts: 1,
             medicalResume: 1,
-            doctorsAccess: 1,
             createdAt: 1,
           }; //TODO: add the list of consultations
 
@@ -262,24 +261,28 @@ async function updateProfile(req, res) {
 
   const allowFields =
     role === "doctor"
-      ? ["firstName", "lastName", "email", "phone", "address", "specialization"]
+      ? [
+          "firstName",
+          "lastName",
+          "email",
+          "phone",
+          "gender",
+          "address",
+          "licenseNumber",
+          "specialization",
+        ]
       : [
           "firstName",
           "lastName",
-          "phone",
           "email",
+          "phone",
           "address",
           "dateOfBirth",
           "placeOfBirth",
+          "gender",
           "emergencyContacts",
-          "medicalResume",
         ];
   try {
-    if (!id || !role || !["doctor", "patient"].includes(role)) {
-      res.status(400).json({ message: "Invalid user data" });
-      return;
-    }
-
     const update = {};
     for (const field in newData) {
       if (allowFields.includes(field) && newData[field] !== undefined) {
