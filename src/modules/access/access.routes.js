@@ -1,35 +1,53 @@
 import express from "express";
 import controller from "./access.controller.js";
+import validationSchema from "./access.validation.js";
 
 import authenticate from "../../middleware/auth.js"; //authorization middleware
 import authorize from "../../middleware/role.js";
+import validate from "../../middleware/validation.js";
 
 const router = express.Router();
 
-// Doctor sends request
+// Apply authentication middleware to all routes
 router.use(authenticate);
 
-router.use("/request", authorize("doctor"));
-router.post("/request", controller.requestAccess);
+router.post(
+  "/request",
+  authorize("doctor"),
+  validate(validationSchema.requestAccessValidation),
+  controller.requestAccess,
+);
 
-// Patient sees pending requests
-router.use("/patient/requests", authorize("patient"));
-router.get("/patient/requests", controller.getPatientRequests);
+// Patient sees pending and active requests
+router.get(
+  "/patient/requests",
+  authorize("patient"),
+  controller.getPatientRequests,
+);
 
 // Patient approves/rejects
-router.use("/:id/respond", authorize("patient"));
-router.put("/:id/respond", controller.respondAccess);
+router.put("/:id/respond", authorize("patient"), controller.respondAccess);
 
 // Doctor sees approved patients
-router.use("/doctor/patients", authorize("doctor"));
-router.get("/doctor/patients", controller.getDoctorPatients);
+router.get(
+  "/doctor/patients",
+  authorize("doctor"),
+  controller.getDoctorPatients,
+);
 
 // Patient sees approved doctors
-router.use("/patient/doctors", authorize("patient"));
-router.get("/patient/doctors", controller.getPatientDoctors);
+router.get(
+  "/patient/doctors",
+  authorize("patient"),
+  controller.getPatientDoctors,
+);
 
 // Patient removes doctor
-router.use("/:id", authorize("patient"));
-router.delete("/:id", controller.removeDoctor);
+router.delete(
+  "/:id",
+  authorize("patient"),
+  validate(validationSchema.removeAccessValidation),
+  controller.removeAccess,
+);
 
 export default router;
