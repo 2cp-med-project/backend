@@ -8,7 +8,7 @@ const doctorSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, default: "doctor", enum: ["doctor"], immutable: true },
   gender: { type: String, enum: ["male", "female"] },
-  licenseNumber: { type: String, required: true, unique: true }, //scanning diplomat
+  licenseNumber: { type: String, unique: true }, //scanning diplomat
   specialization: String,
   address: String, // optional or could be hospital location
 

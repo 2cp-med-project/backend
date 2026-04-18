@@ -3,6 +3,7 @@ const emailValidation = {
   notEmpty: true,
   isEmail: true,
   errorMessage: "A valid email is required",
+  normalizeEmail: true,
 };
 
 const phoneValidation = {
@@ -36,6 +37,7 @@ const signUpValidation = {
     isString: true,
     isAlpha: true,
     errorMessage: "First name is required and must be a string of letters",
+    toLowerCase: true,
   },
   lastName: {
     in: "body",
@@ -43,6 +45,7 @@ const signUpValidation = {
     isString: true,
     isAlpha: true,
     errorMessage: "Last name is required and must be a string of letters",
+    toLowerCase: true,
   },
   email: emailValidation,
   phone: phoneValidation,
@@ -61,7 +64,7 @@ const tokenValidation = {
     in: "body",
     notEmpty: true,
     isString: true,
-    errorMessage: "The token is required",
+    errorMessage: "The token is required and must be a string",
   },
 };
 
