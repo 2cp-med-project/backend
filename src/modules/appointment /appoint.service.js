@@ -13,40 +13,56 @@ async function createAppointment(patientId, appointmentData) {
   const doctor = await Doctor.findOne({ name: doctorName });
   if (!doctor) throw new Error("Doctor not found");
 
-  const doctorId = doctor._id;
   const appointmentDate = new Date(date);
 
   const reminders = [];
+
+  //  IRM / RADIO / SCANNER → 30 days before
   if (["IRM", "RADIO", "SCANNER"].includes(type)) {
-    reminders.push({ date: new Date(appointmentDate.getTime() - 30 * 24 * 60 * 60 * 1000) });
+    reminders.push({
+      date: new Date(appointmentDate.getTime() - 30 * 24 * 60 * 60 * 1000),
+    });
   }
+
+  //  ANALYSE → 15 days before
   if (type === "ANALYSE") {
-    reminders.push({ date: new Date(appointmentDate.getTime() - 15 * 24 * 60 * 60 * 1000) });
+    reminders.push({
+      date: new Date(appointmentDate.getTime() - 15 * 24 * 60 * 60 * 1000),
+    });
   }
+
+  //  CONSULTATION → 7 days before
   if (type === "CONSULTATION") {
-    reminders.push({ date: new Date(appointmentDate.getTime() - 7 * 24 * 60 * 60 * 1000) });
+    reminders.push({
+      date: new Date(appointmentDate.getTime() - 7 * 24 * 60 * 60 * 1000),
+    });
   }
-  reminders.push({ date: new Date(appointmentDate.getTime() - 1 * 24 * 60 * 60 * 1000) });
+
+  // always 1 day before
+  reminders.push({
+    date: new Date(appointmentDate.getTime() - 1 * 24 * 60 * 60 * 1000),
+  });
 
   const appointment = {
     _id: new mongoose.Types.ObjectId(),
-    type,
-    doctorId,
+    type, 
+    doctorId: doctor._id,
     date: appointmentDate,
     time,
     status: "scheduled",
     location: location || "",
     appointmentnotes: appointmentnotes || "",
-    reminders
+    reminders,
   };
 
-  await Patient.updateOne(
-    { _id: patientId },
-    { $push: { appointments: appointment } }
-  );
+  await Patient.findByIdAndUpdate(patientId, {
+    $push: { appointments: appointment },
+  });
 
-  return appointment;
+  return { message: "Appointment created successfully" };
 }
+
+ 
 
 async function getPatientAppointments(patientId) {
   const patient = await Patient.findById(patientId).populate("appointments.doctorId", "name");

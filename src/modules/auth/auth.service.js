@@ -14,19 +14,33 @@ async function checkPassword(plainPassword, email, role) {
     throw new Error("Missing required fields");
   }
 
-  const user =
+  /*const user =
     role === "doctor"
       ? await Doctor.findOne({ email })
       : await Patient.findOne({ email });
-
+console.log("DB user:", user);
   if (!user) {
-    throw new Error("Invalid credentials");
-  }
-  const valid = await bcrypt.compare(plainPassword, user.password);
+    throw new Error("Invalid credentials ");
+  }*/
+ let user;
 
+if (role === "doctor") {
+  user = await Doctor.findOne({ email });
+} else if (role === "patient") {
+  user = await Patient.findOne({ email });
+  console.log("DB user:", user);
+} else {
+  throw new Error("Invalid role");
+}
+console.log("DB user:", user);
+  const valid = await bcrypt.compare(plainPassword, user.password);
+onsole.log("DB password:", user.password);
+console.log("input password:", plainPassword);
   if (!valid) {
-    throw new Error("Invalid credentials");
+    throw new Error("Invalid credentials ");
   }
+  
+c
   return user;
 }
 
