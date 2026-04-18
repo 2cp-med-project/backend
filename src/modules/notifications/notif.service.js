@@ -2,41 +2,35 @@ import Patient from "../users/patient.model.js";
 import admin from "firebase-admin";
 import Doctor from "../users/doctor.model.js";
 import { io, onlineUsers } from "./channels/socket.js";
- async function saveFcmToken(userId, fcmToken) {
-  await Patient.updateOne(
+ async function saveFcmToken(userId, role, fcmToken) {
+  const Model = role === "doctor" ? Doctor : Patient;
+
+  await Model.updateOne(
     { _id: userId },
     { $set: { fcmToken } }
   );
 }
  
- async function sendAccessRequestNotification(doctorId, patientId) {
-
+async function sendAccessRequestNotification(doctorId, patientId) {
   const doctor = await Doctor.findById(doctorId);
-  if (!doctor) {
-    throw new Error("Doctor not found");
-  }
+  if (!doctor) throw new Error("Doctor not found");
 
-  
   const patient = await Patient.findById(patientId);
   if (!patient || !patient.fcmToken) {
     throw new Error("Patient or FCM token not found");
   }
 
-
-  const message = {
+  await admin.messaging().send({
+    token: patient.fcmToken,
     notification: {
       title: "Access Request",
-      body: `Dr. ${doctor.firstName} ${doctor.lastName} wants to access your medical file`
+      body: `Dr. ${doctor.firstName} ${doctor.lastName} veut accéder à votre dossier médical`,
     },
     data: {
       doctorId: doctorId.toString(),
-      type: "ACCESS_REQUEST"
+      type: "ACCESS_REQUEST",
     },
-    token: patient.fcmToken
-  };
-
-
-  await admin.messaging().send(message);
+  });
 }
 
 
@@ -45,11 +39,10 @@ import { io, onlineUsers } from "./channels/socket.js";
   const patient = await Patient.findById(patientId);
   if (!patient) throw new Error("Patient not found");
 
-  const statusText = accepted ? "accepted" : "denied";
-
+ const statusText = accepted ? "accepté" : "refusé";
   const message = {
     title: "Patient Response",
-    body: `Patient ${patient.firstName} ${patient.lastName} has ${statusText} your request`,
+    body:`Le patient ${patient.firstName} ${patient.lastName} a ${statusText} votre demande`,
     patientId,
     status: statusText
   };
@@ -68,37 +61,70 @@ import { io, onlineUsers } from "./channels/socket.js";
 async function sendAppointmentReminders() {
   const now = new Date();
 
-  // Only get patients who have reminders that are not sent and are due
   const patients = await Patient.find({
     "appointments.reminders.sent": false,
-    "appointments.reminders.date": { $lte: now },
   });
-  if (!patients || patients.length === 0) {
-    console.log("No reminders to send.");
+
+  if (!patients.length) {
     return { message: "No reminders to send." };
   }
 
   for (const patient of patients) {
+    let updated = false;
 
-    for (const appointment of patient.appointments) {
+    for (const appointment of patient.appointments || []) {
+
       const doctor = await Doctor.findById(appointment.doctorId);
-
       if (!doctor) continue;
 
-      for (const reminder of appointment.reminders) {
-        if (!reminder.sent && reminder.date <= now) {
-          const diffTime = appointment.date.getTime() - now.getTime();
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const appointmentTime = new Date(appointment.date).getTime();
+
+      let actionText = "";
+
+      switch (appointment.type) {
+        case "IRM":
+          actionText = "votre IRM";
+          break;
+        case "RADIO":
+          actionText = "votre radiographie";
+          break;
+        case "SCANNER":
+          actionText = "votre scanner";
+          break;
+        case "ANALYSE":
+          actionText = "votre analyse médicale";
+          break;
+        case "CONSULTATION":
+          actionText = "votre consultation";
+          break;
+        default:
+          actionText = "votre rendez-vous médical";
+      }
+
+      for (const reminder of appointment.reminders || []) {
+
+        if (reminder.sent) continue;
+
+        const reminderTime = new Date(reminder.date).getTime();
+
+        if (reminderTime <= now.getTime()) {
+
+          const diffHours =
+            (appointmentTime - now.getTime()) / (1000 * 60 * 60);
 
           let message = "";
 
-          if (diffDays > 1) {
-            message = `Vous avez un rendez-vous avec Dr ${doctor.name} dans ${diffDays} jours à ${appointment.time}.`;
+          if (diffHours > 24) {
+            const diffDays = Math.ceil(diffHours / 24);
+
+            message = `Vous avez ${actionText} avec Dr ${doctor.firstName} ${doctor.lastName} dans ${diffDays} jours à ${appointment.time}.`;
           } else {
-            message = `Rappel : Vous avez un ${appointment.type} demain à ${appointment.time} avec Dr ${doctor.name} à ${appointment.Location}.`;
+            const when =
+              diffHours > 0 ? "demain" : "aujourd'hui";
+
+            message = `Rappel : vous avez ${actionText} ${when} à ${appointment.time} avec Dr ${doctor.firstName} ${doctor.lastName} à ${appointment.location}.`;
           }
 
-          // Send notification via FCM
           if (patient.fcmToken) {
             await admin.messaging().send({
               token: patient.fcmToken,
@@ -106,23 +132,25 @@ async function sendAppointmentReminders() {
                 title: "Rappel de rendez-vous",
                 body: message,
               },
+              data: {
+                type: "APPOINTMENT_REMINDER",
+                appointmentId: appointment._id?.toString() || "",
+              },
             });
           }
 
-          // Mark the reminder as sent
           reminder.sent = true;
+          updated = true;
         }
-        else {
       }
     }
 
-    // Save patient with updated reminders
-    await patient.save();
+    if (updated) {
+      await patient.save();
+    }
   }
 
-  return { message: "Notifications envoyées" };
-}}
-
-
+  return { message: "Reminders processed successfully" };
+}
 
 export default {saveFcmToken,sendAccessRequestNotification,sendPatientResponseNotification,sendAppointmentReminders};

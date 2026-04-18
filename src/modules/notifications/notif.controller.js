@@ -1,49 +1,73 @@
-//receive rdv notifications ,access request notifications
-
 import service from "./notif.service.js";
-// Register FCM token for a user
+
 async function registerFcmToken(req, res) {
-   //swagger.security = [{ "BearerAuth": [] }]
   try {
-    const { userId, fcmToken } = req.body;
-    await service.saveFcmToken(userId, fcmToken);
-    res.status(200).json({ message: "FCM token saved successfully" });
+    const { userId, role, fcmToken } = req.body;
+
+    if (!userId || !role || !fcmToken) {
+      return res.status(400).json({
+        error: "userId, role and fcmToken are required",
+      });
+    }
+
+    await service.saveFcmToken(userId, role, fcmToken);
+
+    return res.status(200).json({
+      message: "FCM token saved successfully",
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
-  // Handle doctor access request to patient file
-} async function requestAccess(req, res) {
-   //swagger.security = [{ "BearerAuth": [] }]
+}
+
+async function requestAccess(req, res) {
   try {
     const { doctorId, patientId } = req.body;
 
+    if (!doctorId || !patientId) {
+      return res.status(400).json({
+        error: "doctorId and patientId are required",
+      });
+    }
+
     await service.sendAccessRequestNotification(doctorId, patientId);
 
-    res.status(200).json({
-      message: "Access request notification sent successfully"
+    return res.status(200).json({
+      message: "Access request notification sent successfully",
     });
   } catch (error) {
-    res.status(500).json({
-      error: error.message
-    });
+    return res.status(500).json({ error: error.message });
   }
 }
-// Handle patient response to access request
+
 async function patientResponse(req, res) {
-   //swagger.security = [{ "BearerAuth": [] }]
   try {
     const { patientId, doctorId, accepted } = req.body;
+
+    if (!patientId || !doctorId || accepted === undefined) {
+      return res.status(400).json({
+        error: "patientId, doctorId and accepted are required",
+      });
+    }
+
+    const acceptedBool = accepted === true || accepted === "true";
 
     await service.sendPatientResponseNotification(
       patientId,
       doctorId,
-      accepted
+      acceptedBool
     );
 
-    res.status(200).json({ message: "Notification sent to doctor" });
+    return res.status(200).json({
+      message: "Notification sent to doctor",
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
-  
 }
-export default { registerFcmToken, requestAccess, patientResponse };
+
+export default {
+  registerFcmToken,
+  requestAccess,
+  patientResponse,
+};
