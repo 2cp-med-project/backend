@@ -5,12 +5,17 @@ import Doctor from "../users/doctor.model.js";
 import Patient from "../users/patient.model.js";
 
 async function signin(req, res) {
-  const { firstName, lastName, email, password, licenseNumber, role } =
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Register a new user (doctor or patient)'
+  // #swagger.description = 'Roles: doctor, patient'
+
+  const { firstName, lastName, email, phone, password, licenseNumber, role } =
     req.body || {};
   if (
     !firstName ||
     !lastName ||
     !email ||
+    !phone ||
     !password ||
     !role ||
     !["doctor", "patient"].includes(role) ||
@@ -21,10 +26,12 @@ async function signin(req, res) {
   }
   try {
     const existingUser =
-      (await Doctor.findOne({ email }, { _id: 1 })) ||
-      (await Patient.findOne({ email }, { _id: 1 }));
+      (await Doctor.findOne({ $or: [{ email }, { phone }] }, { _id: 1 })) ||
+      (await Patient.findOne({ $or: [{ email }, { phone }] }, { _id: 1 }));
     if (existingUser) {
-      res.status(400).json({ message: "This email is already registered" });
+      res
+        .status(400)
+        .json({ message: "The email or phone number are already used" });
       return;
     }
 
@@ -35,12 +42,14 @@ async function signin(req, res) {
             firstName,
             lastName,
             email,
+            phone,
             password: hashedpassword,
             licenseNumber,
           })
         : new Patient({
             firstName,
             lastName,
+            phone,
             email,
             password: hashedpassword,
           });
@@ -60,13 +69,17 @@ async function signin(req, res) {
 }
 
 async function login(req, res) {
-  const { email, password, role } = req.body || {};
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Login a user (doctor or patient) and return a refresh token'
+  // #swagger.description = 'Roles: doctor, patient'
+
+  const { phone, password, role } = req.body || {};
   try {
-    if (!email || !password || !role) {
+    if (!phone || !password || !role) {
       res.status(400).json({ message: "Missing required fields" });
       return;
     }
-    const user = await authService.checkPassword(password, email, role);
+    const user = await authService.checkPassword(password, phone, role);
     const refreshToken =
       user.refreshToken || authService.generateToken(user.id, role, "30d");
     user.refreshToken = refreshToken;
@@ -78,12 +91,13 @@ async function login(req, res) {
 }
 
 async function logout(req, res) {
-  const { id, role } = req.user || {};
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Logout the current user by invalidating their refresh token'
+  // #swagger.security = [{ BearerAuth: [] }]
+  // #swagger.description = 'Roles: doctor, patient'
+
+  const { id, role } = req.user;
   try {
-    if (!id || !role || !["doctor", "patient"].includes(role)) {
-      res.status(400).json({ message: "Invalid user data" });
-      return;
-    }
     const user =
       role === "doctor"
         ? await Doctor.findById(id)
@@ -101,6 +115,10 @@ async function logout(req, res) {
 }
 
 async function refreshToken(req, res) {
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Refresh access token using a valid refresh token'
+  // #swagger.description = 'Roles: doctor, patient'
+
   const { refreshToken } = req.body || {};
   try {
     if (!refreshToken) {
@@ -147,13 +165,14 @@ async function refreshToken(req, res) {
 }
 
 async function getCurrentUser(req, res) {
-  const { id, role } = req.user || {};
-  try {
-    if (!id || !role || !["doctor", "patient"].includes(role)) {
-      res.status(400).json({ message: "Invalid user data" });
-      return;
-    }
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Get the current logged-in user details'
+  // #swagger.security = [{ BearerAuth: [] }]
+  // #swagger.description = 'Roles: doctor, patient'
 
+  const { id, role } = req.user;
+
+  try {
     const returnedFields =
       role === "doctor"
         ? {
@@ -197,6 +216,10 @@ async function getCurrentUser(req, res) {
 }
 
 async function requestOTP(req, res) {
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Request a One-Time Password (OTP) for phone verification'
+  // #swagger.description = 'Roles: doctor, patient'
+
   const { phone, role } = req.body || {};
   try {
     if (!phone || !role || !["doctor", "patient"].includes(role)) {
@@ -212,6 +235,10 @@ async function requestOTP(req, res) {
 }
 
 async function verifyOTP(req, res) {
+  // #swagger.tags = ['Auth']
+  // #swagger.summary = 'Verify a One-Time Password (OTP) for phone verification'
+  // #swagger.description = 'Roles: doctor, patient'
+
   const { phone, code, role } = req.body || {};
   try {
     if (!phone || !code || !role || !["doctor", "patient"].includes(role)) {
@@ -231,7 +258,6 @@ export default {
   login,
   logout,
   refreshToken,
-  getCurrentUser,
   requestOTP,
   verifyOTP,
 };
