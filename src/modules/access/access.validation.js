@@ -22,6 +22,7 @@ const respondAccessValidation = {
     notEmpty: true,
     isBoolean: true,
     errorMessage: "Accepted must be a boolean",
+    toBoolean: true,
   },
   accessId: accessIdValidation,
 };
