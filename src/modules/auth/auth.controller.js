@@ -258,6 +258,6 @@ export default {
   login,
   logout,
   refreshToken,
-  requestOTP,
+    requestOTP,
   verifyOTP,
 };
