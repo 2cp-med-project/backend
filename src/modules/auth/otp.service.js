@@ -1,38 +1,42 @@
-// services/OTPService.js
-
 import Patient from "../users/patient.model.js";
 import Doctor from "../users/doctor.model.js";
+import twilio from "twilio";
 
-const OTP_EXPIRATION = 5 * 60 * 1000; // 5 minutes
+const client = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
 
-function generateCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
+const VERIFY_SERVICE_SID = process.env.TWILIO_VERIFY_SERVICE_SID;
 
-// -------- GENERATE OTP --------
+// -------- REQUEST OTP --------
 async function generate(phone, role) {
   if (!phone || !role || !["doctor", "patient"].includes(role)) {
     throw new Error("Missing required fields");
   }
 
-  const code = generateCode();
+  // check user exists
   const user =
     role === "doctor"
       ? await Doctor.findOne({ phone })
       : await Patient.findOne({ phone });
   if (!user) throw new Error("User not found");
 
-  // store OTP in DB
-  user.otpCode = code;
-  user.otpExpiresAt = Date.now() + OTP_EXPIRATION;
+  try {
+    // request OTP via Twilio Verify
+    const verification = await client.verify.v2
+      .services(VERIFY_SERVICE_SID)
+      .verifications.create({
+        to: phone,
+        channel: "sms",
+      });
 
-  await user.save();
-
-  // show OTP in console (for development)
-  console.log(`OTP for ${phone}: ${code}`);
-
-  // optional: return OTP so you can see it in Postman
-  return code;
+    console.log(`OTP sent to ${phone}, status: ${verification.status}`);
+    return verification.status; // e.g., "pending"
+  } catch (err) {
+    console.error("Twilio OTP error:", err.message);
+    throw new Error("Failed to send OTP");
+  }
 }
 
 // -------- VERIFY OTP --------
@@ -41,30 +45,33 @@ async function verify(phone, code, role) {
     throw new Error("Missing required fields");
   }
 
+  // check user exists
   const user =
     role === "doctor"
       ? await Doctor.findOne({ phone })
       : await Patient.findOne({ phone });
   if (!user) throw new Error("User not found");
 
-  // check expiration
-  if (
-    !user.otpCode ||
-    user.otpExpiresAt < Date.now() ||
-    user.otpCode !== code
-  ) {
-    throw new Error("Invalid or expired OTP");
+  try {
+    const verificationCheck = await client.verify.v2
+      .services(VERIFY_SERVICE_SID)
+      .verificationChecks.create({
+        to: phone,
+        code,
+      });
+
+    if (verificationCheck.status === "approved") {
+      // mark user as verified in DB
+      user.otpVerified = true;
+      await user.save();
+      return true;
+    } else {
+      throw new Error("Invalid OTP");
+    }
+  } catch (err) {
+    console.error("Twilio verify error:", err.message);
+    throw new Error("OTP verification failed");
   }
-
-  // mark verified
-  // remove OTP after verification
-  user.otpVerified = true;
-  user.otpCode = null;
-  user.otpExpiresAt = null;
-
-  await user.save();
-
-  return true;
 }
 
 export default {
