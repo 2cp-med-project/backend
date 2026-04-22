@@ -10,7 +10,7 @@ import { io, onlineUsers } from "./channels/socket.js";
     { $set: { fcmToken } }
   );
 }
- 
+ // Yahiaaaaa here add it to access
 async function sendAccessRequestNotification(doctorId, patientId) {
   const doctor = await Doctor.findById(doctorId);
   if (!doctor) throw new Error("Doctor not found");
@@ -153,4 +153,4 @@ async function sendAppointmentReminders() {
   return { message: "Reminders processed successfully" };
 }
 
-export default {saveFcmToken,sendAccessRequestNotification,sendPatientResponseNotification,sendAppointmentReminders};
+export default {saveFcmToken,sendPatientResponseNotification,sendAppointmentReminders};

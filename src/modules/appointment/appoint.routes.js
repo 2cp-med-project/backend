@@ -6,7 +6,6 @@ const router = express.Router();
 router.use(authenticate); 
 
 router.post("/add", authenticate, controller.addAppointment);
-router.put("/update/:id", controller.updateAppointment);
-router.delete("/delete/:id",controller.deleteAppointment);
-router.get("/my",controller.getMyAppointments);
+
+router.get("/my",authenticate,controller.getMyAppointments);
 export default router;

@@ -44,10 +44,10 @@ const patientSchema = new mongoose.Schema({
   {
     type: { 
       type: String, 
-      enum: ["IRM,RADIO,SCANNER", "ANALYSE", "CONSULTATION"], 
+      enum: ["IRM","RADIO","SCANNER", "ANALYSE", "CONSULTATION"], 
       required: true 
     },
-    doctorId: { type: mongoose.Schema.Types.ObjectId, ref: "doctorSchema", required: true },
+  
     date: { type: Date, required: true },
     status: { 
       type: String, 

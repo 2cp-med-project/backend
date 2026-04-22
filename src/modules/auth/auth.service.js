@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import Doctor from "../users/doctor.model.js";
 import Patient from "../users/patient.model.js";
 
+
 async function checkPassword(plainPassword, phone, role) {
   if (
     !plainPassword ||
@@ -18,12 +19,13 @@ async function checkPassword(plainPassword, phone, role) {
     role === "doctor"
       ? await Doctor.findOne({ phone })
       : await Patient.findOne({ phone });
+      console.log("User found:", user);
 
   if (!user) {
     throw new Error("Invalid credentials");
   }
   const valid = await bcrypt.compare(plainPassword, user.password);
-
+console.log("Password valid:",  user.password, plainPassword, valid);
   if (!valid) {
     throw new Error("Invalid credentials");
   }

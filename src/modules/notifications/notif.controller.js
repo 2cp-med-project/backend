@@ -20,33 +20,15 @@ async function registerFcmToken(req, res) {
   }
 }
 
-async function requestAccess(req, res) {
-  try {
-    const { doctorId, patientId } = req.body;
-
-    if (!doctorId || !patientId) {
-      return res.status(400).json({
-        error: "doctorId and patientId are required",
-      });
-    }
-
-    await service.sendAccessRequestNotification(doctorId, patientId);
-
-    return res.status(200).json({
-      message: "Access request notification sent successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-}
 
 async function patientResponse(req, res) {
   try {
-    const { patientId, doctorId, accepted } = req.body;
+    const patientId = req.user.id; 
+    const { doctorId, accepted } = req.body;
 
-    if (!patientId || !doctorId || accepted === undefined) {
+    if (!doctorId || accepted === undefined) {
       return res.status(400).json({
-        error: "patientId, doctorId and accepted are required",
+        error: "doctorId and accepted are required",
       });
     }
 
@@ -65,9 +47,7 @@ async function patientResponse(req, res) {
     return res.status(500).json({ error: error.message });
   }
 }
-
 export default {
   registerFcmToken,
-  requestAccess,
   patientResponse,
 };
