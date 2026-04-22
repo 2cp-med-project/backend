@@ -1,12 +1,17 @@
-import service from "./review.service.js";
 import reviewService from "../services/review.service.js";
 
-// Add a new review
+// Add a new review - tout dans body sauf patientId
 async function addReview(req, res) {
- // #swagger.tags=['auth'];
+  // #swagger.tags=['auth'];
   try {
-    const { doctorId } = req.params;
-    const reviewData = req.body;
+    const { doctorId, rating, comment } = req.body;
+    const patientId = req.user.id; // Vient du middleware authenticate
+
+    const reviewData = {
+      patientId,
+      rating,
+      comment
+    };
 
     const review = await reviewService.addOrUpdateReview(doctorId, reviewData);
     res.status(201).json({ message: "Review added", review });
@@ -15,11 +20,12 @@ async function addReview(req, res) {
   }
 }
 
-// Get all reviews for a doctor
+// Get all reviews for a doctor - doctorId dans params
 async function getReviews(req, res) {
-// #swagger.tags=['auth'];
+  // #swagger.tags=['auth'];
   try {
     const { doctorId } = req.params;
+
     const reviews = await reviewService.getDoctorReviews(doctorId);
     res.status(200).json({ reviews });
   } catch (err) {

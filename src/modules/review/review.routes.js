@@ -5,9 +5,6 @@ import {authenticate} from '../../middleware/auth.js';
 const router = express.Router();
 
 
-router.post('/doctor/:doctorId/submitreview',authenticate, controller.addReview);
-
-
-router.get('/doctor/:doctorId/getreviews',authenticate, controller.getReviews);
-
+router.post('/submit-review', authenticate, controller.addReview);
+router.get('/doctor/:doctorId/get-reviews', authenticate, controller.getReviews);
 export default router;
