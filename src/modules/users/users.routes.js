@@ -16,6 +16,8 @@ router.get(
   authorize("doctor"),
   doctorAccess,
   controller.getPatientById,
+  controller.getProfile, //added this
+  controller.updateProfile, //and this
 );
 
 // router.get(

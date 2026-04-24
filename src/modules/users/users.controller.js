@@ -269,6 +269,7 @@ async function updateProfile(req, res) {
           "phone",
           "email",
           "address",
+          "gender",
           "dateOfBirth",
           "placeOfBirth",
           "emergencyContacts",
