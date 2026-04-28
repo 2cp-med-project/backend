@@ -1,6 +1,7 @@
 import service from "./notif.service.js";
-
+//fcm token registration
 async function registerFcmToken(req, res) {
+  //swagger.security = [{ "BearerAuth": [] }]
   try {
     const { userId, role, fcmToken } = req.body;
 
@@ -20,8 +21,9 @@ async function registerFcmToken(req, res) {
   }
 }
 
-
+//patient response to doctor access request
 async function patientResponse(req, res) {
+  //swagger.security = [{ "BearerAuth": [] }]
   try {
     const patientId = req.user.id; 
     const { doctorId, accepted } = req.body;
