@@ -14,16 +14,16 @@ router.use(authenticate);
 router.post(
   "/consultation",
   authorize("doctor"),
-  validate(validationschema.createConsultationValidation),
   doctorAccess,
+  validate(validationschema.createConsultationValidation),
   controller.createConsultation,
 );
 
 router.patch(
   "/consultation/:consultationId",
   authorize("doctor"),
-  validate(validationschema.updateConsultationValidation),
   doctorAccess,
+  validate(validationschema.updateConsultationValidation),
   controller.updateConsultation,
 );
 router.get(
@@ -41,8 +41,8 @@ router.get(
 
 router.get(
   "/:patientId",
-  validate(validationschema.getConsultationsValidation),
   doctorAccess,
+  validate(validationschema.getConsultationsValidation),
   controller.getConsultations,
 );
 

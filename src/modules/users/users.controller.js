@@ -12,8 +12,8 @@ async function getPatients(req, res) {
   // #swagger.parameters['sortBy'] = { description: 'Field to sort by', type: 'string', default: 'firstName' }
 
   const {
-    page = "0",
-    limit = "10",
+    page = 0,
+    limit = 10,
     order = "asc",
     sortBy = "firstName",
   } = req.query || {};
@@ -42,17 +42,9 @@ async function getPatients(req, res) {
       return res.status(400).json({ message: "Invalid sortBy field" });
     }
 
-    if (!["asc", "desc"].includes(order)) {
-      return res.status(400).json({ message: "Invalid order value" });
-    }
-
-    const p = parseInt(page);
-    const l = parseInt(limit);
+    const p = page;
+    const l = limit;
     const o = order === "asc" ? 1 : -1;
-
-    if (isNaN(p) || isNaN(l) || p < 0 || l <= 0) {
-      return res.status(400).json({ message: "Invalid page or limit value" });
-    }
 
     const patients = await Patient.find({}, returnedFields)
       .sort({ [sortBy]: o })
@@ -76,8 +68,8 @@ async function getDoctors(req, res) {
   // #swagger.parameters['sortBy'] = { description: 'Field to sort by', type: 'string', default: 'firstName' }
 
   const {
-    page = "0",
-    limit = "10",
+    page = 0,
+    limit = 10,
     order = "asc",
     sortBy = "firstName",
   } = req.query || {};
@@ -105,17 +97,9 @@ async function getDoctors(req, res) {
       return res.status(400).json({ message: "Invalid sortBy field" });
     }
 
-    if (!["asc", "desc"].includes(order)) {
-      return res.status(400).json({ message: "Invalid order value" });
-    }
-
-    const p = parseInt(page);
-    const l = parseInt(limit);
+    const p = page;
+    const l = limit;
     const o = order === "asc" ? 1 : -1;
-
-    if (isNaN(p) || isNaN(l) || p < 0 || l <= 0) {
-      return res.status(400).json({ message: "Invalid page or limit value" });
-    }
 
     const doctors = await Doctor.find({}, returnedFields)
       .sort({ [sortBy]: o })
@@ -144,13 +128,9 @@ async function getPatientById(req, res) {
     dateOfBirth: 1,
     placeOfBirth: 1,
     gender: 1,
-  }; //TODO: add the record field after merging with the record module.
+  };
 
   try {
-    if (!id) {
-      return res.status(400).json({ message: "Patient ID is required" });
-    }
-
     if (!patients.includes(id)) {
       return res.status(403).json({ message: "Access denied" });
     }
@@ -185,10 +165,6 @@ async function getDoctorById(req, res) {
   };
 
   try {
-    if (!id) {
-      return res.status(400).json({ message: "Doctor ID is required" });
-    }
-
     const doctor = await Doctor.findById(id, returnedFields);
 
     if (!doctor) {
@@ -231,7 +207,7 @@ async function getProfile(req, res) {
             dateOfBirth: 1,
             placeOfBirth: 1,
             gender: 1,
-            emergencyContacts: 1,
+            emergencyContact: 1,
             medicalResume: 1,
             createdAt: 1,
           }; //TODO: add the list of consultations
@@ -276,11 +252,11 @@ async function updateProfile(req, res) {
           "lastName",
           "email",
           "phone",
+          "gender",
           "address",
           "dateOfBirth",
           "placeOfBirth",
-          "gender",
-          "emergencyContacts",
+          "emergencyContact",
         ];
   try {
     const update = {};
