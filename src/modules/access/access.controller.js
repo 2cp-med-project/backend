@@ -1,7 +1,7 @@
 import Access from "./access.model.js";
 import Patient from "../users/patient.model.js";
 import Doctor from "../users/doctor.model.js";
-import Notification from "../notifications/notif.service.js";
+// TODO: import notification service
 
 //Doctor sends access request
 
@@ -39,34 +39,35 @@ async function requestAccess(req, res) {
 
     const access = await Access.create(payload);
 
-    if (patient.fcmToken) {
-      // only send notification if the patient has a registered FCM token
-      const message = {
-        notification: {
-          title: "Access Request",
-          body: `Dr. ${doctor.firstName} ${doctor.lastName} wants to access your medical file`,
-        },
-        data: {
-          doctorId: doctorId.toString(),
-          type: "ACCESS_REQUEST",
-        },
-      };
-      try {
-        await Notification.send(message, patient.fcmToken);
-      } catch (error) {
-        if (
-          error.code === "messaging/invalid-recipient" ||
-          error.code === "messaging/invalid-registration-token" ||
-          error.code === "messaging/registration-token-not-registered"
-        ) {
-          // The token is invalid, remove it from the database
-          await Patient.updateOne(
-            { _id: patientId },
-            { $unset: { fcmToken: "" } },
-          );
-        }
-      }
-    }
+    // TODO: send notification to the patient about the access request
+    // if (patient.fcmToken) {
+    //   // only send notification if the patient has a registered FCM token
+    //   const message = {
+    //     notification: {
+    //       title: "Access Request",
+    //       body: `Dr. ${doctor.firstName} ${doctor.lastName} wants to access your medical file`,
+    //     },
+    //     data: {
+    //       doctorId: doctorId.toString(),
+    //       type: "ACCESS_REQUEST",
+    //     },
+    //   };
+    //   try {
+    //     await Notification.send(message, patient.fcmToken);
+    //   } catch (error) {
+    //     if (
+    //       error.code === "messaging/invalid-recipient" ||
+    //       error.code === "messaging/invalid-registration-token" ||
+    //       error.code === "messaging/registration-token-not-registered"
+    //     ) {
+    //       // The token is invalid, remove it from the database
+    //       await Patient.updateOne(
+    //         { _id: patientId },
+    //         { $unset: { fcmToken: "" } },
+    //       );
+    //     }
+    //   }
+    // }
 
     res.status(201).json(access);
   } catch (error) {

@@ -17,13 +17,10 @@ const patientSchema = new mongoose.Schema({
     enum: ["patient"],
     immutable: true,
   },
-  emergencyContacts: [
-    {
-      name: String,
-      phone: String,
-      relation: String,
-    },
-  ],
+  emergencyContact: {
+    name: String,
+    phone: String,
+  },
   medicalResume: String, // summary of health history
 
   otpVerified: { type: Boolean, default: false }, // for OTP verification
