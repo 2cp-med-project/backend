@@ -35,7 +35,7 @@ function verifyToken(token) {
     !payload.role ||
     !["doctor", "patient"].includes(payload.role)
   ) {
-    throw new Error("Invalid token payload");
+    throw new Error("Invalid token");
   }
 
   return payload;
