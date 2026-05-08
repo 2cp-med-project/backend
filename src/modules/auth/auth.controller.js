@@ -80,8 +80,7 @@ async function login(req, res) {
       return;
     }
     const user = await authService.checkPassword(password, phone, role);
-    const refreshToken =
-      user.refreshToken || authService.generateToken(user.id, role, "30d");
+    const refreshToken = authService.generateToken(user.id, role, "30d");
     user.refreshToken = refreshToken;
     await user.save();
     res.status(200).json({ userId: user.id, refreshToken });
