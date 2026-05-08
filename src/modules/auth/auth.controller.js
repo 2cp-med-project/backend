@@ -47,7 +47,11 @@ async function signUp(req, res) {
       refreshToken,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    if (error.message === "Invalid credentials") {
+      res.status(401).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: error.message });
+    }
   }
 }
 
@@ -62,8 +66,7 @@ async function logIn(req, res) {
   try {
     const user = await authService.checkPassword(password, phone, role);
 
-    const refreshToken =
-      user.refreshToken || authService.generateToken(user.id, role, "30d");
+    const refreshToken = authService.generateToken(user.id, role, "30d");
     user.refreshToken = refreshToken;
 
     await user.save();
