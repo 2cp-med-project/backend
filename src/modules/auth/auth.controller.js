@@ -73,7 +73,11 @@ async function logIn(req, res) {
 
     res.status(200).json({ userId: user.id, refreshToken });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    if (error.message === "Invalid credentials") {
+      res.status(401).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: error.message });
+    }
   }
 }
 
@@ -144,7 +148,11 @@ async function refreshToken(req, res) {
 
     res.status(200).json({ accessToken, refreshToken: newRefreshToken });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    if (error.message === "Invalid token") {
+      res.status(401).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: error.message });
+    }
   }
 }
 
@@ -158,7 +166,11 @@ async function requestOTP(req, res) {
     await OTPService.generate(phone, role);
     res.status(200).json({ message: "OTP sent" });
   } catch (e) {
-    res.status(500).json({ message: e.message });
+    if (e.message === "User not found") {
+      res.status(404).json({ message: e.message });
+    } else {
+      res.status(500).json({ message: e.message });
+    }
   }
 }
 
@@ -172,7 +184,13 @@ async function verifyOTP(req, res) {
     const result = await OTPService.verify(phone, code, role);
     res.status(200).json(result);
   } catch (e) {
-    res.status(500).json({ message: e.message });
+    if (e.message === "User not found") {
+      res.status(404).json({ message: e.message });
+    } else if (e.message === "Invalid OTP") {
+      res.status(400).json({ message: e.message });
+    } else {
+      res.status(500).json({ message: e.message });
+    }
   }
 }
 
