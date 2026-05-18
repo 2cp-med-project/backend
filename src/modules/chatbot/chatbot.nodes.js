@@ -1,4 +1,4 @@
-import { LLM, tinyLLM } from "../../config/llm.js";
+import { LLM } from "../../config/llm.js";
 import { searchTool, patientDbTool } from "./chatbot.tools.js";
 import {
 	SafeguardSchema,
@@ -9,24 +9,18 @@ import {
 	AIMessage,
 	HumanMessage,
 	SystemMessage,
-	RemoveMessage,
 } from "@langchain/core/messages";
 import { END, Command } from "@langchain/langgraph";
 
 const MEMORY_WINDOW = 6;
 
 const BASE_PERSONA = `\
-You are HealBot, a clinical AI assistant.
-Rules: Never diagnose. Be concise, empathetic, professional.
-Base all responses strictly on provided context — no fabrication.`.trim();
+You are HealBot, an AI clinical-support assistant on the Healio platform.
+- You are NOT a doctor and cannot diagnose.
+- Acknowledge the patient's concern first. Be concise, warm, and clinically accurate.
+- Ground every claim in provided context. Never fabricate.`;
 
-function getRecentContext(state) {
-	const { summaryBlocks = [], activeMessages = [] } = state;
-	const recentMessages = activeMessages.slice(-3);
-	if (recentMessages.length === 3) return recentMessages;
-	const lastSummary = summaryBlocks.at(-1);
-	return lastSummary ? [lastSummary, ...recentMessages] : recentMessages;
-}
+const tag = () => `[${new Date().toLocaleTimeString()}]`;
 
 async function invokeStructured(
 	structuredLlm,
@@ -48,59 +42,19 @@ async function invokeStructured(
 		} catch (err) {
 			lastError = err;
 			console.warn(
-				`[${new Date().toLocaleTimeString()}] ⚠️  ${label} attempt ${attempt}/${maxAttempts} failed: ${err.message}`,
+				`${tag()} ⚠️  ${label} attempt ${attempt}/${maxAttempts} failed: ${err.message}`,
 			);
 			if (attempt < maxAttempts)
-				await new Promise((r) => setTimeout(r, 150 * attempt));
+				await new Promise((r) => setTimeout(r, 500 * attempt));
 		}
 	}
 	throw lastError;
 }
 
-const tag = () => `[${new Date().toLocaleTimeString()}]`;
-
-export const manageMemory = async (state) => {
-	const { summaryBlocks, activeMessages } = state;
-
-	if (activeMessages.length < MEMORY_WINDOW) {
-		return new Command({ goto: "safeguardNode" });
-	}
-
-	const chunkToSummarize = activeMessages.slice(0, MEMORY_WINDOW);
-	const blockNumber = (summaryBlocks?.length ?? 0) + 1;
-
-	const summaryResponse = await tinyLLM.invoke([
-		new SystemMessage(
-			`Summarize this medical conversation chunk into a tight bullet list (max 40 words).
-			Include ONLY: symptoms mentioned, diagnoses, medications, and key AI advice given.
-			Omit greetings, pleasantries, and filler. Output bullets only.`,
-		),
-		...chunkToSummarize,
-	]);
-
-	const newSummaryBlock = new SystemMessage(
-		`[Memory Block ${blockNumber}]\n${summaryResponse.content}`,
-	);
-
-	const deleteMessages = chunkToSummarize.map(
-		(msg) => new RemoveMessage({ id: msg.id }),
-	);
-
-	console.log(
-		`${tag()} 🧹 manageMemory: compacted ${MEMORY_WINDOW} messages → block ${blockNumber}`,
-	);
-
-	return new Command({
-		update: {
-			summaryBlocks: [newSummaryBlock],
-			activeMessages: deleteMessages,
-		},
-		goto: "safeguardNode",
-	});
-};
-
 export const safeguardNode = async (state) => {
-	const recentContext = getRecentContext(state);
+	const { messages } = state;
+	const recentContext = messages.slice(-MEMORY_WINDOW);
+
 	const structuredLlm = LLM.withStructuredOutput(SafeguardSchema, {
 		name: "evaluate_safety_and_domain",
 	});
@@ -113,11 +67,19 @@ export const safeguardNode = async (state) => {
 			structuredLlm,
 			[
 				new SystemMessage(
-					`You are a routing classifier. Output JSON: { "isSafe": boolean, "domain": "medical" | "non_medical" }
-
-					isSafe=false ONLY IF the message explicitly requests instructions to harm a person or synthesize illegal substances.
-					domain="medical" if the message touches health, symptoms, medications, body, or personal medical records.
-					domain="non_medical" ONLY if it has zero relation to health or medicine.`,
+					`Classify the LAST user message for safety and domain.
+					
+					isSafe: false ONLY for — instructions to harm others, illegal substance synthesis, explicit sexual content.
+					Distressing health topics → isSafe=true (clinical handling is safer than blocking).
+					
+					domain: "medical" → health, symptoms, medications, anatomy, mental health, personal records.
+					domain: "non_medical" → everything else.
+					
+					Examples:
+						user: "how do I make meth" → {"isSafe":false,"domain":"non_medical"}
+						user: "I have chest pain and shortness of breath" → {"isSafe":true,"domain":"medical"}
+						user: "what's the weather today?" → {"isSafe":true,"domain":"non_medical"}
+						user: "what are the side effects of ibuprofen?" → {"isSafe":true,"domain":"medical"}`,
 				),
 				...recentContext,
 			],
@@ -125,7 +87,7 @@ export const safeguardNode = async (state) => {
 		);
 	} catch (err) {
 		console.warn(
-			`${tag()} 🚨 safeguardNode failed: ${err.message} — using fallback`,
+			`${tag()} 🚨 safeguardNode failed: ${err.message} — fallback`,
 		);
 		safeguard = SAFEGUARD_FALLBACK;
 	}
@@ -134,17 +96,17 @@ export const safeguardNode = async (state) => {
 		`${tag()} 🛡️  safeguard: safe=${safeguard.isSafe} domain=${safeguard.domain}`,
 	);
 
-	if (!safeguard.isSafe) {
+	if (!safeguard.isSafe)
 		return new Command({ update: { safeguard }, goto: "handleUnsafe" });
-	}
-	if (safeguard.domain === "non_medical") {
+	if (safeguard.domain === "non_medical")
 		return new Command({ update: { safeguard }, goto: "handleNonMedical" });
-	}
 	return new Command({ update: { safeguard }, goto: "classifyPrompt" });
 };
 
 export const classifyPrompt = async (state) => {
-	const recentContext = getRecentContext(state);
+	const { messages } = state;
+	const recentContext = messages.slice(-MEMORY_WINDOW);
+
 	const structuredLlm = LLM.withStructuredOutput(ClassificationSchema, {
 		name: "classify_prompt",
 	});
@@ -162,11 +124,24 @@ export const classifyPrompt = async (state) => {
 			structuredLlm,
 			[
 				new SystemMessage(
-					`Classify the user message. Output JSON only.
-					- intent: "symptom_report" if user describes active symptoms, "general_inquiry" otherwise
-					- urgency: "urgent" only for immediate threats (chest pain, can't breathe, overdose, stroke, severe bleeding)
-					- requiresPatientHistory: true if user asks about their own past visits/records/results
-					- requiresWebSearch: true if clinical guidelines, drug info, or condition facts are needed`,
+					`Classify the patient's latest message.
+					
+					intent:
+						"symptom_report" — user describes active/recent symptoms they are experiencing.
+						"general_inquiry" — health questions, medication info, lifestyle, clarification.
+
+					urgency:
+						"urgent" — immediate life threat ONLY: chest pain/pressure, stroke (FAST signs), can't breathe, anaphylaxis, severe bleeding, loss of consciousness, overdose, suicidal crisis.
+						"not_urgent" — everything else, including chronic pain, mild symptoms, mental health worries.
+
+					requiresPatientHistory: true if user references their own past visits, test results, prescriptions, or records.
+					requiresWebSearch: true if a good answer needs current clinical guidelines, drug interactions, or recent evidence.
+
+					Examples:
+						user: "my chest hurts and I can't breathe" → {"intent":"symptom_report","urgency":"urgent","requiresPatientHistory":false,"requiresWebSearch":false}
+						user: "what did my doctor prescribe last month?" → {"intent":"general_inquiry","urgency":"not_urgent","requiresPatientHistory":true,"requiresWebSearch":false}
+						user: "can I take ibuprofen with metformin?" → {"intent":"general_inquiry","urgency":"not_urgent","requiresPatientHistory":false,"requiresWebSearch":true}
+						user: "I've had a mild headache for two days" → {"intent":"symptom_report","urgency":"not_urgent","requiresPatientHistory":false,"requiresWebSearch":false}`,
 				),
 				...recentContext,
 			],
@@ -174,7 +149,7 @@ export const classifyPrompt = async (state) => {
 		);
 	} catch (err) {
 		console.warn(
-			`${tag()} 🚨 classifyPrompt failed: ${err.message} — using fallback`,
+			`${tag()} 🚨 classifyPrompt failed: ${err.message} — fallback`,
 		);
 		classification = CLASSIFICATION_FALLBACK;
 	}
@@ -184,26 +159,26 @@ export const classifyPrompt = async (state) => {
 			`history=${classification.requiresPatientHistory} web=${classification.requiresWebSearch}`,
 	);
 
-	if (classification.urgency === "urgent") {
+	if (classification.urgency === "urgent")
 		return new Command({
 			update: { classification },
 			goto: "handleUrgent",
 		});
-	}
 	if (
 		classification.requiresPatientHistory ||
 		classification.requiresWebSearch
-	) {
+	)
 		return new Command({
 			update: { classification },
 			goto: "formulateQueries",
 		});
-	}
 	return new Command({ update: { classification }, goto: "handleMedical" });
 };
 
 export const formulateQueries = async (state) => {
-	const recentContext = getRecentContext(state);
+	const { classification, messages } = state;
+	const recentContext = messages.slice(-MEMORY_WINDOW);
+
 	const structuredLlm = LLM.withStructuredOutput(QuerySchema, {
 		name: "generate_search_queries",
 	});
@@ -217,25 +192,38 @@ export const formulateQueries = async (state) => {
 			structuredLlm,
 			[
 				new SystemMessage(
-					`Extract search parameters from the user message. Output JSON only. Today: ${today}.
+					`Extract retrieval queries from the conversation. Today: ${today}.
 
-					- webQuery: 5-10 keyword clinical search string. Omit for personal history questions.
-					- patientDbQuery: set whenever user references their own records, visits, or results.
-						- dateFrom / dateTo: ISO 8601. Translate relative dates ("last week" → 7 days ago, "last month" → 30 days ago).
-						- status: "scheduled" | "completed" | "cancelled" — only if specified.
-						- limit: "last/most recent visit" → 1. "last N visits" → N. Unspecified → 5.`,
+					webQuery (string|null): 5-10 keyword clinical search string. Omit if requiresWebSearch is false or the question is purely about personal history.
+						Good: "metformin lactic acidosis risk guidelines"
+						Bad:  "what did I take last month"
+
+					patientDbQuery (object|null): Populate ONLY when requiresPatientHistory is true. Translate relative dates to exact ISO 8601.
+						"last week" → 7 days ago, "last month" → 30 days ago.
+					status: "scheduled"|"completed"|"cancelled" — omit if unspecified.
+					limit: 1 for "most recent visit", N for "last N visits", default 5.
+
+					Examples:
+						user: "can I take ibuprofen with warfarin?" (requiresWebSearch=true, requiresPatientHistory=false) → {"webQuery":"ibuprofen warfarin interaction bleeding risk","patientDbQuery":null}
+						user: "what were my last two diagnoses?" (requiresWebSearch=false, requiresPatientHistory=true) → {"webQuery":null,"patientDbQuery":{"limit":2,"status":"completed"}}
+						user: "show my visits last month and explain hypertension treatment" → {"webQuery":"hypertension first-line treatment guidelines","patientDbQuery":{"dateFrom":"<30-days-ago-ISO>","limit":5}}`,
 				),
 				...recentContext,
 			],
 			{ label: "formulateQueries" },
 		);
+
 		queries = {
-			webQuery: raw.webQuery ?? undefined,
-			patientDbQuery: raw.patientDbQuery ?? undefined,
+			webQuery: classification?.requiresWebSearch
+				? (raw.webQuery ?? undefined)
+				: undefined,
+			patientDbQuery: classification?.requiresPatientHistory
+				? (raw.patientDbQuery ?? undefined)
+				: undefined,
 		};
 	} catch (err) {
 		console.warn(
-			`${tag()} 🚨 formulateQueries failed: ${err.message} — using fallback`,
+			`${tag()} 🚨 formulateQueries failed: ${err.message} — fallback`,
 		);
 		queries = QUERIES_FALLBACK;
 	}
@@ -248,17 +236,23 @@ export const formulateQueries = async (state) => {
 };
 
 export const retrieveData = async (state) => {
-	const { webQuery, patientDbQuery, patientId } = state;
+	const { webQuery, patientDbQuery, patientId, classification } = state;
 
 	console.log(
 		`${tag()} 🔎 retrieveData: web="${webQuery ?? "N/A"}" db=${JSON.stringify(patientDbQuery ?? "N/A")}`,
 	);
 
+	const shouldWeb = classification?.requiresWebSearch && !!webQuery;
+	const shouldDb =
+		classification?.requiresPatientHistory &&
+		!!patientDbQuery &&
+		!!patientId;
+
 	const [webResult, patientResult] = await Promise.allSettled([
-		webQuery
+		shouldWeb
 			? searchTool.invoke({ query: webQuery })
 			: Promise.resolve(null),
-		patientDbQuery && patientId
+		shouldDb
 			? patientDbTool.invoke({ patientId, ...patientDbQuery })
 			: Promise.resolve(null),
 	]);
@@ -289,7 +283,7 @@ export const retrieveData = async (state) => {
 		patientContext = patientResult.value;
 	} else if (patientResult.status === "rejected") {
 		console.warn(
-			`${tag()} ⚠️  Patient DB query failed: ${patientResult.reason?.message}`,
+			`${tag()} ⚠️  Patient DB failed: ${patientResult.reason?.message}`,
 		);
 	}
 
@@ -300,42 +294,43 @@ export const retrieveData = async (state) => {
 };
 
 export const handleMedical = async (state) => {
-	const {
-		summaryBlocks,
-		activeMessages,
-		webContext,
-		patientContext,
-		classification,
-	} = state;
+	const { classification, messages, webContext, patientContext } = state;
+	const recentContext = messages.slice(-MEMORY_WINDOW);
 
-	const systemPrompt = `\
-	${BASE_PERSONA}
-	Intent: ${classification?.intent ?? "general_inquiry"}
+	const isSymptom = classification?.intent === "symptom_report";
 
-	Respond in max 120 words. Format:
-	1. One empathetic opening sentence.
-	2. 2-4 bullet points of practical, evidence-based advice.
-	3. One sentence on when to see a doctor.
+	const systemPrompt = `${BASE_PERSONA}
 
-	Use ONLY the context below. If context is missing, say so honestly.
+	Mode: ${isSymptom ? "SYMPTOM SUPPORT — be action-oriented and safety-aware." : "HEALTH INFORMATION — be educational and reassuring."}
 
-	[Patient Records]:
+	Response format (≤120 words):
+	1. One sentence acknowledging the patient's concern with warmth.
+	2. 2–4 concise evidence-based bullet points (practical, specific, non-alarming).
+	3. One sentence on when professional evaluation is warranted.
+
+	Rules:
+	- Use ONLY the context below.
+	- Do not name a final diagnosis. Do not speculate beyond provided evidence.
+	- Define any medical term you use.
+
+	[Patient Records]
 	${patientContext ?? "None."}
 
-	[Clinical References]:
-	${webContext ?? "None."}`.trim();
+	[Clinical References]
+	${webContext ?? "None."}`;
 
 	const response = await LLM.invoke([
 		new SystemMessage(systemPrompt),
-		...(summaryBlocks ?? []),
-		...activeMessages,
+		...recentContext,
 	]);
+
+	const aiMessage = new AIMessage(response.content);
 
 	console.log(`${tag()} 💬 handleMedical: response generated`);
 
 	return new Command({
 		update: {
-			activeMessages: [new AIMessage(response.content)],
+			messages: [aiMessage],
 			webContext: undefined,
 			patientContext: undefined,
 		},
@@ -344,66 +339,76 @@ export const handleMedical = async (state) => {
 };
 
 export const handleNonMedical = async (state) => {
-	const { activeMessages } = state;
-	const lastMsg = activeMessages.at(-1);
+	const { messages } = state;
+	const recentContext = messages.slice(-MEMORY_WINDOW);
 
 	const response = await LLM.invoke([
 		new SystemMessage(
-			`You are HealBot answering a non-medical question.
-			Answer in 1-2 sentences (max 60 words). Always end with: "My primary expertise is medical — feel free to ask about your health."`,
+			`You are HealBot handling an off-topic question.
+			Answer helpfully in 1–2 sentences (≤60 words).
+			End with a natural redirect — e.g. "Feel free to ask me anything about your health."`,
 		),
-		lastMsg,
+		...recentContext,
 	]);
+
+	const aiMessage = new AIMessage(response.content);
 
 	console.log(`${tag()} 🌐 handleNonMedical: response generated`);
 
 	return new Command({
-		update: { activeMessages: [new AIMessage(response.content)] },
+		update: { messages: [aiMessage] },
 		goto: END,
 	});
 };
 
 export const handleUrgent = async (state) => {
-	const { activeMessages } = state;
-	const recentMessages = activeMessages.slice(-2);
+	const { messages } = state;
+	const recentContext = messages.slice(-MEMORY_WINDOW);
 
 	const response = await LLM.invoke([
 		new SystemMessage(
 			`${BASE_PERSONA}
-			EMERGENCY MODE. Respond in max 4 sentences.
-			Sentence 1 MUST be: "Please seek immediate medical attention."
-			MUST include in bold: **14** (Protection Civile), **3016** (SAMU), **15** (SAMU direct), **17** (Police).
-			Add 1 brief first-aid tip only if directly applicable. No filler.`,
+
+			EMERGENCY MODE. Respond in ≤4 sentences.
+
+			Structure:
+			1. Direct call to action — seek emergency help NOW.
+			2. Algerian emergency numbers: **14** (Protection Civile), **15** (SAMU), **3016** (SAMU direct), **17** (Police).
+			3. (Optional) One specific first-aid step if directly applicable.
+			4. Brief reassurance that help is on the way.
+
+			Do not minimise. Do not ask clarifying questions. Do not add filler.`,
 		),
-		...recentMessages,
+		...recentContext,
 	]);
+
+	const aiMessage = new AIMessage(response.content);
 
 	console.log(`${tag()} 🚨 handleUrgent: emergency response generated`);
 
 	return new Command({
-		update: { activeMessages: [new AIMessage(response.content)] },
+		update: { messages: [aiMessage] },
 		goto: END,
 	});
 };
 
 export const handleUnsafe = async (state) => {
-	const { activeMessages } = state;
-	const lastMsg = activeMessages.at(-1);
+	const { messages } = state;
+	const lastMessage = messages.at(-1);
 
 	console.log(`${tag()} 🚫 handleUnsafe: blocking unsafe message`);
 
 	const scrubbedMessage = new HumanMessage({
-		content: "[Message removed by safety filters]",
-		id: lastMsg.id,
+		content: "[Message removed by safety filter]",
+		id: lastMessage.id,
 	});
 
 	const safeResponse = new AIMessage(
-		"I'm unable to fulfill this request. I operate as a safe, clinical assistant. " +
-			"If you are in crisis, please contact local emergency services immediately.",
+		"I'm not able to help with that request. HealBot is designed to support your health safely and responsibly. If you're in crisis or danger, please contact local emergency services immediately.",
 	);
 
 	return new Command({
-		update: { activeMessages: [scrubbedMessage, safeResponse] },
+		update: { messages: [scrubbedMessage, safeResponse] },
 		goto: END,
 	});
 };

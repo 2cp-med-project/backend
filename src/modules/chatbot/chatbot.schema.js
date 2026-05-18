@@ -5,7 +5,7 @@ export const SafeguardSchema = z.object({
 	isSafe: z
 		.boolean()
 		.describe(
-			"False only if the message requests instructions to harm others or synthesize illegal substances.",
+			"False ONLY if the message requests instructions to harm others or synthesize illegal substances.",
 		),
 	domain: z
 		.enum(["medical", "non_medical"])
@@ -78,15 +78,8 @@ export const QuerySchema = z.object({
 
 export const MedicalAgentAnnotation = Annotation.Root({
 	patientId: Annotation,
-	activeMessages: Annotation({
+	messages: Annotation({
 		reducer: messagesStateReducer,
-		default: () => [],
-	}),
-	summaryBlocks: Annotation({
-		reducer: (existing, update) => {
-			if (!update || update.length === 0) return existing ?? [];
-			return [...(existing ?? []), ...update];
-		},
 		default: () => [],
 	}),
 	safeguard: Annotation,

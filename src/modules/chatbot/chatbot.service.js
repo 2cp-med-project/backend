@@ -1,7 +1,6 @@
 import { StateGraph, START, END } from "@langchain/langgraph";
 import { MedicalAgentAnnotation } from "./chatbot.schema.js";
 import {
-	manageMemory,
 	safeguardNode,
 	classifyPrompt,
 	formulateQueries,
@@ -13,9 +12,6 @@ import {
 } from "./chatbot.nodes.js";
 
 export const workflow = new StateGraph(MedicalAgentAnnotation)
-	.addNode("manageMemory", manageMemory, {
-		ends: ["safeguardNode"],
-	})
 	.addNode("safeguardNode", safeguardNode, {
 		ends: ["handleUnsafe", "handleNonMedical", "classifyPrompt"],
 	})
@@ -32,4 +28,4 @@ export const workflow = new StateGraph(MedicalAgentAnnotation)
 	.addNode("handleNonMedical", handleNonMedical, { ends: [END] })
 	.addNode("handleUrgent", handleUrgent, { ends: [END] })
 	.addNode("handleUnsafe", handleUnsafe, { ends: [END] })
-	.addEdge(START, "manageMemory");
+	.addEdge(START, "safeguardNode");

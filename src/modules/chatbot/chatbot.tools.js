@@ -4,6 +4,16 @@ import { TavilySearch } from "@langchain/tavily";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
+export const formatMessages = (messages) => {
+	if (!Array.isArray(messages)) return [];
+	return messages
+		.filter((m) => m._getType() !== "system")
+		.map((m) => ({
+			role: m._getType() === "human" ? "user" : "assistant",
+			content: m.content,
+		}));
+};
+
 export const searchTool = new TavilySearch({
 	maxResults: 3,
 	topic: "general",
