@@ -1,4 +1,4 @@
-import { Doctor } from "../users/doctor.model.js";
+import Doctor from "../users/doctor.model.js";
 
 export const connectUser = async (userId, socketId) => {
 	const existingUser = await Doctor.findById(userId);

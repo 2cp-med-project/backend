@@ -1,5 +1,5 @@
-import { Patient } from "../users/patient.model.js";
-import { Consultation } from "../records/consultation.model.js";
+import Patient from "../users/patient.model.js";
+import Consultation from "../records/consultation.model.js";
 import { TavilySearch } from "@langchain/tavily";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";

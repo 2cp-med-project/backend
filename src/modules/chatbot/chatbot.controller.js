@@ -6,7 +6,7 @@ import { HumanMessage } from "@langchain/core/messages";
 
 const getConfig = (thread_id) => ({ configurable: { thread_id } });
 
-export const startChat = async (req, res) => {
+async function startChat(req, res) {
 	try {
 		const { prompt, patientId } = req.body;
 
@@ -60,9 +60,9 @@ export const startChat = async (req, res) => {
 			.status(500)
 			.json({ success: false, error: "Internal Server Error" });
 	}
-};
+}
 
-export const handleChat = async (req, res) => {
+async function handleChat(req, res) {
 	try {
 		const { thread_id } = req.params;
 		const { prompt } = req.body;
@@ -100,10 +100,6 @@ export const handleChat = async (req, res) => {
 			`${logTag()} 💬 handleChat: thread=${thread_id} | messages=${state.messages?.length ?? 0}`,
 		);
 
-		// maybeSummarize(thread_id).catch((err) =>
-		// 	console.error("[handleChat] maybeSummarize error:", err),
-		// );
-
 		return res.json({
 			success: true,
 			thread_id,
@@ -116,9 +112,9 @@ export const handleChat = async (req, res) => {
 			.status(500)
 			.json({ success: false, error: "Internal Server Error" });
 	}
-};
+}
 
-export const retrieveChat = async (req, res) => {
+async function retrieveChat(req, res) {
 	try {
 		const { thread_id } = req.params;
 
@@ -142,9 +138,9 @@ export const retrieveChat = async (req, res) => {
 			.status(500)
 			.json({ success: false, error: "Internal Server Error" });
 	}
-};
+}
 
-export const deleteChat = async (req, res) => {
+async function deleteChat(req, res) {
 	try {
 		const { thread_id } = req.params;
 
@@ -168,8 +164,10 @@ export const deleteChat = async (req, res) => {
 			.status(500)
 			.json({ success: false, error: "Internal Server Error" });
 	}
-};
+}
 
 function logTag() {
 	return `[${new Date().toLocaleTimeString()}]`;
 }
+
+export default { startChat, handleChat, retrieveChat, deleteChat };

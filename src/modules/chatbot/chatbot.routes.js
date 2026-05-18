@@ -1,16 +1,11 @@
 import express from "express";
-import {
-	retrieveChat,
-	startChat,
-	handleChat,
-	deleteChat,
-} from "./chatbot.controller.js";
+import chatbotController from "./chatbot.controller.js";
 
 const router = express.Router();
 
-router.get("/:thread_id", retrieveChat);
-router.post("/", startChat);
-router.post("/:thread_id", handleChat);
-router.delete("/:thread_id", deleteChat);
+router.get("/:thread_id", chatbotController.retrieveChat);
+router.post("/", chatbotController.startChat);
+router.post("/:thread_id", chatbotController.handleChat);
+router.delete("/:thread_id", chatbotController.deleteChat);
 
 export default router;

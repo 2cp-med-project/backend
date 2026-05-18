@@ -1,18 +1,16 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
+
+import connectDB from "./config/db.js";
+
 import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
-import connectDB from "./config/db.js";
 import { workflow } from "./modules/chatbot/chatbot.service.js";
 
-// import swaggerJsdoc from "swagger-jsdoc";
-// import swaggerUi from "swagger-ui-express";
-
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-// const swaggerOptions = require("../swagger.json");
+import swaggerUi from "swagger-ui-express";
+import swaggerDoc from "../swagger.json" with { type: "json" };
 
 import routes from "./routes.js";
 import { handleSocketConnection } from "./modules/chat/socket.controller.js";
@@ -44,22 +42,20 @@ const io = new SocketIOServer(httpServer, {
 // Handle Socket Connection
 handleSocketConnection(io);
 
-// Swagger Docs
-// const specs = swaggerJsdoc({
-// 	definition: swaggerOptions.definition,
-// 	apis: swaggerOptions.apis,
-// });
+const swaggerUiOptions = {
+	customCssUrl:
+		"https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css",
+	customJs: [
+		"https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js",
+		"https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js",
+	],
+};
 
-// const swaggerUiOptions = {
-// 	customCssUrl:
-// 		"https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css",
-// 	customJs: [
-// 		"https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js",
-// 		"https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js",
-// 	],
-// };
-
-// app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, swaggerUiOptions));
+app.use(
+	"/api-docs",
+	swaggerUi.serve,
+	swaggerUi.setup(swaggerDoc, swaggerUiOptions),
+);
 
 // Load Main Routes
 app.use("/api", routes);

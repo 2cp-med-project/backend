@@ -1,320 +1,790 @@
 {
-	"definition": {
-		"openapi": "3.0.0",
-		"info": {
-			"title": "Medical Access API",
-			"version": "1.0.0",
-			"description": "Doctor - Patient Medical Platform"
+	"openapi": "3.0.0",
+	"info": {
+		"title": "2CP API Documentation",
+		"version": "1.0.0",
+		"description": "API documentation for the 2CP project"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:5000",
+			"description": "Development server"
+		}
+	],
+	"paths": {
+		"/": {
+			"get": {
+				"description": "",
+				"responses": {
+					"200": {
+						"description": "OK"
+					}
+				}
+			}
 		},
-		"servers": [
-			{
-				"url": "http://localhost:5000/api"
+		"/api/users/me": {
+			"get": {
+				"tags": ["Users"],
+				"summary": "Get the current logged-in user details",
+				"description": "Roles: doctor, patient",
+				"responses": {
+					"200": { "description": "OK" },
+					"404": { "description": "Not Found" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"patch": {
+				"tags": ["Users"],
+				"summary": "Update the current logged-in user details",
+				"description": "Roles: doctor, patient",
+				"responses": {
+					"200": { "description": "OK" },
+					"400": { "description": "Bad Request" },
+					"404": { "description": "Not Found" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
 			}
-		],
-		"components": {
-			"securitySchemes": {
-				"bearerAuth": {
-					"type": "http",
-					"scheme": "bearer",
-					"bearerFormat": "JWT"
+		},
+		"/api/users/patient/{id}": {
+			"get": {
+				"tags": ["Users"],
+				"summary": "Get patient details by ID",
+				"description": "Roles: doctor",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": { "description": "OK" },
+					"400": { "description": "Bad Request" },
+					"403": { "description": "Forbidden" },
+					"404": { "description": "Not Found" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/users/doctor/{id}": {
+			"get": {
+				"tags": ["Users"],
+				"summary": "Get doctor details by ID",
+				"description": "Roles: any",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": { "description": "OK" },
+					"400": { "description": "Bad Request" },
+					"404": { "description": "Not Found" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/users/doctors": {
+			"get": {
+				"tags": ["Users"],
+				"summary": "Get a paginated list of doctors",
+				"description": "Roles: any",
+				"parameters": [
+					{
+						"name": "page",
+						"description": "Page number (starting from 0)",
+						"default": 0,
+						"in": "query",
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "limit",
+						"description": "Number of items per page",
+						"default": 10,
+						"in": "query",
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "order",
+						"description": "Sort order (asc or desc)",
+						"default": "asc",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "sortBy",
+						"description": "Field to sort by",
+						"default": "firstName",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": { "description": "OK" },
+					"400": { "description": "Bad Request" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/records/consultation": {
+			"post": {
+				"tags": ["Consultations"],
+				"summary": "Create a new consultation record",
+				"description": "Roles: doctor. only doctors who have access to the patient can create consultations for that patient",
+				"responses": {
+					"201": { "description": "Created" },
+					"400": { "description": "Bad Request" },
+					"403": { "description": "Forbidden" },
+					"404": { "description": "Not Found" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"doctorId": { "example": "any" },
+									"patientId": { "example": "any" },
+									"date": { "example": "any" },
+									"status": { "example": "any" },
+									"typeofvisit": { "example": "any" },
+									"motive": { "example": "any" },
+									"symptoms": { "example": "any" },
+									"severity": { "example": "any" },
+									"followUpDate": { "example": "any" },
+									"diagnosis": { "example": "any" },
+									"treatmentPlan": { "example": "any" },
+									"notes": { "example": "any" },
+									"bloodPressure": { "example": "any" },
+									"heartRate": { "example": "any" },
+									"respiratoryRate": { "example": "any" },
+									"temperature": { "example": "any" },
+									"weight": { "example": "any" },
+									"systemReview": { "example": "any" },
+									"additionalTests": { "example": "any" }
+								}
+							}
+						}
+					}
 				}
 			}
 		},
-		"security": [
-			{
-				"bearerAuth": []
+		"/api/records/consultation/{consultationId}": {
+			"patch": {
+				"tags": ["Consultations"],
+				"summary": "Update a consultation record",
+				"description": "Roles: doctor. Only the doctor who created the consultation and have access to the patient can update it. Only specific fields can be updated",
+				"parameters": [
+					{
+						"name": "consultationId",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": { "description": "OK" },
+					"400": { "description": "Bad Request" },
+					"403": { "description": "Forbidden" },
+					"404": { "description": "Not Found" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			},
+			"get": {
+				"tags": ["Consultations"],
+				"summary": "Get a consultation by ID",
+				"description": "Roles: doctor, patient. Doctors can only access consultations of patients they have access to. Patients can only access their own consultations",
+				"parameters": [
+					{
+						"name": "consultationId",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": { "description": "OK" },
+					"400": { "description": "Bad Request" },
+					"403": { "description": "Forbidden" },
+					"404": { "description": "Not Found" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
 			}
-		],
-		"paths": {
-			"/auth/register/doctor": {
-				"post": {
-					"tags": ["Auth"],
-					"summary": "Register new doctor",
-					"requestBody": {
+		},
+		"/api/records/{patientId}": {
+			"get": {
+				"tags": ["Consultations"],
+				"summary": "Get consultations for a patient with pagination and sorting",
+				"description": "Roles: doctor, patient.",
+				"parameters": [
+					{
+						"name": "patientId",
+						"in": "path",
 						"required": true,
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"required": [
-										"firstName",
-										"lastName",
-										"email",
-										"password",
-										"licenseNumber"
-									],
-									"properties": {
-										"firstName": { "type": "string" },
-										"lastName": { "type": "string" },
-										"email": { "type": "string" },
-										"password": { "type": "string" },
-										"specialization": { "type": "string" },
-										"licenseNumber": { "type": "string" },
-										"phone": { "type": "string" },
-										"cabinetAddress": { "type": "string" }
-									}
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "page",
+						"description": "Page number (starting from 0)",
+						"default": 0,
+						"in": "query",
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "limit",
+						"description": "Number of items per page",
+						"default": 10,
+						"in": "query",
+						"schema": {
+							"type": "integer"
+						}
+					},
+					{
+						"name": "order",
+						"description": "Sort order (asc or desc)",
+						"default": "asc",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "sortBy",
+						"description": "Field to sort by",
+						"default": "firstName",
+						"in": "query",
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": { "description": "OK" },
+					"400": { "description": "Bad Request" },
+					"403": { "description": "Forbidden" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/auth/signin": {
+			"post": {
+				"tags": ["Auth"],
+				"summary": "Register a new user (doctor or patient)",
+				"description": "Roles: doctor, patient",
+				"responses": {
+					"201": { "description": "Created" },
+					"400": { "description": "Bad Request" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"firstName": { "example": "any" },
+									"lastName": { "example": "any" },
+									"email": { "example": "any" },
+									"phone": { "example": "any" },
+									"password": { "example": "any" },
+									"licenseNumber": { "example": "any" },
+									"role": { "example": "any" }
 								}
 							}
 						}
-					},
-					"responses": {
-						"201": {
-							"description": "Doctor registered successfully"
+					}
+				}
+			}
+		},
+		"/api/auth/login": {
+			"post": {
+				"tags": ["Auth"],
+				"summary": "Login a user (doctor or patient) and return a refresh token",
+				"description": "Roles: doctor, patient",
+				"responses": {
+					"200": { "description": "OK" },
+					"400": { "description": "Bad Request" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"phone": { "example": "any" },
+									"password": { "example": "any" },
+									"role": { "example": "any" }
+								}
+							}
 						}
 					}
 				}
-			},
-
-			"/auth/register/patient": {
-				"post": {
-					"tags": ["Auth"],
-					"summary": "Register new patient",
-					"requestBody": {
+			}
+		},
+		"/api/auth/logout": {
+			"post": {
+				"tags": ["Auth"],
+				"summary": "Logout the current user by invalidating their refresh token",
+				"description": "Roles: doctor, patient",
+				"responses": {
+					"200": { "description": "OK" },
+					"404": { "description": "Not Found" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				]
+			}
+		},
+		"/api/auth/refresh-token": {
+			"post": {
+				"tags": ["Auth"],
+				"summary": "Refresh access token using a valid refresh token",
+				"description": "Roles: doctor, patient",
+				"responses": {
+					"200": { "description": "OK" },
+					"400": { "description": "Bad Request" },
+					"404": { "description": "Not Found" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"refreshToken": { "example": "any" }
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/request-otp": {
+			"post": {
+				"tags": ["Auth"],
+				"summary": "Request a One-Time Password (OTP) for phone verification",
+				"description": "Roles: doctor, patient",
+				"responses": {
+					"200": { "description": "OK" },
+					"400": { "description": "Bad Request" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"phone": { "example": "any" },
+									"role": { "example": "any" }
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/verify-otp": {
+			"post": {
+				"tags": ["Auth"],
+				"summary": "Verify a One-Time Password (OTP) for phone verification",
+				"description": "Roles: doctor, patient",
+				"responses": {
+					"200": { "description": "OK" },
+					"400": { "description": "Bad Request" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"phone": { "example": "any" },
+									"code": { "example": "any" },
+									"role": { "example": "any" }
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/access/request": {
+			"post": {
+				"tags": ["Access"],
+				"summary": "Doctor sends access request to a patient",
+				"description": "Roles: patient",
+				"responses": {
+					"201": { "description": "Created" },
+					"400": { "description": "Bad Request" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"patientId": { "example": "any" }
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/access/patient/requests": {
+			"get": {
+				"tags": ["Access"],
+				"summary": "Patient sees pending access requests",
+				"description": "Roles: patient",
+				"responses": {
+					"200": { "description": "OK" },
+					"500": { "description": "Internal Server Error" }
+				}
+			}
+		},
+		"/api/access/{id}/respond": {
+			"put": {
+				"tags": ["Access"],
+				"summary": "Patient approves or rejects an access request",
+				"description": "Roles: patient",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
 						"required": true,
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"required": [
-										"firstName",
-										"lastName",
-										"email",
-										"password"
-									],
-									"properties": {
-										"firstName": { "type": "string" },
-										"lastName": { "type": "string" },
-										"email": { "type": "string" },
-										"password": { "type": "string" },
-										"dateOfBirth": {
-											"type": "string",
-											"format": "date"
-										},
-										"gender": {
-											"type": "string",
-											"enum": ["male", "female"]
-										},
-										"phone": { "type": "string" },
-										"address": { "type": "string" }
-									}
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": { "description": "OK" },
+					"400": { "description": "Bad Request" },
+					"403": { "description": "Forbidden" },
+					"404": { "description": "Not Found" },
+					"500": { "description": "Internal Server Error" }
+				},
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"accepted": { "example": "any" }
 								}
 							}
 						}
-					},
-					"responses": {
-						"201": {
-							"description": "Patient registered successfully"
-						}
 					}
 				}
-			},
-
-			"/auth/login": {
-				"post": {
-					"tags": ["Auth"],
-					"summary": "Login (Doctor or Patient)",
-					"requestBody": {
+			}
+		},
+		"/api/access/doctor/patients": {
+			"get": {
+				"tags": ["Access"],
+				"summary": "Doctor sees approved patients",
+				"description": "Roles: doctor",
+				"responses": {
+					"200": { "description": "OK" },
+					"500": { "description": "Internal Server Error" }
+				}
+			}
+		},
+		"/api/access/patient/doctors": {
+			"get": {
+				"tags": ["Access"],
+				"summary": "Patient sees approved doctors",
+				"description": "Roles: patient",
+				"responses": {
+					"200": { "description": "OK" },
+					"500": { "description": "Internal Server Error" }
+				}
+			}
+		},
+		"/api/access/{id}": {
+			"delete": {
+				"tags": ["Access"],
+				"summary": "Patient removes a doctor (deletes access)",
+				"description": "Roles: patient",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
 						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": { "description": "OK" },
+					"403": { "description": "Forbidden" },
+					"404": { "description": "Not Found" },
+					"500": { "description": "Internal Server Error" }
+				}
+			}
+		},
+		"/auth/register/doctor": {
+			"post": {
+				"tags": ["Auth"],
+				"summary": "Register new doctor",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"firstName",
+									"lastName",
+									"email",
+									"password",
+									"licenseNumber"
+								],
+								"properties": {
+									"firstName": { "type": "string" },
+									"lastName": { "type": "string" },
+									"email": { "type": "string" },
+									"password": { "type": "string" },
+									"specialization": { "type": "string" },
+									"licenseNumber": { "type": "string" },
+									"phone": { "type": "string" },
+									"cabinetAddress": { "type": "string" }
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Doctor registered successfully"
+					}
+				}
+			}
+		},
+		"/auth/register/patient": {
+			"post": {
+				"tags": ["Auth"],
+				"summary": "Register new patient",
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"firstName",
+									"lastName",
+									"email",
+									"password"
+								],
+								"properties": {
+									"firstName": { "type": "string" },
+									"lastName": { "type": "string" },
+									"email": { "type": "string" },
+									"password": { "type": "string" },
+									"dateOfBirth": {
+										"type": "string",
+										"format": "date"
+									},
+									"gender": {
+										"type": "string",
+										"enum": ["male", "female"]
+									},
+									"phone": { "type": "string" },
+									"address": { "type": "string" }
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Patient registered successfully"
+					}
+				}
+			}
+		},
+		"/notifications": {
+			"get": {
+				"tags": ["Notifications"],
+				"summary": "User gets notifications",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"responses": {
+					"200": { "description": "List of notifications" }
+				}
+			}
+		},
+		"/chatbot": {
+			"post": {
+				"tags": ["Chatbot (AI Agent)"],
+				"summary": "Start a new chat with the Medical AI Agent",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": ["prompt"],
+								"properties": {
+									"prompt": {
+										"type": "string",
+										"example": "What are the common symptoms of the flu?"
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Chat started and response received",
 						"content": {
 							"application/json": {
 								"schema": {
 									"type": "object",
-									"required": ["email", "password"],
 									"properties": {
-										"email": { "type": "string" },
-										"password": { "type": "string" }
+										"success": { "type": "boolean" },
+										"thread_id": { "type": "string" },
+										"title": { "type": "string" },
+										"response": { "type": "string" }
 									}
 								}
 							}
 						}
 					},
-					"responses": {
-						"200": {
-							"description": "Login successful (returns JWT token)"
-						}
-					}
+					"400": { "description": "Prompt is required" }
 				}
-			},
-			"/access/request": {
-				"post": {
-					"tags": ["Access"],
-					"summary": "Doctor requests access to patient",
-					"security": [{ "bearerAuth": [] }],
-					"requestBody": {
+			}
+		},
+		"/chatbot/{thread_id}": {
+			"get": {
+				"tags": ["Chatbot (AI Agent)"],
+				"summary": "Retrieve chat history by thread ID",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "thread_id",
 						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Chat history retrieved successfully",
 						"content": {
 							"application/json": {
 								"schema": {
 									"type": "object",
 									"properties": {
-										"patientId": { "type": "string" }
-									}
-								}
-							}
-						}
-					},
-					"responses": {
-						"200": { "description": "Access request sent" }
-					}
-				}
-			},
-			"/access/patient/requests": {
-				"get": {
-					"tags": ["Access"],
-					"summary": "Patient gets pending access requests",
-					"security": [{ "bearerAuth": [] }],
-					"responses": {
-						"200": {
-							"description": "List of pending access requests"
-						}
-					}
-				}
-			},
-			"/access/{id}/respond": {
-				"put": {
-					"tags": ["Access"],
-					"summary": "Patient approves or rejects doctor request",
-					"security": [{ "bearerAuth": [] }],
-					"parameters": [
-						{
-							"in": "path",
-							"name": "id",
-							"required": true,
-							"schema": { "type": "string" }
-						}
-					],
-					"requestBody": {
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"properties": {
-										"status": {
-											"type": "string",
-											"enum": ["approved", "rejected"]
-										}
-									}
-								}
-							}
-						}
-					},
-					"responses": {
-						"200": { "description": "Access updated" }
-					}
-				}
-			},
-			"/records": {
-				"post": {
-					"tags": ["Records"],
-					"summary": "Doctor adds medical record",
-					"security": [{ "bearerAuth": [] }],
-					"responses": {
-						"201": { "description": "Record created" }
-					}
-				}
-			},
-			"/records/patient": {
-				"get": {
-					"tags": ["Records"],
-					"summary": "Patient views own medical records",
-					"security": [{ "bearerAuth": [] }],
-					"responses": {
-						"200": { "description": "List of medical records" }
-					}
-				}
-			},
-			"/notifications": {
-				"get": {
-					"tags": ["Notifications"],
-					"summary": "User gets notifications",
-					"security": [{ "bearerAuth": [] }],
-					"responses": {
-						"200": { "description": "List of notifications" }
-					}
-				}
-			},
-			"/chatbot": {
-				"post": {
-					"tags": ["Chatbot (AI Agent)"],
-					"summary": "Start a new chat with the Medical AI Agent",
-					"security": [{ "bearerAuth": [] }],
-					"requestBody": {
-						"required": true,
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"required": ["prompt"],
-									"properties": {
-										"prompt": {
-											"type": "string",
-											"example": "What are the common symptoms of the flu?"
-										}
-									}
-								}
-							}
-						}
-					},
-					"responses": {
-						"200": {
-							"description": "Chat started and response received",
-							"content": {
-								"application/json": {
-									"schema": {
-										"type": "object",
-										"properties": {
-											"success": { "type": "boolean" },
-											"thread_id": { "type": "string" },
-											"title": { "type": "string" },
-											"response": { "type": "string" }
-										}
-									}
-								}
-							}
-						},
-						"400": { "description": "Prompt is required" }
-					}
-				}
-			},
-			"/chatbot/{thread_id}": {
-				"get": {
-					"tags": ["Chatbot (AI Agent)"],
-					"summary": "Retrieve chat history by thread ID",
-					"security": [{ "bearerAuth": [] }],
-					"parameters": [
-						{
-							"in": "path",
-							"name": "thread_id",
-							"required": true,
-							"schema": { "type": "string" }
-						}
-					],
-					"responses": {
-						"200": {
-							"description": "Chat history retrieved successfully",
-							"content": {
-								"application/json": {
-									"schema": {
-										"type": "object",
-										"properties": {
-											"success": { "type": "boolean" },
-											"thread_id": { "type": "string" },
-											"title": { "type": "string" },
-											"history": {
-												"type": "array",
-												"items": {
-													"type": "object",
-													"properties": {
-														"role": {
-															"type": "string",
-															"enum": [
-																"user",
-																"assistant"
-															]
-														},
-														"content": {
-															"type": "string"
-														}
+										"success": { "type": "boolean" },
+										"thread_id": { "type": "string" },
+										"title": { "type": "string" },
+										"history": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"role": {
+														"type": "string",
+														"enum": [
+															"user",
+															"assistant"
+														]
+													},
+													"content": {
+														"type": "string"
 													}
 												}
 											}
@@ -322,241 +792,258 @@
 									}
 								}
 							}
-						},
-						"404": { "description": "Conversation not found" }
+						}
+					},
+					"404": { "description": "Conversation not found" }
+				}
+			},
+			"post": {
+				"tags": ["Chatbot (AI Agent)"],
+				"summary": "Continue an existing chat with the Medical AI Agent",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "thread_id",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": ["prompt"],
+								"properties": {
+									"prompt": { "type": "string" }
+								}
+							}
+						}
 					}
 				},
-				"post": {
-					"tags": ["Chatbot (AI Agent)"],
-					"summary": "Continue an existing chat with the Medical AI Agent",
-					"security": [{ "bearerAuth": [] }],
-					"parameters": [
-						{
-							"in": "path",
-							"name": "thread_id",
-							"required": true,
-							"schema": { "type": "string" }
-						}
-					],
-					"requestBody": {
-						"required": true,
+				"responses": {
+					"200": {
+						"description": "Response received",
 						"content": {
 							"application/json": {
 								"schema": {
 									"type": "object",
-									"required": ["prompt"],
 									"properties": {
-										"prompt": { "type": "string" }
+										"success": { "type": "boolean" },
+										"thread_id": { "type": "string" },
+										"title": { "type": "string" },
+										"response": { "type": "string" }
 									}
 								}
 							}
 						}
 					},
-					"responses": {
-						"200": {
-							"description": "Response received",
-							"content": {
-								"application/json": {
-									"schema": {
-										"type": "object",
-										"properties": {
-											"success": { "type": "boolean" },
-											"thread_id": { "type": "string" },
-											"title": { "type": "string" },
-											"response": { "type": "string" }
-										}
+					"404": { "description": "Conversation not found" }
+				}
+			},
+			"delete": {
+				"tags": ["Chatbot (AI Agent)"],
+				"summary": "Delete a chat conversation",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "thread_id",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Chat deleted successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"success": { "type": "boolean" }
 									}
 								}
 							}
-						},
-						"404": { "description": "Conversation not found" }
+						}
+					},
+					"404": { "description": "Conversation not found" }
+				}
+			}
+		},
+		"/chat/initiate": {
+			"post": {
+				"tags": ["Doctor Chat"],
+				"summary": "Initiate a chat room between two doctors",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": ["currentUserId", "targetUserId"],
+								"properties": {
+									"currentUserId": { "type": "string" },
+									"targetUserId": { "type": "string" }
+								}
+							}
+						}
 					}
 				},
-				"delete": {
-					"tags": ["Chatbot (AI Agent)"],
-					"summary": "Delete a chat conversation",
-					"security": [{ "bearerAuth": [] }],
-					"parameters": [
-						{
-							"in": "path",
-							"name": "thread_id",
-							"required": true,
-							"schema": { "type": "string" }
-						}
-					],
-					"responses": {
-						"200": {
-							"description": "Chat deleted successfully",
-							"content": {
-								"application/json": {
-									"schema": {
-										"type": "object",
-										"properties": {
-											"success": { "type": "boolean" }
-										}
-									}
-								}
-							}
-						},
-						"404": { "description": "Conversation not found" }
-					}
-				}
-			},
-			"/chat/initiate": {
-				"post": {
-					"tags": ["Doctor Chat"],
-					"summary": "Initiate a chat room between two doctors",
-					"security": [{ "bearerAuth": [] }],
-					"requestBody": {
-						"required": true,
+				"responses": {
+					"200": {
+						"description": "Room ready",
 						"content": {
 							"application/json": {
 								"schema": {
 									"type": "object",
-									"required": [
-										"currentUserId",
-										"targetUserId"
-									],
 									"properties": {
-										"currentUserId": { "type": "string" },
-										"targetUserId": { "type": "string" }
-									}
-								}
-							}
-						}
-					},
-					"responses": {
-						"200": {
-							"description": "Room ready",
-							"content": {
-								"application/json": {
-									"schema": {
-										"type": "object",
-										"properties": {
-											"message": { "type": "string" },
-											"roomId": { "type": "string" },
-											"room": { "type": "object" }
-										}
-									}
-								}
-							}
-						},
-						"400": { "description": "Missing required fields" }
-					}
-				}
-			},
-			"/chat/join": {
-				"post": {
-					"tags": ["Doctor Chat"],
-					"summary": "User joins a chat room socket",
-					"security": [{ "bearerAuth": [] }],
-					"requestBody": {
-						"required": true,
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"required": [
-										"userId",
-										"socketId",
-										"roomId"
-									],
-									"properties": {
-										"userId": { "type": "string" },
-										"socketId": { "type": "string" },
-										"roomId": { "type": "string" }
-									}
-								}
-							}
-						}
-					},
-					"responses": {
-						"200": {
-							"description": "User joined room successfully",
-							"content": {
-								"application/json": {
-									"schema": {
-										"type": "object",
-										"properties": {
-											"message": { "type": "string" },
-											"user": { "type": "object" }
-										}
-									}
-								}
-							}
-						},
-						"400": { "description": "Missing required fields" }
-					}
-				}
-			},
-			"/chat/message": {
-				"post": {
-					"tags": ["Doctor Chat"],
-					"summary": "Send a message in a chat room",
-					"security": [{ "bearerAuth": [] }],
-					"requestBody": {
-						"required": true,
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "object",
-									"required": [
-										"senderId",
-										"roomId",
-										"doctorName",
-										"text"
-									],
-									"properties": {
-										"senderId": { "type": "string" },
+										"message": { "type": "string" },
 										"roomId": { "type": "string" },
-										"doctorName": { "type": "string" },
-										"text": { "type": "string" }
+										"room": { "type": "object" }
 									}
 								}
 							}
 						}
 					},
-					"responses": {
-						"201": {
-							"description": "Message sent successfully",
-							"content": {
-								"application/json": {
-									"schema": {
-										"type": "object",
-										"properties": {
-											"message": { "type": "string" },
-											"data": { "type": "object" }
-										}
+					"400": { "description": "Missing required fields" }
+				}
+			}
+		},
+		"/chat/join": {
+			"post": {
+				"tags": ["Doctor Chat"],
+				"summary": "User joins a chat room socket",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": ["userId", "socketId", "roomId"],
+								"properties": {
+									"userId": { "type": "string" },
+									"socketId": { "type": "string" },
+									"roomId": { "type": "string" }
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "User joined room successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"message": { "type": "string" },
+										"user": { "type": "object" }
 									}
 								}
 							}
-						},
-						"400": { "description": "All fields are required" }
-					}
-				}
-			},
-			"/chat/messages/{roomId}": {
-				"get": {
-					"tags": ["Doctor Chat"],
-					"summary": "Get all messages for a specific chat room",
-					"security": [{ "bearerAuth": [] }],
-					"parameters": [
-						{
-							"in": "path",
-							"name": "roomId",
-							"required": true,
-							"schema": { "type": "string" }
 						}
-					],
-					"responses": {
-						"200": {
-							"description": "List of messages retrieved",
-							"content": {
-								"application/json": {
-									"schema": {
-										"type": "array",
-										"items": { "type": "object" }
+					},
+					"400": { "description": "Missing required fields" }
+				}
+			}
+		},
+		"/chat/message": {
+			"post": {
+				"tags": ["Doctor Chat"],
+				"summary": "Send a message in a chat room",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"required": [
+									"senderId",
+									"roomId",
+									"doctorName",
+									"text"
+								],
+								"properties": {
+									"senderId": { "type": "string" },
+									"roomId": { "type": "string" },
+									"doctorName": { "type": "string" },
+									"text": { "type": "string" }
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"201": {
+						"description": "Message sent successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"message": { "type": "string" },
+										"data": { "type": "object" }
 									}
+								}
+							}
+						}
+					},
+					"400": { "description": "All fields are required" }
+				}
+			}
+		},
+		"/chat/messages/{roomId}": {
+			"get": {
+				"tags": ["Doctor Chat"],
+				"summary": "Get all messages for a specific chat room",
+				"security": [
+					{
+						"BearerAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "roomId",
+						"required": true,
+						"schema": { "type": "string" }
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "List of messages retrieved",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": { "type": "object" }
 								}
 							}
 						}
@@ -565,5 +1052,13 @@
 			}
 		}
 	},
-	"apis": []
+	"components": {
+		"securitySchemes": {
+			"BearerAuth": {
+				"type": "http",
+				"scheme": "bearer",
+				"bearerFormat": "JWT"
+			}
+		}
+	}
 }
