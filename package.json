@@ -23,7 +23,7 @@
   "homepage": "https://github.com/2cp-med-project/backend#readme",
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-validator": "^7.3.2",

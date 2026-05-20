@@ -65,7 +65,6 @@ async function logIn(req, res) {
   const { phone, password, role } = req.body || {};
   try {
     const user = await authService.checkPassword(password, phone, role);
-
     const refreshToken = authService.generateToken(user.id, role, "30d");
     user.refreshToken = refreshToken;
 
