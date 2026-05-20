@@ -19,7 +19,7 @@ async function doctorAccess(req, res, next) {
       return;
     }
 
-    req.user.patients = access.map((a) => a.patient); // add the patients that the doctor have access to to req.user for later use in controllers
+    req.user.patients = access.map((a) => a.patient.toString()); // add the patients that the doctor have access to to req.user for later use in controllers
 
     next();
     return;

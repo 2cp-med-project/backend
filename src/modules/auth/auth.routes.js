@@ -3,24 +3,42 @@
 import express from "express";
 import controller from "./auth.controller.js";
 import authenticate from "../../middleware/auth.js";
-import authorize from "../../middleware/role.js";
+import validate from "../../middleware/validation.js";
+
+import validationschema from "./auth.validation.js";
+
 const router = express.Router();
 
-router.post("/signin", controller.signin);
-
-router.post("/login", controller.login);
-
 router.post(
-  "/logout",
-  authenticate,
-  authorize("patient", "doctor"),
-  controller.logout,
+  "/signup",
+  validate(validationschema.signUpValidation),
+  controller.signUp,
 );
 
-router.post("/refresh-token", controller.refreshToken);
+router.post(
+  "/login",
+  validate(validationschema.logInValidation),
+  controller.logIn,
+);
 
-router.post("/request-otp", controller.requestOTP);
+router.post("/logout", authenticate, controller.logOut);
 
-router.post("/verify-otp", controller.verifyOTP);
+router.post(
+  "/refresh-token",
+  validate(validationschema.tokenValidation),
+  controller.refreshToken,
+);
+
+router.post(
+  "/request-otp",
+  validate(validationschema.requestOTPValidation),
+  controller.requestOTP,
+);
+
+router.post(
+  "/verify-otp",
+  validate(validationschema.verifyOTPValidation),
+  controller.verifyOTP,
+);
 
 export default router;
