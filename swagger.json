@@ -336,7 +336,7 @@
 				]
 			}
 		},
-		"/api/auth/signin": {
+		"/api/auth/signup": {
 			"post": {
 				"tags": ["Auth"],
 				"summary": "Register a new user (doctor or patient)",
@@ -601,87 +601,6 @@
 				}
 			}
 		},
-		"/auth/register/doctor": {
-			"post": {
-				"tags": ["Auth"],
-				"summary": "Register new doctor",
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "object",
-								"required": [
-									"firstName",
-									"lastName",
-									"email",
-									"password",
-									"licenseNumber"
-								],
-								"properties": {
-									"firstName": { "type": "string" },
-									"lastName": { "type": "string" },
-									"email": { "type": "string" },
-									"password": { "type": "string" },
-									"specialization": { "type": "string" },
-									"licenseNumber": { "type": "string" },
-									"phone": { "type": "string" },
-									"cabinetAddress": { "type": "string" }
-								}
-							}
-						}
-					}
-				},
-				"responses": {
-					"201": {
-						"description": "Doctor registered successfully"
-					}
-				}
-			}
-		},
-		"/auth/register/patient": {
-			"post": {
-				"tags": ["Auth"],
-				"summary": "Register new patient",
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"type": "object",
-								"required": [
-									"firstName",
-									"lastName",
-									"email",
-									"password"
-								],
-								"properties": {
-									"firstName": { "type": "string" },
-									"lastName": { "type": "string" },
-									"email": { "type": "string" },
-									"password": { "type": "string" },
-									"dateOfBirth": {
-										"type": "string",
-										"format": "date"
-									},
-									"gender": {
-										"type": "string",
-										"enum": ["male", "female"]
-									},
-									"phone": { "type": "string" },
-									"address": { "type": "string" }
-								}
-							}
-						}
-					}
-				},
-				"responses": {
-					"201": {
-						"description": "Patient registered successfully"
-					}
-				}
-			}
-		},
 		"/notifications": {
 			"get": {
 				"tags": ["Notifications"],
@@ -698,7 +617,7 @@
 		},
 		"/chatbot": {
 			"post": {
-				"tags": ["Chatbot (AI Agent)"],
+				"tags": ["Chatbot"],
 				"summary": "Start a new chat with the Medical AI Agent",
 				"security": [
 					{
@@ -745,7 +664,7 @@
 		},
 		"/chatbot/{thread_id}": {
 			"get": {
-				"tags": ["Chatbot (AI Agent)"],
+				"tags": ["Chatbot"],
 				"summary": "Retrieve chat history by thread ID",
 				"security": [
 					{
@@ -798,7 +717,7 @@
 				}
 			},
 			"post": {
-				"tags": ["Chatbot (AI Agent)"],
+				"tags": ["Chatbot"],
 				"summary": "Continue an existing chat with the Medical AI Agent",
 				"security": [
 					{
@@ -848,7 +767,7 @@
 				}
 			},
 			"delete": {
-				"tags": ["Chatbot (AI Agent)"],
+				"tags": ["Chatbot"],
 				"summary": "Delete a chat conversation",
 				"security": [
 					{

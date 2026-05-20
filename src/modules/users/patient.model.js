@@ -9,14 +9,6 @@ const patientSchema = new Schema(
 		placeOfBirth: { type: String, trim: true },
 		address: { type: String, trim: true },
 
-		userName: {
-			type: String,
-			required: true,
-			unique: true,
-			lowercase: true,
-			trim: true,
-			index: true,
-		},
 		email: {
 			type: String,
 			required: true,
