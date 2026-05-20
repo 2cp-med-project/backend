@@ -39,6 +39,10 @@ router.get(
   controller.getDoctorById,
 );
 
-router.get("/doctors", controller.getDoctors);
+router.get(
+  "/doctors",
+  validate(validationSchema.getDoctorsSchema),
+  controller.getDoctors,
+);
 
 export default router;
