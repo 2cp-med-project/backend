@@ -6,7 +6,6 @@ const patientSchema = new mongoose.Schema({
 
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  refreshToken: String, // for token refresh
   dateOfBirth: Date,
   placeOfBirth: String,
   gender: { type: String, enum: ["male", "female"] },
@@ -18,22 +17,15 @@ const patientSchema = new mongoose.Schema({
     enum: ["patient"],
     immutable: true,
   },
-
-  emergencyContacts: [
-    {
-      name: String,
-      phone: String,
-      relation: String,
-    },
-  ],
+  emergencyContact: {
+    name: String,
+    phone: String,
+  },
   medicalResume: String, // summary of health history
-  cardQRCode: String, // id
-  doctorsAccess: [
-    {
-      doctorId: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor" }, //or name/email
-      accepted: { type: Boolean, default: false },
-    },
-  ],
+
+  otpVerified: { type: Boolean, default: false }, // for OTP verification
+  refreshToken: String, // for token refresh
+  fcmToken: String,
 });
 
 export default mongoose.model("Patient", patientSchema);
