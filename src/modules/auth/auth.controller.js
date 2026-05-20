@@ -3,7 +3,7 @@ import OTPService from "./otp.service.js";
 import Doctor from "../users/doctor.model.js";
 import Patient from "../users/patient.model.js";
 
-async function signin(req, res) {
+async function signup(req, res) {
 	// #swagger.tags = ['Auth']
 	// #swagger.summary = 'Register a new user (doctor or patient)'
 	// #swagger.description = 'Roles: doctor, patient'
@@ -63,6 +63,7 @@ async function signin(req, res) {
 		newUser.refreshToken = refreshToken;
 
 		await newUser.save();
+
 		res.status(201).json({
 			message: "User registered successfully",
 			userId: newUser.id,
@@ -258,7 +259,7 @@ async function verifyOTP(req, res) {
 }
 
 export default {
-	signin,
+	signup,
 	login,
 	logout,
 	refreshToken,

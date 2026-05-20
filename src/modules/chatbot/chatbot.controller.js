@@ -1,3 +1,4 @@
+import { success } from "zod";
 import { medicalAgentApp } from "../../app.js";
 import { LLM } from "../../config/llm.js";
 import { formatMessages } from "./chatbot.tools.js";
@@ -8,29 +9,27 @@ const getConfig = (thread_id) => ({ configurable: { thread_id } });
 
 async function startChat(req, res) {
 	try {
-		const { prompt, patientId } = req.body;
+		const { id } = req.user;
+		const { prompt } = req.body;
 
-		if (!patientId)
-			return res
-				.status(400)
-				.json({ success: false, error: "patientId is required" });
 		if (!prompt)
 			return res
 				.status(400)
 				.json({ success: false, error: "prompt is required" });
 
 		const conversation = new Conversation({
-			userId: patientId,
+			userId: id,
 			title: "New Chat",
 		});
 		const thread_id = conversation.id;
 
 		const titlePrompt = `3–5 word Title Case chat title. Output the title only.\nChat: ${prompt}`;
+
 		const [titleResponse, state] = await Promise.all([
 			LLM.invoke(titlePrompt).catch(() => ({ content: "New Chat" })),
 			medicalAgentApp.invoke(
 				{
-					patientId,
+					userId: id,
 					messages: [new HumanMessage(prompt)],
 				},
 				getConfig(thread_id),
@@ -64,28 +63,29 @@ async function startChat(req, res) {
 
 async function handleChat(req, res) {
 	try {
+		const { id } = req.user;
 		const { thread_id } = req.params;
 		const { prompt } = req.body;
 
+		if (!thread_id)
+			return res
+				.status(400)
+				.json({ success: false, error: "thread_id is required" });
 		if (!prompt)
 			return res
 				.status(400)
 				.json({ success: false, error: "prompt is required" });
 
 		const conversation = await Conversation.findById(thread_id).lean();
-		if (!conversation)
+		if (!conversation || String(conversation.userId) !== String(id)) {
 			return res
 				.status(404)
 				.json({ success: false, error: "Conversation not found" });
-
-		const existingState = await medicalAgentApp.getState(
-			getConfig(thread_id),
-		);
-		const patientId = existingState.values?.patientId;
+		}
 
 		const state = await medicalAgentApp.invoke(
 			{
-				patientId,
+				userId: id,
 				messages: [new HumanMessage(prompt)],
 			},
 			getConfig(thread_id),
@@ -114,13 +114,20 @@ async function handleChat(req, res) {
 
 async function retrieveChat(req, res) {
 	try {
+		const { id } = req.user;
 		const { thread_id } = req.params;
 
+		if (!thread_id)
+			return res
+				.status(400)
+				.json({ success: false, error: "thread_id is required" });
+
 		const conversation = await Conversation.findById(thread_id).lean();
-		if (!conversation)
+		if (!conversation || String(conversation.userId) !== String(id)) {
 			return res
 				.status(404)
 				.json({ success: false, error: "Conversation not found" });
+		}
 
 		const state = await medicalAgentApp.getState(getConfig(thread_id));
 
@@ -128,7 +135,7 @@ async function retrieveChat(req, res) {
 			success: true,
 			thread_id,
 			title: conversation.title,
-			history: formatMessages(state.values?.messages),
+			history: formatMessages(state.values?.messages || []),
 		});
 	} catch (err) {
 		console.error("[retrieveChat] error:", err);
@@ -140,18 +147,26 @@ async function retrieveChat(req, res) {
 
 async function deleteChat(req, res) {
 	try {
+		const { id } = req.user;
 		const { thread_id } = req.params;
 
-		const conversation = await Conversation.findById(thread_id);
-		if (!conversation)
+		if (!thread_id)
+			return res
+				.status(400)
+				.json({ success: false, error: "thread_id is required" });
+
+		const conversation = await Conversation.findOneAndDelete({
+			_id: thread_id,
+			userId: id,
+		});
+
+		if (!conversation) {
 			return res
 				.status(404)
 				.json({ success: false, error: "Conversation not found" });
+		}
 
-		await Promise.all([
-			conversation.deleteOne(),
-			medicalAgentApp.checkpointer.deleteThread(thread_id),
-		]);
+		await medicalAgentApp.checkpointer.deleteThread(thread_id);
 
 		console.log(`${logTag()} 🗑️  deleteChat: thread=${thread_id}`);
 

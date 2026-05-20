@@ -12,13 +12,8 @@ const consultationSchema = new mongoose.Schema(
 			ref: "Patient",
 			required: true,
 		},
-		reportId: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "Report",
-			required: true,
-		},
 
-		date: { type: Date, required: true, default: Date.now },
+		date: { type: Date, required: true },
 		status: {
 			type: String,
 			enum: ["scheduled", "in-progress", "completed", "cancelled"],
