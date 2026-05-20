@@ -254,6 +254,7 @@ async function updateProfile(req, res) {
           "phone",
           "gender",
           "address",
+          "gender",
           "dateOfBirth",
           "placeOfBirth",
           "emergencyContact",

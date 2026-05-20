@@ -24,6 +24,8 @@ router.get(
   doctorAccess,
   validate(validationSchema.getUserByIdSchema),
   controller.getPatientById,
+  controller.getProfile, //added this
+  controller.updateProfile, //and this
 );
 
 // router.get(
