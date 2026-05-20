@@ -36,25 +36,25 @@ const httpServer = createServer(app);
 
 // Initialize SocketIO Server
 const io = new SocketIOServer(httpServer, {
-	cors: { origin: "*", methods: ["GET", "POST"] },
+  cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
 // Handle Socket Connection
 handleSocketConnection(io);
 
 const swaggerUiOptions = {
-	customCssUrl:
-		"https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css",
-	customJs: [
-		"https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js",
-		"https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js",
-	],
+  customCssUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css",
+  customJs: [
+    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js",
+  ],
 };
 
 app.use(
-	"/api-docs",
-	swaggerUi.serve,
-	swaggerUi.setup(swaggerDoc, swaggerUiOptions),
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDoc, swaggerUiOptions),
 );
 
 // Load Main Routes
@@ -62,5 +62,5 @@ app.use("/api", routes);
 
 // Start Server
 httpServer.listen(process.env.PORT, () =>
-	console.log(`Server running on port ${process.env.PORT}`),
+  console.log(`Server running on port ${process.env.PORT}`),
 );
