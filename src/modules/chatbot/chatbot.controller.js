@@ -78,8 +78,6 @@ async function handleChat(req, res) {
 				.status(404)
 				.json({ success: false, error: "Conversation not found" });
 
-		// await waitForSummarization(thread_id);
-
 		const existingState = await medicalAgentApp.getState(
 			getConfig(thread_id),
 		);

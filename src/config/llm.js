@@ -1,9 +1,9 @@
 import { ChatOpenAI } from "@langchain/openai";
 
 export const LLM = new ChatOpenAI({
-	modelName: "",
+	modelName: "google/gemma-4-26b-a4b-it:nitro",
 	configuration: {
-		baseURL: "http://127.0.0.1:8080",
+		baseURL: "https://openrouter.ai/api/v1",
 		defaultHeaders: {
 			"X-Title": "HealBot, a Medical AI Agent",
 		},
