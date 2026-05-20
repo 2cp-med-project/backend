@@ -1,9 +1,9 @@
 import { Router } from "express";
 import {
-	getRoomMessages,
-	joinRoom,
-	sendMessage,
-	initiateChat,
+  getRoomMessages,
+  joinRoom,
+  sendMessage,
+  initiateChat,
 } from "./room.controller.js";
 
 const router = Router();

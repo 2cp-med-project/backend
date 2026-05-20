@@ -8,179 +8,178 @@ import { HumanMessage } from "@langchain/core/messages";
 const getConfig = (thread_id) => ({ configurable: { thread_id } });
 
 async function startChat(req, res) {
-	try {
-		const { id } = req.user;
-		const { prompt } = req.body;
+  try {
+    const { id } = req.user;
+    const { prompt } = req.body;
 
-		if (!prompt)
-			return res
-				.status(400)
-				.json({ success: false, error: "prompt is required" });
+    if (!prompt)
+      return res
+        .status(400)
+        .json({ success: false, error: "prompt is required" });
 
-		const conversation = new Conversation({
-			userId: id,
-			title: "New Chat",
-		});
-		const thread_id = conversation.id;
+    const conversation = new Conversation({
+      userId: id,
+      title: "New Chat",
+    });
+    const thread_id = conversation.id;
 
-		const titlePrompt = `3–5 word Title Case chat title. Output the title only.\nChat: ${prompt}`;
+    const titlePrompt = `3–5 word Title Case chat title. Output the title only.\nChat: ${prompt}`;
 
-		const [titleResponse, state] = await Promise.all([
-			LLM.invoke(titlePrompt).catch(() => ({ content: "New Chat" })),
-			medicalAgentApp.invoke(
-				{
-					userId: id,
-					messages: [new HumanMessage(prompt)],
-				},
-				getConfig(thread_id),
-			),
-		]);
+    const [titleResponse, state] = await Promise.all([
+      LLM.invoke(titlePrompt).catch(() => ({ content: "New Chat" })),
+      medicalAgentApp.invoke(
+        {
+          userId: id,
+          messages: [new HumanMessage(prompt)],
+        },
+        getConfig(thread_id),
+      ),
+    ]);
 
-		conversation.title =
-			titleResponse.content.toString().trim() || "New Chat";
-		await conversation.save();
+    conversation.title = titleResponse.content.toString().trim() || "New Chat";
+    await conversation.save();
 
-		const response = state.messages?.at(-1);
-		if (!response) throw new Error("Agent returned no response");
+    const response = state.messages?.at(-1);
+    if (!response) throw new Error("Agent returned no response");
 
-		console.log(
-			`${logTag()} 🚀 startChat: thread=${thread_id} | messages=${state.messages?.length ?? 0}`,
-		);
+    console.log(
+      `${logTag()} 🚀 startChat: thread=${thread_id} | messages=${state.messages?.length ?? 0}`,
+    );
 
-		return res.json({
-			success: true,
-			thread_id,
-			title: conversation.title,
-			response: response.content,
-		});
-	} catch (err) {
-		console.error("[startChat] error:", err);
-		return res
-			.status(500)
-			.json({ success: false, error: "Internal Server Error" });
-	}
+    return res.json({
+      success: true,
+      thread_id,
+      title: conversation.title,
+      response: response.content,
+    });
+  } catch (err) {
+    console.error("[startChat] error:", err);
+    return res
+      .status(500)
+      .json({ success: false, error: "Internal Server Error" });
+  }
 }
 
 async function handleChat(req, res) {
-	try {
-		const { id } = req.user;
-		const { thread_id } = req.params;
-		const { prompt } = req.body;
+  try {
+    const { id } = req.user;
+    const { thread_id } = req.params;
+    const { prompt } = req.body;
 
-		if (!thread_id)
-			return res
-				.status(400)
-				.json({ success: false, error: "thread_id is required" });
-		if (!prompt)
-			return res
-				.status(400)
-				.json({ success: false, error: "prompt is required" });
+    if (!thread_id)
+      return res
+        .status(400)
+        .json({ success: false, error: "thread_id is required" });
+    if (!prompt)
+      return res
+        .status(400)
+        .json({ success: false, error: "prompt is required" });
 
-		const conversation = await Conversation.findById(thread_id).lean();
-		if (!conversation || String(conversation.userId) !== String(id)) {
-			return res
-				.status(404)
-				.json({ success: false, error: "Conversation not found" });
-		}
+    const conversation = await Conversation.findById(thread_id).lean();
+    if (!conversation || String(conversation.userId) !== String(id)) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Conversation not found" });
+    }
 
-		const state = await medicalAgentApp.invoke(
-			{
-				userId: id,
-				messages: [new HumanMessage(prompt)],
-			},
-			getConfig(thread_id),
-		);
+    const state = await medicalAgentApp.invoke(
+      {
+        userId: id,
+        messages: [new HumanMessage(prompt)],
+      },
+      getConfig(thread_id),
+    );
 
-		const response = state.messages?.at(-1);
-		if (!response) throw new Error("Agent returned no response");
+    const response = state.messages?.at(-1);
+    if (!response) throw new Error("Agent returned no response");
 
-		console.log(
-			`${logTag()} 💬 handleChat: thread=${thread_id} | messages=${state.messages?.length ?? 0}`,
-		);
+    console.log(
+      `${logTag()} 💬 handleChat: thread=${thread_id} | messages=${state.messages?.length ?? 0}`,
+    );
 
-		return res.json({
-			success: true,
-			thread_id,
-			title: conversation.title,
-			response: response.content,
-		});
-	} catch (err) {
-		console.error("[handleChat] error:", err);
-		return res
-			.status(500)
-			.json({ success: false, error: "Internal Server Error" });
-	}
+    return res.json({
+      success: true,
+      thread_id,
+      title: conversation.title,
+      response: response.content,
+    });
+  } catch (err) {
+    console.error("[handleChat] error:", err);
+    return res
+      .status(500)
+      .json({ success: false, error: "Internal Server Error" });
+  }
 }
 
 async function retrieveChat(req, res) {
-	try {
-		const { id } = req.user;
-		const { thread_id } = req.params;
+  try {
+    const { id } = req.user;
+    const { thread_id } = req.params;
 
-		if (!thread_id)
-			return res
-				.status(400)
-				.json({ success: false, error: "thread_id is required" });
+    if (!thread_id)
+      return res
+        .status(400)
+        .json({ success: false, error: "thread_id is required" });
 
-		const conversation = await Conversation.findById(thread_id).lean();
-		if (!conversation || String(conversation.userId) !== String(id)) {
-			return res
-				.status(404)
-				.json({ success: false, error: "Conversation not found" });
-		}
+    const conversation = await Conversation.findById(thread_id).lean();
+    if (!conversation || String(conversation.userId) !== String(id)) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Conversation not found" });
+    }
 
-		const state = await medicalAgentApp.getState(getConfig(thread_id));
+    const state = await medicalAgentApp.getState(getConfig(thread_id));
 
-		return res.json({
-			success: true,
-			thread_id,
-			title: conversation.title,
-			history: formatMessages(state.values?.messages || []),
-		});
-	} catch (err) {
-		console.error("[retrieveChat] error:", err);
-		return res
-			.status(500)
-			.json({ success: false, error: "Internal Server Error" });
-	}
+    return res.json({
+      success: true,
+      thread_id,
+      title: conversation.title,
+      history: formatMessages(state.values?.messages || []),
+    });
+  } catch (err) {
+    console.error("[retrieveChat] error:", err);
+    return res
+      .status(500)
+      .json({ success: false, error: "Internal Server Error" });
+  }
 }
 
 async function deleteChat(req, res) {
-	try {
-		const { id } = req.user;
-		const { thread_id } = req.params;
+  try {
+    const { id } = req.user;
+    const { thread_id } = req.params;
 
-		if (!thread_id)
-			return res
-				.status(400)
-				.json({ success: false, error: "thread_id is required" });
+    if (!thread_id)
+      return res
+        .status(400)
+        .json({ success: false, error: "thread_id is required" });
 
-		const conversation = await Conversation.findOneAndDelete({
-			_id: thread_id,
-			userId: id,
-		});
+    const conversation = await Conversation.findOneAndDelete({
+      _id: thread_id,
+      userId: id,
+    });
 
-		if (!conversation) {
-			return res
-				.status(404)
-				.json({ success: false, error: "Conversation not found" });
-		}
+    if (!conversation) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Conversation not found" });
+    }
 
-		await medicalAgentApp.checkpointer.deleteThread(thread_id);
+    await medicalAgentApp.checkpointer.deleteThread(thread_id);
 
-		console.log(`${logTag()} 🗑️  deleteChat: thread=${thread_id}`);
+    console.log(`${logTag()} 🗑️  deleteChat: thread=${thread_id}`);
 
-		return res.json({ success: true });
-	} catch (err) {
-		console.error("[deleteChat] error:", err);
-		return res
-			.status(500)
-			.json({ success: false, error: "Internal Server Error" });
-	}
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("[deleteChat] error:", err);
+    return res
+      .status(500)
+      .json({ success: false, error: "Internal Server Error" });
+  }
 }
 
 function logTag() {
-	return `[${new Date().toLocaleTimeString()}]`;
+  return `[${new Date().toLocaleTimeString()}]`;
 }
 
 export default { startChat, handleChat, retrieveChat, deleteChat };

@@ -9,7 +9,7 @@ import usersRoutes from "./modules/users/users.routes.js";
 const router = express.Router();
 
 router.get("/", (req, res) => {
-	res.status(200).json({ message: "API is running..." });
+  res.status(200).json({ message: "API is running..." });
 });
 
 router.use("/access/", accessRoutes);
