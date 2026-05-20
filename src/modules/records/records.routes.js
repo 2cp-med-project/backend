@@ -29,6 +29,7 @@ router.patch(
 router.get(
   "/consultation/:consultationId",
   doctorAccess,
+  validate(validationschema.getConsultationByIdValidation),
   controller.getConsultationById,
 );
 // router.delete(

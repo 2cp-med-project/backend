@@ -26,7 +26,12 @@ router.get(
 );
 
 // Patient approves/rejects
-router.put("/:id/respond", authorize("patient"), controller.respondAccess);
+router.put(
+  "/:id/respond",
+  authorize("patient"),
+  validate(validationSchema.respondAccessValidation),
+  controller.respondAccess,
+);
 
 // Doctor sees approved patients
 router.get(
