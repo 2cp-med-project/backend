@@ -2,10 +2,10 @@ import Patient from "../users/patient.model.js";
 import admin from "firebase-admin";
 import Doctor from "../users/doctor.model.js";
 import { io, onlineUsers } from "./channels/socket.js";
- async function saveFcmToken(userId, role, fcmToken) {
-  const Model = role === "doctor" ? Doctor : Patient;
+ async function saveFcmToken(userId, fcmToken) {
+  
 
-  await Model.updateOne(
+  await Patient.updateOne(
     { _id: userId },
     { $set: { fcmToken } }
   );
