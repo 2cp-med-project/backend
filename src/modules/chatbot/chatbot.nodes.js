@@ -10,12 +10,14 @@ import schema from "./chatbot.schema.js";
 import chatbotTools from "./chatbot.tools.js";
 
 const MEMORY_WINDOW = 6;
+const LANGUAGE = "FRENCH";
 
 const BASE_PERSONA = `\
-You are HealBot, an AI clinical-support assistant on the Healio platform.
-- You are NOT a doctor and cannot diagnose.
-- Acknowledge the patient's concern first. Be concise, warm, and clinically accurate.
-- Ground every claim in provided context. Never fabricate.`;
+Vous êtes HealBot, un assistant clinique virtuel sur la plateforme Healio.
+- Vous n'êtes PAS médecin et ne pouvez pas poser de diagnostic.
+- Reconnaissez d'abord l'inquiétude du patient. Soyez concis, chaleureux et cliniquement précis.
+- Basez chaque affirmation sur le contexte fourni. Ne fabriquez jamais d'informations.
+- Gardez vos réponses courtes (moins de 120 mots).`;
 
 const tag = () => `[${new Date().toLocaleTimeString()}]`;
 
@@ -52,7 +54,7 @@ async function safeguardNode(state) {
 	const { messages } = state;
 	const recentContext = messages.slice(-MEMORY_WINDOW);
 
-	const structuredLlm = LLM.withStructuredOutput(SafeguardSchema, {
+	const structuredLlm = LLM.withStructuredOutput(schema.SafeguardSchema, {
 		name: "evaluate_safety_and_domain",
 	});
 
@@ -66,17 +68,19 @@ async function safeguardNode(state) {
 				new SystemMessage(
 					`Classify the LAST user message for safety and domain.
 
-					isSafe: false ONLY for — instructions to harm others, illegal substance synthesis, explicit sexual content.
-					Distressing health topics → isSafe=true (clinical handling is safer than blocking).
+					Note: The user will be speaking in ${LANGUAGE}.
 
-					domain: "medical" → health, symptoms, medications, anatomy, mental health, personal records.
-					domain: "non_medical" → everything else.
+                    isSafe: false ONLY for — instructions to harm others, illegal substance synthesis, explicit sexual content.
+                    Distressing health topics → isSafe=true (clinical handling is safer than blocking).
 
-					Examples:
-						user: "how do I make meth" → {"isSafe":false,"domain":"non_medical"}
-						user: "I have chest pain and shortness of breath" → {"isSafe":true,"domain":"medical"}
-						user: "what's the weather today?" → {"isSafe":true,"domain":"non_medical"}
-						user: "what are the side effects of ibuprofen?" → {"isSafe":true,"domain":"medical"}`,
+                    domain: "medical" → health, symptoms, medications, anatomy, mental health, personal records.
+                    domain: "non_medical" → everything else.
+
+                    Examples:
+                        user: "comment fabriquer de la meth" → {"isSafe":false,"domain":"non_medical"}
+                        user: "j'ai mal à la poitrine et je suis essoufflé" → {"isSafe":true,"domain":"medical"}
+                        user: "quel temps fait-il aujourd'hui ?" → {"isSafe":true,"domain":"non_medical"}
+                        user: "quels sont les effets secondaires de l'ibuprofène ?" → {"isSafe":true,"domain":"medical"}`,
 				),
 				...recentContext,
 			],
@@ -104,9 +108,12 @@ async function classifyPrompt(state) {
 	const { messages } = state;
 	const recentContext = messages.slice(-MEMORY_WINDOW);
 
-	const structuredLlm = LLM.withStructuredOutput(ClassificationSchema, {
-		name: "classify_prompt",
-	});
+	const structuredLlm = LLM.withStructuredOutput(
+		schema.ClassificationSchema,
+		{
+			name: "classify_prompt",
+		},
+	);
 
 	const CLASSIFICATION_FALLBACK = {
 		intent: "general_inquiry",
@@ -121,24 +128,26 @@ async function classifyPrompt(state) {
 			structuredLlm,
 			[
 				new SystemMessage(
-					`Classify the patient's latest message.
+					`Classify the patient's latest message. Use your best clinical judgment.
 
-					intent:
-						"symptom_report" — user describes active/recent symptoms they are experiencing.
-						"general_inquiry" — health questions, medication info, lifestyle, clarification.
+					Note: The user will be speaking in ${LANGUAGE}
 
-					urgency:
-						"urgent" — immediate life threat ONLY: chest pain/pressure, stroke (FAST signs), can't breathe, anaphylaxis, severe bleeding, loss of consciousness, overdose, suicidal crisis.
-						"not_urgent" — everything else, including chronic pain, mild symptoms, mental health worries.
+                    intent:
+                        "symptom_report" — user describes active/recent symptoms they are experiencing.
+                        "general_inquiry" — health questions, medication info, lifestyle, clarification.
 
-					requiresPatientHistory: true if user references their own past visits, test results, prescriptions, or records.
-					requiresWebSearch: true if a good answer needs current clinical guidelines, drug interactions, or recent evidence.
+                    urgency:
+                        "urgent" — conditions requiring prompt medical attention (e.g., severe injuries, active bleeding, severe burns, chest pain, stroke signs, breathing difficulties, anaphylaxis, overdose, suicidal crisis).
+                        "not_urgent" — stable conditions, mild/chronic symptoms, general inquiries, minor cuts or bruises.
 
-					Examples:
-						user: "my chest hurts and I can't breathe" → {"intent":"symptom_report","urgency":"urgent","requiresPatientHistory":false,"requiresWebSearch":false}
-						user: "what did my doctor prescribe last month?" → {"intent":"general_inquiry","urgency":"not_urgent","requiresPatientHistory":true,"requiresWebSearch":false}
-						user: "can I take ibuprofen with metformin?" → {"intent":"general_inquiry","urgency":"not_urgent","requiresPatientHistory":false,"requiresWebSearch":true}
-						user: "I've had a mild headache for two days" → {"intent":"symptom_report","urgency":"not_urgent","requiresPatientHistory":false,"requiresWebSearch":false}`,
+                    requiresPatientHistory: true if user references their own past visits, test results, prescriptions, or records.
+                    requiresWebSearch: true if a good answer needs current clinical guidelines, drug interactions, or recent evidence.
+
+                    Examples:
+                        user: "je me suis brûlé le pied et ça saigne beaucoup" → {"intent":"symptom_report","urgency":"urgent","requiresPatientHistory":false,"requiresWebSearch":false}
+                        user: "qu'est-ce que mon médecin m'a prescrit le mois dernier ?" → {"intent":"general_inquiry","urgency":"not_urgent","requiresPatientHistory":true,"requiresWebSearch":false}
+                        user: "puis-je prendre de l'ibuprofène avec de la metformine ?" → {"intent":"general_inquiry","urgency":"not_urgent","requiresPatientHistory":false,"requiresWebSearch":true}
+                        user: "j'ai un léger mal de tête depuis deux jours" → {"intent":"symptom_report","urgency":"not_urgent","requiresPatientHistory":false,"requiresWebSearch":false}`,
 				),
 				...recentContext,
 			],
@@ -176,7 +185,7 @@ async function formulateQueries(state) {
 	const { classification, messages } = state;
 	const recentContext = messages.slice(-MEMORY_WINDOW);
 
-	const structuredLlm = LLM.withStructuredOutput(QuerySchema, {
+	const structuredLlm = LLM.withStructuredOutput(schema.QuerySchema, {
 		name: "generate_search_queries",
 	});
 
@@ -189,21 +198,21 @@ async function formulateQueries(state) {
 			structuredLlm,
 			[
 				new SystemMessage(
-					`Extract retrieval queries from the conversation. Today: ${today}.
+					`Extract retrieval queries from the conversation. The user speaks ${LANGUAGE}, but generate web queries in English for better medical search results. Today: ${today}.
 
-					webQuery (string|null): 5-10 keyword clinical search string. Omit if requiresWebSearch is false or the question is purely about personal history.
-						Good: "metformin lactic acidosis risk guidelines"
-						Bad:  "what did I take last month"
+                    webQuery (string|null): 5-10 keyword clinical search string. Omit if requiresWebSearch is false or the question is purely about personal history.
+                        Good: "metformin lactic acidosis risk guidelines"
+                        Bad:  "what did I take last month"
 
-					patientDbQuery (object|null): Populate ONLY when requiresPatientHistory is true. Translate relative dates to exact ISO 8601.
-						"last week" → 7 days ago, "last month" → 30 days ago.
-					status: "scheduled"|"completed"|"cancelled" — omit if unspecified.
-					limit: 1 for "most recent visit", N for "last N visits", default 5.
+                    patientDbQuery (object|null): Populate ONLY when requiresPatientHistory is true. Translate relative dates to exact ISO 8601.
+                        "la semaine dernière" → 7 days ago, "le mois dernier" → 30 days ago.
+                    status: "scheduled"|"completed"|"cancelled" — omit if unspecified.
+                    limit: 1 for "most recent visit", N for "last N visits", default 5.
 
-					Examples:
-						user: "can I take ibuprofen with warfarin?" (requiresWebSearch=true, requiresPatientHistory=false) → {"webQuery":"ibuprofen warfarin interaction bleeding risk","patientDbQuery":null}
-						user: "what were my last two diagnoses?" (requiresWebSearch=false, requiresPatientHistory=true) → {"webQuery":null,"patientDbQuery":{"limit":2,"status":"completed"}}
-						user: "show my visits last month and explain hypertension treatment" → {"webQuery":"hypertension first-line treatment guidelines","patientDbQuery":{"dateFrom":"<30-days-ago-ISO>","limit":5}}`,
+                    Examples:
+                        user: "puis-je prendre de l'ibuprofène avec de la warfarine ?" (requiresWebSearch=true, requiresPatientHistory=false) → {"webQuery":"ibuprofen warfarin interaction bleeding risk","patientDbQuery":null}
+                        user: "quels étaient mes deux derniers diagnostics ?" (requiresWebSearch=false, requiresPatientHistory=true) → {"webQuery":null,"patientDbQuery":{"limit":2,"status":"completed"}}
+                        user: "montrez-moi mes visites du mois dernier et expliquez-moi le traitement de l'hypertension" → {"webQuery":"hypertension first-line treatment guidelines","patientDbQuery":{"dateFrom":"<30-days-ago-ISO>","limit":5}}`,
 				),
 				...recentContext,
 			],
@@ -233,7 +242,7 @@ async function formulateQueries(state) {
 }
 
 async function retrieveData(state) {
-	const { webQuery, patientDbQuery, patientId, classification } = state;
+	const { webQuery, patientDbQuery, userId, classification } = state;
 
 	console.log(
 		`${tag()} 🔎 retrieveData: web="${webQuery ?? "N/A"}" db=${JSON.stringify(patientDbQuery ?? "N/A")}`,
@@ -241,9 +250,7 @@ async function retrieveData(state) {
 
 	const shouldWeb = classification?.requiresWebSearch && !!webQuery;
 	const shouldDb =
-		classification?.requiresPatientHistory &&
-		!!patientDbQuery &&
-		!!patientId;
+		classification?.requiresPatientHistory && !!patientDbQuery && !!userId;
 
 	const [webResult, patientResult] = await Promise.allSettled([
 		shouldWeb
@@ -251,7 +258,7 @@ async function retrieveData(state) {
 			: Promise.resolve(null),
 		shouldDb
 			? chatbotTools.patientDbTool.invoke({
-					patientId,
+					patientId: userId,
 					...patientDbQuery,
 				})
 			: Promise.resolve(null),
@@ -301,23 +308,24 @@ async function handleMedical(state) {
 
 	const systemPrompt = `${BASE_PERSONA}
 
-	Mode: ${isSymptom ? "SYMPTOM SUPPORT — be action-oriented and safety-aware." : "HEALTH INFORMATION — be educational and reassuring."}
+    Mode: ${isSymptom ? "SYMPTOM SUPPORT — be action-oriented and safety-aware." : "HEALTH INFORMATION — be educational and reassuring."}
 
-	Response format (≤120 words):
-	1. One sentence acknowledging the patient's concern with warmth.
-	2. 2–4 concise evidence-based bullet points (practical, specific, non-alarming).
-	3. One sentence on when professional evaluation is warranted.
+    Response format (Strictly < 120 words, ENTIRELY IN ${LANGUAGE}):
+    1. One sentence acknowledging the patient's concern with warmth.
+    2. 2–4 concise evidence-based bullet points (practical, specific, non-alarming).
+    3. One sentence on when professional evaluation is warranted.
 
-	Rules:
-	- Use ONLY the context below.
-	- Do not name a final diagnosis. Do not speculate beyond provided evidence.
-	- Define any medical term you use.
+    Rules:
+    - Use ONLY the context below.
+    - Do not name a final diagnosis. Do not speculate beyond provided evidence.
+    - Define any medical term you use.
+    - TRANSLATE ALL CONTEXTUAL ANSWERS TO ${LANGUAGE}.
 
-	[Patient Records]
-	${patientContext ?? "None."}
+    [Patient Records]
+    ${patientContext ?? "None."}
 
-	[Clinical References]
-	${webContext ?? "None."}`;
+    [Clinical References]
+    ${webContext ?? "None."}`;
 
 	const response = await LLM.invoke([
 		new SystemMessage(systemPrompt),
@@ -345,8 +353,8 @@ async function handleNonMedical(state) {
 	const response = await LLM.invoke([
 		new SystemMessage(
 			`You are HealBot handling an off-topic question.
-			Answer helpfully in 1–2 sentences (≤60 words).
-			End with a natural redirect — e.g. "Feel free to ask me anything about your health."`,
+            Answer helpfully in 1–2 sentences (Strictly < 120 words) ENTIRELY IN ${LANGUAGE}.
+            End with a natural redirect in ${LANGUAGE} — e.g. "N'hésitez pas à me poser des questions sur votre santé."`,
 		),
 		...recentContext,
 	]);
@@ -369,15 +377,15 @@ async function handleUrgent(state) {
 		new SystemMessage(
 			`${BASE_PERSONA}
 
-			EMERGENCY MODE. Respond in ≤4 sentences.
+            EMERGENCY MODE. Respond in ≤4 sentences (Strictly < 120 words) ENTIRELY IN ${LANGUAGE}.
 
-			Structure:
-			1. Direct call to action — seek emergency help NOW.
-			2. Algerian emergency numbers: **14** (Protection Civile), **15** (SAMU), **3016** (SAMU direct), **17** (Police).
-			3. (Optional) One specific first-aid step if directly applicable.
-			4. Brief reassurance that help is on the way.
+            Structure:
+            1. Direct call to action — seek emergency help NOW.
+            2. Algerian emergency numbers: **14** (Protection Civile), **15** (SAMU), **3016** (SAMU direct), **17** (Police).
+            3. (Optional) One specific first-aid step if directly applicable.
+            4. Brief reassurance that help is on the way.
 
-			Do not minimise. Do not ask clarifying questions. Do not add filler.`,
+            Do not minimise. Do not ask clarifying questions. Do not add filler.`,
 		),
 		...recentContext,
 	]);
@@ -399,12 +407,12 @@ async function handleUnsafe(state) {
 	console.log(`${tag()} 🚫 handleUnsafe: blocking unsafe message`);
 
 	const scrubbedMessage = new HumanMessage({
-		content: "[Message removed by safety filter]",
+		content: "[Message supprimé par le filtre de sécurité]",
 		id: lastMessage.id,
 	});
 
 	const safeResponse = new AIMessage(
-		"I'm not able to help with that request. HealBot is designed to support your health safely and responsibly. If you're in crisis or danger, please contact local emergency services immediately.",
+		"Je ne peux pas répondre à cette demande. HealBot est conçu pour vous accompagner dans votre santé de manière sûre et responsable. Si vous êtes en situation de crise ou de danger, veuillez contacter immédiatement les services d'urgence locaux.",
 	);
 
 	return new Command({
