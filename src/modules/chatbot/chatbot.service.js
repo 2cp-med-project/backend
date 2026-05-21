@@ -1,31 +1,22 @@
 import { StateGraph, START, END } from "@langchain/langgraph";
 import { MedicalAgentAnnotation } from "./chatbot.schema.js";
-import {
-	safeguardNode,
-	classifyPrompt,
-	formulateQueries,
-	retrieveData,
-	handleMedical,
-	handleNonMedical,
-	handleUrgent,
-	handleUnsafe,
-} from "./chatbot.nodes.js";
+import chatbotNodes from "./chatbot.nodes.js";
 
 export const workflow = new StateGraph(MedicalAgentAnnotation)
-	.addNode("safeguardNode", safeguardNode, {
+	.addNode("safeguardNode", chatbotNodes.safeguardNode, {
 		ends: ["handleUnsafe", "handleNonMedical", "classifyPrompt"],
 	})
-	.addNode("classifyPrompt", classifyPrompt, {
+	.addNode("classifyPrompt", chatbotNodes.classifyPrompt, {
 		ends: ["handleUrgent", "formulateQueries", "handleMedical"],
 	})
-	.addNode("formulateQueries", formulateQueries, {
+	.addNode("formulateQueries", chatbotNodes.formulateQueries, {
 		ends: ["retrieveData"],
 	})
-	.addNode("retrieveData", retrieveData, {
+	.addNode("retrieveData", chatbotNodes.retrieveData, {
 		ends: ["handleMedical"],
 	})
-	.addNode("handleMedical", handleMedical, { ends: [END] })
-	.addNode("handleNonMedical", handleNonMedical, { ends: [END] })
-	.addNode("handleUrgent", handleUrgent, { ends: [END] })
-	.addNode("handleUnsafe", handleUnsafe, { ends: [END] })
+	.addNode("handleMedical", chatbotNodes.handleMedical, { ends: [END] })
+	.addNode("handleNonMedical", chatbotNodes.handleNonMedical, { ends: [END] })
+	.addNode("handleUrgent", chatbotNodes.handleUrgent, { ends: [END] })
+	.addNode("handleUnsafe", chatbotNodes.handleUnsafe, { ends: [END] })
 	.addEdge(START, "safeguardNode");
