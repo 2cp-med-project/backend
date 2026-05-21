@@ -26,7 +26,6 @@ const doctorSchema = new Schema(
 		specialization: { type: String, required: true, trim: true },
 		licenseNumber: {
 			type: String,
-			required: true,
 			unique: true,
 			trim: true,
 		},

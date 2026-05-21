@@ -1,12 +1,8 @@
-import { createMessage, getMessagesByRoomId } from "./message.service.js";
-import {
-	addUserToRoom,
-	createRoom,
-	findRoomByParticipants,
-} from "./room.service.js";
-import { connectUser } from "./user.service.js";
+import userService from "./user.service.js";
+import roomService from "./room.service.js";
+import messageService from "./message.service.js";
 
-export const initiateChat = async (req, res) => {
+async function initiateChat(req, res) {
 	try {
 		const { currentUserId, targetUserId } = req.body;
 
@@ -33,9 +29,9 @@ export const initiateChat = async (req, res) => {
 
 		res.status(500).json({ message: "Internal server error" });
 	}
-};
+}
 
-export const joinRoom = async (req, res) => {
+async function joinRoom(req, res) {
 	try {
 		const { userId, socketId, roomId } = req.body;
 
@@ -68,9 +64,9 @@ export const joinRoom = async (req, res) => {
 			message: error.message || "Internal server error",
 		});
 	}
-};
+}
 
-export const sendMessage = async (req, res) => {
+async function sendMessage(req, res) {
 	try {
 		const { senderId, roomId, doctorName, text } = req.body;
 
@@ -84,9 +80,9 @@ export const sendMessage = async (req, res) => {
 		console.error("Error in sendMessage:", error);
 		res.status(500).json({ message: "Internal server error" });
 	}
-};
+}
 
-export const getRoomMessages = async (req, res) => {
+async function getRoomMessages(req, res) {
 	try {
 		const { roomId } = req.params;
 
@@ -96,4 +92,6 @@ export const getRoomMessages = async (req, res) => {
 		console.error("Error in getRoomMessages:", error);
 		res.status(500).json({ message: "Internal server error" });
 	}
-};
+}
+
+export default { initiateChat, joinRoom, sendMessage, getRoomMessages };

@@ -1,7 +1,7 @@
-import { Annotation, messagesStateReducer } from "@langchain/langgraph";
 import { z } from "zod";
+import { Annotation, messagesStateReducer } from "@langchain/langgraph";
 
-export const SafeguardSchema = z.object({
+const SafeguardSchema = z.object({
 	isSafe: z
 		.boolean()
 		.describe(
@@ -14,7 +14,7 @@ export const SafeguardSchema = z.object({
 		),
 });
 
-export const ClassificationSchema = z.object({
+const ClassificationSchema = z.object({
 	intent: z
 		.enum(["general_inquiry", "symptom_report"])
 		.describe(
@@ -37,7 +37,7 @@ export const ClassificationSchema = z.object({
 		),
 });
 
-export const QuerySchema = z.object({
+const QuerySchema = z.object({
 	webQuery: z
 		.string()
 		.optional()
@@ -76,7 +76,7 @@ export const QuerySchema = z.object({
 		),
 });
 
-export const MedicalAgentAnnotation = Annotation.Root({
+const MedicalAgentAnnotation = Annotation.Root({
 	patientId: Annotation,
 	messages: Annotation({
 		reducer: messagesStateReducer,
@@ -89,3 +89,10 @@ export const MedicalAgentAnnotation = Annotation.Root({
 	webContext: Annotation,
 	patientContext: Annotation,
 });
+
+export default {
+	SafeguardSchema,
+	ClassificationSchema,
+	QuerySchema,
+	MedicalAgentAnnotation,
+};

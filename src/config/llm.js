@@ -1,6 +1,6 @@
 import { ChatOpenAI } from "@langchain/openai";
 
-export const LLM = new ChatOpenAI({
+const LLM = new ChatOpenAI({
 	modelName: "google/gemma-4-26b-a4b-it:nitro",
 	configuration: {
 		baseURL: "https://openrouter.ai/api/v1",
@@ -9,3 +9,5 @@ export const LLM = new ChatOpenAI({
 		},
 	},
 });
+
+export default { LLM };

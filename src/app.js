@@ -9,11 +9,11 @@ import { Server as SocketIOServer } from "socket.io";
 import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
 import { workflow } from "./modules/chatbot/chatbot.service.js";
 
+import routes from "./routes.js";
+import socketController from "./modules/chat/socket.controller.js";
+
 import swaggerUi from "swagger-ui-express";
 import swaggerDoc from "../swagger.json" with { type: "json" };
-
-import routes from "./routes.js";
-import { handleSocketConnection } from "./modules/chat/socket.controller.js";
 
 // Initialize app
 const app = express();
@@ -29,7 +29,9 @@ export const client = await connectDB();
 const checkpointer = new MongoDBSaver({ client });
 
 // Initialize AI Agent
-export const medicalAgentApp = workflow.compile({ checkpointer });
+export const medicalAgentApp = workflow.compile({
+	checkpointer,
+});
 
 // Initialize HTTP Server
 const httpServer = createServer(app);
@@ -40,7 +42,7 @@ const io = new SocketIOServer(httpServer, {
 });
 
 // Handle Socket Connection
-handleSocketConnection(io);
+socketController.handleSocketConnection(io);
 
 const swaggerUiOptions = {
 	customCssUrl:

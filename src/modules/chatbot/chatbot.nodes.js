@@ -1,15 +1,12 @@
-import { LLM } from "../../config/llm.js";
-import {
-	SafeguardSchema,
-	ClassificationSchema,
-	QuerySchema,
-} from "./chatbot.schema.js";
 import {
 	AIMessage,
 	HumanMessage,
 	SystemMessage,
 } from "@langchain/core/messages";
 import { END, Command } from "@langchain/langgraph";
+
+import LLM from "../../config/llm.js";
+import schema from "./chatbot.schema.js";
 import chatbotTools from "./chatbot.tools.js";
 
 const MEMORY_WINDOW = 6;
@@ -68,13 +65,13 @@ async function safeguardNode(state) {
 			[
 				new SystemMessage(
 					`Classify the LAST user message for safety and domain.
-					
+
 					isSafe: false ONLY for — instructions to harm others, illegal substance synthesis, explicit sexual content.
 					Distressing health topics → isSafe=true (clinical handling is safer than blocking).
-					
+
 					domain: "medical" → health, symptoms, medications, anatomy, mental health, personal records.
 					domain: "non_medical" → everything else.
-					
+
 					Examples:
 						user: "how do I make meth" → {"isSafe":false,"domain":"non_medical"}
 						user: "I have chest pain and shortness of breath" → {"isSafe":true,"domain":"medical"}
@@ -125,7 +122,7 @@ async function classifyPrompt(state) {
 			[
 				new SystemMessage(
 					`Classify the patient's latest message.
-					
+
 					intent:
 						"symptom_report" — user describes active/recent symptoms they are experiencing.
 						"general_inquiry" — health questions, medication info, lifestyle, clarification.
