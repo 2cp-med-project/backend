@@ -1,5 +1,4 @@
 import { LLM } from "../../config/llm.js";
-import { searchTool, patientDbTool } from "./chatbot.tools.js";
 import {
 	SafeguardSchema,
 	ClassificationSchema,
@@ -11,6 +10,7 @@ import {
 	SystemMessage,
 } from "@langchain/core/messages";
 import { END, Command } from "@langchain/langgraph";
+import chatbotTools from "./chatbot.tools.js";
 
 const MEMORY_WINDOW = 6;
 
@@ -51,7 +51,7 @@ async function invokeStructured(
 	throw lastError;
 }
 
-export const safeguardNode = async (state) => {
+async function safeguardNode(state) {
 	const { messages } = state;
 	const recentContext = messages.slice(-MEMORY_WINDOW);
 
@@ -101,9 +101,9 @@ export const safeguardNode = async (state) => {
 	if (safeguard.domain === "non_medical")
 		return new Command({ update: { safeguard }, goto: "handleNonMedical" });
 	return new Command({ update: { safeguard }, goto: "classifyPrompt" });
-};
+}
 
-export const classifyPrompt = async (state) => {
+async function classifyPrompt(state) {
 	const { messages } = state;
 	const recentContext = messages.slice(-MEMORY_WINDOW);
 
@@ -173,9 +173,9 @@ export const classifyPrompt = async (state) => {
 			goto: "formulateQueries",
 		});
 	return new Command({ update: { classification }, goto: "handleMedical" });
-};
+}
 
-export const formulateQueries = async (state) => {
+async function formulateQueries(state) {
 	const { classification, messages } = state;
 	const recentContext = messages.slice(-MEMORY_WINDOW);
 
@@ -233,9 +233,9 @@ export const formulateQueries = async (state) => {
 	);
 
 	return new Command({ update: queries, goto: "retrieveData" });
-};
+}
 
-export const retrieveData = async (state) => {
+async function retrieveData(state) {
 	const { webQuery, patientDbQuery, patientId, classification } = state;
 
 	console.log(
@@ -250,10 +250,13 @@ export const retrieveData = async (state) => {
 
 	const [webResult, patientResult] = await Promise.allSettled([
 		shouldWeb
-			? searchTool.invoke({ query: webQuery })
+			? chatbotTools.searchTool.invoke({ query: webQuery })
 			: Promise.resolve(null),
 		shouldDb
-			? patientDbTool.invoke({ patientId, ...patientDbQuery })
+			? chatbotTools.patientDbTool.invoke({
+					patientId,
+					...patientDbQuery,
+				})
 			: Promise.resolve(null),
 	]);
 
@@ -291,9 +294,9 @@ export const retrieveData = async (state) => {
 		update: { webContext, patientContext },
 		goto: "handleMedical",
 	});
-};
+}
 
-export const handleMedical = async (state) => {
+async function handleMedical(state) {
 	const { classification, messages, webContext, patientContext } = state;
 	const recentContext = messages.slice(-MEMORY_WINDOW);
 
@@ -336,9 +339,9 @@ export const handleMedical = async (state) => {
 		},
 		goto: END,
 	});
-};
+}
 
-export const handleNonMedical = async (state) => {
+async function handleNonMedical(state) {
 	const { messages } = state;
 	const recentContext = messages.slice(-MEMORY_WINDOW);
 
@@ -359,9 +362,9 @@ export const handleNonMedical = async (state) => {
 		update: { messages: [aiMessage] },
 		goto: END,
 	});
-};
+}
 
-export const handleUrgent = async (state) => {
+async function handleUrgent(state) {
 	const { messages } = state;
 	const recentContext = messages.slice(-MEMORY_WINDOW);
 
@@ -390,9 +393,9 @@ export const handleUrgent = async (state) => {
 		update: { messages: [aiMessage] },
 		goto: END,
 	});
-};
+}
 
-export const handleUnsafe = async (state) => {
+async function handleUnsafe(state) {
 	const { messages } = state;
 	const lastMessage = messages.at(-1);
 
@@ -411,4 +414,15 @@ export const handleUnsafe = async (state) => {
 		update: { messages: [scrubbedMessage, safeResponse] },
 		goto: END,
 	});
+}
+
+export default {
+	safeguardNode,
+	classifyPrompt,
+	formulateQueries,
+	retrieveData,
+	handleMedical,
+	handleNonMedical,
+	handleUrgent,
+	handleUnsafe,
 };

@@ -4,7 +4,7 @@ import { TavilySearch } from "@langchain/tavily";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
-export const formatMessages = (messages) => {
+async function formatMessages(messages) {
 	if (!Array.isArray(messages)) return [];
 	return messages
 		.filter((m) => m._getType() !== "system")
@@ -12,9 +12,9 @@ export const formatMessages = (messages) => {
 			role: m._getType() === "human" ? "user" : "assistant",
 			content: m.content,
 		}));
-};
+}
 
-export const searchTool = new TavilySearch({
+const searchTool = new TavilySearch({
 	maxResults: 3,
 	topic: "general",
 	searchDepth: "advanced",
@@ -140,7 +140,7 @@ async function runStructuredQuery({
 	return results.map(formatConsultation);
 }
 
-export const patientDbTool = tool(
+const patientDbTool = tool(
 	async ({ patientId, dateFrom, dateTo, status, limit = 5 }) => {
 		try {
 			const patient = await Patient.findById(patientId).lean();
@@ -195,3 +195,5 @@ export const patientDbTool = tool(
 		}),
 	},
 );
+
+export default { searchTool, patientDbTool };

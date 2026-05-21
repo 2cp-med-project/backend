@@ -1,51 +1,48 @@
 import { success } from "zod";
 import { medicalAgentApp } from "../../app.js";
 import { LLM } from "../../config/llm.js";
-import { formatMessages } from "./chatbot.tools.js";
 import { Conversation } from "./conversation.model.js";
 import { HumanMessage } from "@langchain/core/messages";
+import chatbotTools from "./chatbot.tools.js";
 
 const getConfig = (thread_id) => ({ configurable: { thread_id } });
 
 async function startChat(req, res) {
+	const { id } = req.user;
+	const { prompt } = req.body;
+
+	if (!id)
+		return res
+			.status(400)
+			.json({ success: false, error: "patient id is required" });
+	if (!prompt)
+		return res
+			.status(400)
+			.json({ success: false, error: "prompt is required" });
+
+	const conversation = new Conversation({ userId: id, title: "New Chat" });
+	const thread_id = conversation.id;
+	const config = getConfig(thread_id);
+
 	try {
-		const { id } = req.user;
-		const { prompt } = req.body;
-
-		if (!prompt)
-			return res
-				.status(400)
-				.json({ success: false, error: "prompt is required" });
-
-		const conversation = new Conversation({
-			userId: id,
-			title: "New Chat",
-		});
-		const thread_id = conversation.id;
-
 		const titlePrompt = `3–5 word Title Case chat title. Output the title only.\nChat: ${prompt}`;
 
 		const [titleResponse, state] = await Promise.all([
 			LLM.invoke(titlePrompt).catch(() => ({ content: "New Chat" })),
 			medicalAgentApp.invoke(
-				{
-					userId: id,
-					messages: [new HumanMessage(prompt)],
-				},
-				getConfig(thread_id),
+				{ userId: id, messages: [new HumanMessage(prompt)] },
+				config,
 			),
 		]);
+
+		const response = state.messages?.at(-1);
+		if (!response) throw new Error("Agent returned no response");
 
 		conversation.title =
 			titleResponse.content.toString().trim() || "New Chat";
 		await conversation.save();
 
-		const response = state.messages?.at(-1);
-		if (!response) throw new Error("Agent returned no response");
-
-		console.log(
-			`${logTag()} 🚀 startChat: thread=${thread_id} | messages=${state.messages?.length ?? 0}`,
-		);
+		console.log(`${logTag()} 🚀 startChat: thread=${thread_id}`);
 
 		return res.json({
 			success: true,
@@ -54,7 +51,17 @@ async function startChat(req, res) {
 			response: response.content,
 		});
 	} catch (err) {
-		console.error("[startChat] error:", err);
+		console.error("[startChat] error, rolling back:", err);
+
+		try {
+			await medicalAgentApp.checkpointer.deleteThread(thread_id);
+		} catch (cleanupErr) {
+			console.error(
+				"[startChat] Failed to clean up checkpointer:",
+				cleanupErr,
+			);
+		}
+
 		return res
 			.status(500)
 			.json({ success: false, error: "Internal Server Error" });
@@ -62,41 +69,39 @@ async function startChat(req, res) {
 }
 
 async function handleChat(req, res) {
+	const { id } = req.user;
+	const { thread_id } = req.params;
+	const { prompt } = req.body;
+
+	if (!thread_id)
+		return res
+			.status(400)
+			.json({ success: false, error: "thread_id is required" });
+	if (!prompt)
+		return res
+			.status(400)
+			.json({ success: false, error: "prompt is required" });
+
+	const conversation = await Conversation.findById(thread_id).lean();
+	if (!conversation || String(conversation.userId) !== String(id)) {
+		return res
+			.status(404)
+			.json({ success: false, error: "Conversation not found" });
+	}
+
+	const config = getConfig(thread_id);
+	const preRunState = await medicalAgentApp.getState(config);
+
 	try {
-		const { id } = req.user;
-		const { thread_id } = req.params;
-		const { prompt } = req.body;
-
-		if (!thread_id)
-			return res
-				.status(400)
-				.json({ success: false, error: "thread_id is required" });
-		if (!prompt)
-			return res
-				.status(400)
-				.json({ success: false, error: "prompt is required" });
-
-		const conversation = await Conversation.findById(thread_id).lean();
-		if (!conversation || String(conversation.userId) !== String(id)) {
-			return res
-				.status(404)
-				.json({ success: false, error: "Conversation not found" });
-		}
-
 		const state = await medicalAgentApp.invoke(
-			{
-				userId: id,
-				messages: [new HumanMessage(prompt)],
-			},
-			getConfig(thread_id),
+			{ userId: id, messages: [new HumanMessage(prompt)] },
+			config,
 		);
 
 		const response = state.messages?.at(-1);
 		if (!response) throw new Error("Agent returned no response");
 
-		console.log(
-			`${logTag()} 💬 handleChat: thread=${thread_id} | messages=${state.messages?.length ?? 0}`,
-		);
+		console.log(`${logTag()} 💬 handleChat: thread=${thread_id}`);
 
 		return res.json({
 			success: true,
@@ -105,7 +110,18 @@ async function handleChat(req, res) {
 			response: response.content,
 		});
 	} catch (err) {
-		console.error("[handleChat] error:", err);
+		console.error("[handleChat] error, rolling back graph state:", err);
+
+		try {
+			if (preRunState && preRunState.values) {
+				await medicalAgentApp.updateState(config, preRunState.values);
+			} else {
+				await medicalAgentApp.checkpointer.deleteThread(thread_id);
+			}
+		} catch (cleanupErr) {
+			console.error("[handleChat] Failed to revert state:", cleanupErr);
+		}
+
 		return res
 			.status(500)
 			.json({ success: false, error: "Internal Server Error" });
@@ -135,7 +151,7 @@ async function retrieveChat(req, res) {
 			success: true,
 			thread_id,
 			title: conversation.title,
-			history: formatMessages(state.values?.messages || []),
+			history: chatbotTools.formatMessages(state.values?.messages || []),
 		});
 	} catch (err) {
 		console.error("[retrieveChat] error:", err);
