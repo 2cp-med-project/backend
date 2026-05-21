@@ -185,8 +185,8 @@ async function verifyOTP(req, res) {
 
 	const { phone, code, role } = req.body || {};
 	try {
-		const result = await OTPService.verify(phone, code, role);
-		res.status(200).json(result);
+		await OTPService.verify(phone, code, role);
+		res.status(200).json({ verified: true });
 	} catch (e) {
 		if (e.message === "User not found") {
 			res.status(404).json({ message: e.message });

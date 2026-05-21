@@ -44,26 +44,35 @@ async function verify(phone, code, role) {
 			: await Patient.findOne({ phone });
 	if (!user) throw new Error("User not found");
 
+	let verificationCheck;
 	try {
-		const verificationCheck = await client.verify.v2
+		verificationCheck = await client.verify.v2
 			.services(VERIFY_SERVICE_SID)
 			.verificationChecks.create({
 				to: phone,
 				code,
 			});
-
-		if (verificationCheck.status === "approved") {
-			// mark user as verified in DB
-			user.otpVerified = true;
-			await user.save();
-			return true;
-		} else {
-			throw new Error("Invalid OTP");
-		}
 	} catch (err) {
 		console.error("Twilio verify error:", err.message);
-		throw new Error("OTP verification failed");
+
+		// Map specific Twilio errors to better messages if desired
+		if (err.status === 404) {
+			throw new Error("OTP expired or not requested");
+		} else if (err.status === 429) {
+			throw new Error("Too many attempts, please try again later");
+		}
+
+		throw new Error("OTP verification service failed");
 	}
+
+	if (verificationCheck.status === "approved") {
+		// mark user as verified in DB
+		user.otpVerified = true;
+		await user.save();
+	}
+
+	// This now correctly propagates without being swallowed by the catch block
+	throw new Error("Invalid OTP");
 }
 
 export default {
