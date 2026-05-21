@@ -32,11 +32,6 @@ async function createConsultation(req, res) {
 		additionalTests,
 	} = req.body || {};
 
-	if (!doctorId || !patientId || !date) {
-		res.status(400).json({ message: "Missing required fields" });
-		return;
-	}
-
 	if (doctorId !== id) {
 		res.status(403).json({
 			message:
@@ -105,11 +100,6 @@ async function deleteConsultation(req, res) {
 	const { id, patients } = req.user || {};
 
 	try {
-		if (!consultationId) {
-			res.status(400).json({ message: "Consultation ID is required" });
-			return;
-		}
-
 		const consultation = await Consultation.findById(consultationId);
 		if (!consultation) {
 			res.status(404).json({ message: "Consultation not found" });
@@ -150,11 +140,6 @@ async function getConsultationById(req, res) {
 	const { id, role, patients } = req.user || {};
 
 	try {
-		if (!consultationId) {
-			res.status(400).json({ message: "Consultation ID is required" });
-			return;
-		}
-
 		const consultation = await Consultation.findById(consultationId);
 		if (!consultation) {
 			res.status(404).json({ message: "Consultation not found" });
@@ -199,18 +184,13 @@ async function getConsultations(req, res) {
 	const { patientId } = req.params || {};
 	const { id, role, patients } = req.user || {};
 	const {
-		page = "0",
-		limit = "10",
+		page = 0,
+		limit = 10,
 		sortBy = "date",
 		order = "desc",
 	} = req.query || {};
 
 	try {
-		if (!patientId) {
-			res.status(400).json({ message: "Patient ID is required" });
-			return;
-		}
-
 		if (role === "doctor" && !patients.includes(patientId)) {
 			res.status(403).json({
 				message:
@@ -232,20 +212,9 @@ async function getConsultations(req, res) {
 			return;
 		}
 
-		if (!["asc", "desc"].includes(order)) {
-			res.status(400).json({ message: "Invalid sort order" });
-			return;
-		}
-
-		const p = parseInt(page);
-		const l = parseInt(limit);
+		const p = page;
+		const l = limit;
 		const o = order === "asc" ? 1 : -1;
-
-		if (isNaN(p) || isNaN(l) || p < 0 || l <= 0) {
-			return res
-				.status(400)
-				.json({ message: "Invalid page or limit value" });
-		}
 
 		const consultations = await Consultation.find({ patientId: patientId })
 			.sort({ [sortBy]: o })
@@ -288,11 +257,6 @@ async function updateConsultation(req, res) {
 	];
 
 	try {
-		if (!consultationId) {
-			res.status(400).json({ message: "Consultation ID is required" });
-			return;
-		}
-
 		const consultation = await Consultation.findById(consultationId);
 
 		if (!consultation) {

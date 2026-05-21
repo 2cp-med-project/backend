@@ -11,10 +11,6 @@ const VERIFY_SERVICE_SID = process.env.TWILIO_VERIFY_SERVICE_SID;
 
 // -------- REQUEST OTP --------
 async function generate(phone, role) {
-	if (!phone || !role || !["doctor", "patient"].includes(role)) {
-		throw new Error("Missing required fields");
-	}
-
 	// check user exists
 	const user =
 		role === "doctor"
@@ -41,10 +37,6 @@ async function generate(phone, role) {
 
 // -------- VERIFY OTP --------
 async function verify(phone, code, role) {
-	if (!phone || !code || !role || !["doctor", "patient"].includes(role)) {
-		throw new Error("Missing required fields");
-	}
-
 	// check user exists
 	const user =
 		role === "doctor"
