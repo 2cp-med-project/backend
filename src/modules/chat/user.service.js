@@ -1,6 +1,6 @@
 import Doctor from "../users/doctor.model.js";
 
-export const connectUser = async (userId, socketId) => {
+async function connectUser(userId, socketId) {
 	const existingUser = await Doctor.findById(userId);
 
 	if (!existingUser) {
@@ -9,13 +9,15 @@ export const connectUser = async (userId, socketId) => {
 
 	existingUser.socketId = socketId;
 	return await existingUser.save();
-};
+}
 
-export const disconnectUser = async (socketId) => {
+async function disconnectUser(socketId) {
 	const user = await Doctor.findOne({ socketId });
 
 	if (user) {
 		user.socketId = null;
 		await user.save();
 	}
-};
+}
+
+export default { connectUser, disconnectUser };

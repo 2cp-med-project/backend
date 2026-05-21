@@ -1,6 +1,6 @@
-import { Schema, model } from "mongoose";
+import mongoose from "mongoose";
 
-const MessageSchema = new Schema(
+const MessageSchema = new mongoose.Schema(
 	{
 		roomId: { type: String, required: true },
 		senderId: { type: String, required: true },
@@ -13,4 +13,4 @@ const MessageSchema = new Schema(
 	},
 );
 
-export const Message = model("Message", MessageSchema);
+export default mongoose.model("Message", MessageSchema);

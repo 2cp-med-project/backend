@@ -1,8 +1,8 @@
 import { StateGraph, START, END } from "@langchain/langgraph";
-import { MedicalAgentAnnotation } from "./chatbot.schema.js";
+import chatbotSchema from "./chatbot.schema.js";
 import chatbotNodes from "./chatbot.nodes.js";
 
-export const workflow = new StateGraph(MedicalAgentAnnotation)
+export const workflow = new StateGraph(chatbotSchema.MedicalAgentAnnotation)
 	.addNode("safeguardNode", chatbotNodes.safeguardNode, {
 		ends: ["handleUnsafe", "handleNonMedical", "classifyPrompt"],
 	})

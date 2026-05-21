@@ -1,21 +1,21 @@
-import { Room } from "./room.model.js";
+import Room from "./room.model.js";
 
-export const findRoomByParticipants = async (userId1, userId2) => {
+async function findRoomByParticipants(userId1, userId2) {
 	return await Room.findOne({
 		participants: { $all: [userId1, userId2], $size: 2 },
 	});
-};
+}
 
-export const createRoom = async (participants) => {
+async function createRoom(participants) {
 	const room = new Room({ participants });
 	return await room.save();
-};
+}
 
-export const getAllRooms = async (userId) => {
+async function getAllRooms(userId) {
 	return await Room.find({ participants: userId });
-};
+}
 
-export const addUserToRoom = async (roomId, userId) => {
+async function addUserToRoom(roomId, userId) {
 	const room = await Room.findById(roomId);
 
 	if (room) {
@@ -31,4 +31,11 @@ export const addUserToRoom = async (roomId, userId) => {
 			await room.save();
 		}
 	}
+}
+
+export default {
+	findRoomByParticipants,
+	createRoom,
+	getAllRooms,
+	addUserToRoom,
 };

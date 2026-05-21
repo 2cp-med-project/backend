@@ -16,7 +16,7 @@ function authenticate(req, res, next) {
 			!user ||
 			!user.id ||
 			!user.role ||
-			!["doctor", "patient", "admin"].includes(user.role)
+			!["doctor", "patient"].includes(user.role)
 		) {
 			res.status(403).json({ message: "Invalid access token" });
 			return;

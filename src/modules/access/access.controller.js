@@ -1,4 +1,7 @@
 import Access from "./access.model.js";
+import Patient from "../users/patient.model.js";
+import Doctor from "../users/doctor.model.js";
+// TODO: import notification service
 
 //Doctor sends access request
 
@@ -11,11 +14,6 @@ async function requestAccess(req, res) {
 	const doctorId = req.user.id;
 
 	try {
-		if (!patientId) {
-			res.status(400).json({ message: "Patient ID is required" });
-			return;
-		}
-
 		const payload = {
 			doctor: doctorId,
 			patient: req.body.patientId,
@@ -27,7 +25,49 @@ async function requestAccess(req, res) {
 			return;
 		}
 
+		const patient = await Patient.findById(patientId);
+		const doctor = await Doctor.findById(doctorId);
+
+		if (!doctor) {
+			res.status(404).json({ message: "Doctor not found" });
+			return;
+		}
+		if (!patient) {
+			res.status(404).json({ message: "Patient not found" });
+			return;
+		}
+
 		const access = await Access.create(payload);
+
+		// TODO: send notification to the patient about the access request
+		// if (patient.fcmToken) {
+		//   // only send notification if the patient has a registered FCM token
+		//   const message = {
+		//     notification: {
+		//       title: "Access Request",
+		//       body: `Dr. ${doctor.firstName} ${doctor.lastName} wants to access your medical file`,
+		//     },
+		//     data: {
+		//       doctorId: doctorId.toString(),
+		//       type: "ACCESS_REQUEST",
+		//     },
+		//   };
+		//   try {
+		//     await Notification.send(message, patient.fcmToken);
+		//   } catch (error) {
+		//     if (
+		//       error.code === "messaging/invalid-recipient" ||
+		//       error.code === "messaging/invalid-registration-token" ||
+		//       error.code === "messaging/registration-token-not-registered"
+		//     ) {
+		//       // The token is invalid, remove it from the database
+		//       await Patient.updateOne(
+		//         { _id: patientId },
+		//         { $unset: { fcmToken: "" } },
+		//       );
+		//     }
+		//   }
+		// }
 
 		res.status(201).json(access);
 	} catch (error) {
@@ -35,7 +75,7 @@ async function requestAccess(req, res) {
 	}
 }
 
-// Patient sees pending requests
+// Patient sees pending and active requests
 
 async function getPatientRequests(req, res) {
 	// #swagger.tags = ['Access']
@@ -71,12 +111,6 @@ async function respondAccess(req, res) {
 	const patientId = req.user.id;
 
 	try {
-		if (typeof accepted !== "boolean") {
-			return res
-				.status(400)
-				.json({ message: "Accepted must be a boolean" });
-		}
-
 		const access = await Access.findById(accessId);
 
 		if (!access)
@@ -112,7 +146,7 @@ async function getDoctorPatients(req, res) {
 		const accesses = await Access.find(
 			{
 				doctor: doctorId,
-				status: "approved",
+				status: "active",
 			},
 			{ patient: 1, createdAt: 1 },
 		).lean();
@@ -149,7 +183,7 @@ async function getPatientDoctors(req, res) {
 
 // Patient removes doctor (delete access)
 
-async function removeDoctor(req, res) {
+async function removeAccess(req, res) {
 	// #swagger.tags = ['Access']
 	// #swagger.summary = 'Patient removes a doctor (deletes access)'
 	// #swagger.description = 'Roles: patient'
@@ -182,5 +216,5 @@ export default {
 	respondAccess,
 	getDoctorPatients,
 	getPatientDoctors,
-	removeDoctor,
+	removeAccess,
 };

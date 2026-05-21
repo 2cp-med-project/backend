@@ -5,7 +5,12 @@ import chatbotController from "./chatbot.controller.js";
 
 const router = express.Router();
 
-router.get("/:thread_id", chatbotController.retrieveChat);
+router.get(
+	"/:thread_id",
+	authenticate,
+	authorize("patient"),
+	chatbotController.retrieveChat,
+);
 router.post(
 	"/",
 	authenticate,
@@ -18,6 +23,11 @@ router.post(
 	authorize("patient"),
 	chatbotController.handleChat,
 );
-router.delete("/:thread_id", chatbotController.deleteChat);
+router.delete(
+	"/:thread_id",
+	authenticate,
+	authorize("patient"),
+	chatbotController.deleteChat,
+);
 
 export default router;

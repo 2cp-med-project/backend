@@ -12,7 +12,7 @@ if (!admin.apps.length) {
 	});
 }
 
-export async function sendPushNotification(fcmToken, title, body, data = {}) {
+async function sendPushNotification(fcmToken, title, body, data = {}) {
 	const message = {
 		token: fcmToken,
 		notification: { title, body },
@@ -26,3 +26,5 @@ export async function sendPushNotification(fcmToken, title, body, data = {}) {
 		throw error;
 	}
 }
+
+export default { sendPushNotification };
