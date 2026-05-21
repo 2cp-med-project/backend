@@ -12,25 +12,25 @@ const router = express.Router();
 router.use(authenticate);
 
 router.post(
-  "/consultation",
-  authorize("doctor"),
-  doctorAccess,
-  validate(validationschema.createConsultationValidation),
-  controller.createConsultation,
+	"/consultation",
+	authorize("doctor"),
+	doctorAccess,
+	validate(validationschema.createConsultationValidation),
+	controller.createConsultation,
 );
 
 router.patch(
-  "/consultation/:consultationId",
-  authorize("doctor"),
-  doctorAccess,
-  validate(validationschema.updateConsultationValidation),
-  controller.updateConsultation,
+	"/consultation/:consultationId",
+	authorize("doctor"),
+	doctorAccess,
+	validate(validationschema.updateConsultationValidation),
+	controller.updateConsultation,
 );
 router.get(
-  "/consultation/:consultationId",
-  doctorAccess,
-  validate(validationschema.getConsultationByIdValidation),
-  controller.getConsultationById,
+	"/consultation/:consultationId",
+	doctorAccess,
+	validate(validationschema.getConsultationByIdValidation),
+	controller.getConsultationById,
 );
 // router.delete(
 //   "/consultation/:consultationId",
@@ -41,10 +41,10 @@ router.get(
 // );
 
 router.get(
-  "/:patientId",
-  doctorAccess,
-  validate(validationschema.getConsultationsValidation),
-  controller.getConsultations,
+	"/:patientId",
+	doctorAccess,
+	validate(validationschema.getConsultationsValidation),
+	controller.getConsultations,
 );
 
 export default router;
