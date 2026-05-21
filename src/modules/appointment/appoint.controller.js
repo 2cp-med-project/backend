@@ -7,7 +7,7 @@ export async function addAppointment(req, res) {
     const patientId = req.user.id; 
     const { type,  date,time, location, appointmentnotes} = req.body;
 
-    const appointment = await Service.createAppointment(patientId, {
+    let appointment = await Service.createAppointment(patientId, {
       type,
       date,
       time,
@@ -30,7 +30,7 @@ export async function getMyAppointments(req, res) {
 
     const appointments = await Service.getAppointments(patientId);
 
-    res.status(200).json({ appointments });
+    res.status(200).json(appointments);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

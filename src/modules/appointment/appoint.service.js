@@ -7,7 +7,7 @@ async function createAppointment(patientId, appointmentData) {
 
   if (!time) throw new Error("Appointment time is required");
 
-  const allowedTypes = ["IRM", "RADIO", "SCANNER", "ANALYSE", "CONSULTATION"];
+  const allowedTypes = ["IRM-RADIO-SCANNER", "ANALYSE", "CONSULTATION"];
   if (!allowedTypes.includes(type)) throw new Error("Invalid appointment type");
 
   
@@ -16,7 +16,7 @@ async function createAppointment(patientId, appointmentData) {
   const reminders = [];
 
   //  IRM / RADIO / SCANNER → 30 days before
-  if (["IRM", "RADIO", "SCANNER"].includes(type)) {
+  if (type === "IRM-RADIO-SCANNER") {
     reminders.push({
       date: new Date(appointmentDate.getTime() - 30 * 24 * 60 * 60 * 1000),
     });
@@ -41,7 +41,7 @@ async function createAppointment(patientId, appointmentData) {
     date: new Date(appointmentDate.getTime() - 1 * 24 * 60 * 60 * 1000),
   });
 
-  const appointment = {
+  let appointment = {
     _id: new mongoose.Types.ObjectId(),
     type, 
    
