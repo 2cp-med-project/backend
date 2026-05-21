@@ -7,15 +7,11 @@ async function initiateChat(req, res) {
 		const { currentUserId, targetUserId } = req.body;
 
 		if (!currentUserId) {
-			return res
-				.status(400)
-				.json({ success: false, error: "currentUserId is required" });
+			return res.status(400).json({ error: "currentUserId is required" });
 		}
 
 		if (!targetUserId) {
-			return res
-				.status(400)
-				.json({ success: false, error: "targetUserId is required" });
+			return res.status(400).json({ error: "targetUserId is required" });
 		}
 
 		let room = await findRoomByParticipants(currentUserId, targetUserId);
@@ -36,21 +32,15 @@ async function joinRoom(req, res) {
 		const { userId, socketId, roomId } = req.body;
 
 		if (!userId) {
-			return res
-				.status(400)
-				.json({ success: false, error: "userId is required" });
+			return res.status(400).json({ error: "userId is required" });
 		}
 
 		if (!socketId) {
-			return res
-				.status(400)
-				.json({ success: false, error: "socketId is required" });
+			return res.status(400).json({ error: "socketId is required" });
 		}
 
 		if (!roomId) {
-			return res
-				.status(400)
-				.json({ success: false, error: "roomId is required" });
+			return res.status(400).json({ error: "roomId is required" });
 		}
 
 		let user = await connectUser(userId, socketId);
