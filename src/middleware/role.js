@@ -1,5 +1,3 @@
-// Checks if user is doctor / patient / admin
-
 function authorize(...allowedRoles) {
   return (req, res, next) => {
     try {

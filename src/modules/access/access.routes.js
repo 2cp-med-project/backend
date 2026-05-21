@@ -12,47 +12,47 @@ const router = express.Router();
 router.use(authenticate);
 
 router.post(
-  "/request",
-  authorize("doctor"),
-  validate(validationSchema.requestAccessValidation),
-  controller.requestAccess,
+	"/request",
+	authorize("doctor"),
+	validate(validationSchema.requestAccessValidation),
+	controller.requestAccess,
 );
 
 // Patient sees pending and active requests
 router.get(
-  "/patient/requests",
-  authorize("patient"),
-  controller.getPatientRequests,
+	"/patient/requests",
+	authorize("patient"),
+	controller.getPatientRequests,
 );
 
 // Patient approves/rejects
 router.put(
-  "/:id/respond",
-  authorize("patient"),
-  validate(validationSchema.respondAccessValidation),
-  controller.respondAccess,
+	"/:id/respond",
+	authorize("patient"),
+	validate(validationSchema.respondAccessValidation),
+	controller.respondAccess,
 );
 
 // Doctor sees approved patients
 router.get(
-  "/doctor/patients",
-  authorize("doctor"),
-  controller.getDoctorPatients,
+	"/doctor/patients",
+	authorize("doctor"),
+	controller.getDoctorPatients,
 );
 
 // Patient sees approved doctors
 router.get(
-  "/patient/doctors",
-  authorize("patient"),
-  controller.getPatientDoctors,
+	"/patient/doctors",
+	authorize("patient"),
+	controller.getPatientDoctors,
 );
 
 // Patient removes doctor
 router.delete(
-  "/:id",
-  authorize("patient"),
-  validate(validationSchema.removeAccessValidation),
-  controller.removeAccess,
+	"/:id",
+	authorize("patient"),
+	validate(validationSchema.removeAccessValidation),
+	controller.removeAccess,
 );
 
 export default router;

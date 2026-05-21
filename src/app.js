@@ -1,24 +1,46 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
+import "dotenv/config";
+
 import connectDB from "./config/db.js";
+
+import { createServer } from "http";
+import { Server as SocketIOServer } from "socket.io";
+import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
+import { workflow } from "./modules/chatbot/chatbot.service.js";
 
 import swaggerUi from "swagger-ui-express";
 import swaggerDoc from "../swagger.json" with { type: "json" };
 
 import routes from "./routes.js";
+import { handleSocketConnection } from "./modules/chat/socket.controller.js";
 
-// Load ENV
-dotenv.config();
-
-// Connect to MongoDB
-connectDB();
-
+// Initialize app
 const app = express();
 
 // Middlewares
 app.use(express.json());
 app.use(cors());
+
+// Connect to MongoDB
+export const client = await connectDB();
+
+// Initialize MongoDB checkpointer
+const checkpointer = new MongoDBSaver({ client });
+
+// Initialize AI Agent
+export const medicalAgentApp = workflow.compile({ checkpointer });
+
+// Initialize HTTP Server
+const httpServer = createServer(app);
+
+// Initialize SocketIO Server
+const io = new SocketIOServer(httpServer, {
+  cors: { origin: "*", methods: ["GET", "POST"] },
+});
+
+// Handle Socket Connection
+handleSocketConnection(io);
 
 const swaggerUiOptions = {
   customCssUrl:
@@ -38,12 +60,7 @@ app.use(
 // Load Main Routes
 app.use("/api", routes);
 
-// Test Route
-app.get("/", (req, res) => {
-  res.send("API is running...");
-});
-
 // Start Server
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+httpServer.listen(process.env.PORT, () =>
+  console.log(`Server running on port ${process.env.PORT}`),
+);
