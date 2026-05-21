@@ -33,8 +33,6 @@ const doctorSchema = new Schema(
 		patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Patient" }],
 
 		otpVerified: { type: Boolean, default: false },
-		otpCode: { type: String, default: null },
-		otpExpiresAt: { type: Date, default: null },
 
 		isActive: { type: Boolean, default: true },
 		socketId: { type: String, default: null },
