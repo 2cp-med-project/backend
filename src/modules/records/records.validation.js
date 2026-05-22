@@ -22,11 +22,6 @@ const optionalDateValidation = {
 };
 
 const createConsultationValidation = {
-	doctorId: {
-		in: "body",
-		...mongoIdValidation,
-		errorMessage: "Doctor ID is required and must be a valid ObjectId",
-	},
 	patientId: {
 		in: "body",
 		...mongoIdValidation,

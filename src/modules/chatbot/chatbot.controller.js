@@ -19,6 +19,11 @@ function formatMessages(messages) {
 }
 
 async function startChat(req, res) {
+	// #swagger.tags = ['Chatbot']
+	// #swagger.security = [{ bearerAuth: [] }]
+	// #swagger.summary = 'Initialize a new chat thread with the AI agent'
+	// #swagger.description = 'Roles: patient'
+
 	const { id } = req.user;
 	const { prompt } = req.body;
 
@@ -76,6 +81,12 @@ async function startChat(req, res) {
 }
 
 async function handleChat(req, res) {
+	// #swagger.tags = ['Chatbot']
+	// #swagger.security = [{ bearerAuth: [] }]
+	// #swagger.summary = 'Send a new message to an existing chat thread and get the agent\'s response'
+	// #swagger.description = 'Roles: patient'
+	// #swagger.parameters['thread_id'] = { description: 'The ID of the conversation thread.' }
+
 	const { id } = req.user;
 	const { thread_id } = req.params;
 	const { prompt } = req.body;
@@ -126,6 +137,12 @@ async function handleChat(req, res) {
 }
 
 async function retrieveChat(req, res) {
+	// #swagger.tags = ['Chatbot']
+	// #swagger.security = [{ bearerAuth: [] }]
+	// #swagger.summary = 'Fetch the entire message history and title of a specific chat thread'
+	// #swagger.description = 'Roles: patient'
+	// #swagger.parameters['thread_id'] = { description: 'The ID of the conversation thread to retrieve.' }
+
 	try {
 		const { id } = req.user;
 		const { thread_id } = req.params;
@@ -152,6 +169,12 @@ async function retrieveChat(req, res) {
 }
 
 async function deleteChat(req, res) {
+	// #swagger.tags = ['Chatbot']
+	// #swagger.security = [{ bearerAuth: [] }]
+	// #swagger.summary = 'Permanently delete a chat thread from the database and clear the agent checkpoint state'
+	// #swagger.description = 'Roles: patient'
+	// #swagger.parameters['thread_id'] = { description: 'The ID of the conversation thread to delete.' }
+
 	try {
 		const { id } = req.user;
 		const { thread_id } = req.params;

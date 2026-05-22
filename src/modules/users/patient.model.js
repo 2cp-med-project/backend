@@ -47,16 +47,10 @@ const patientSchema = new Schema(
 				requestedAt: { type: Date, default: Date.now },
 			},
 		],
-		medicalConsultations: [
-			{ type: Schema.Types.ObjectId, ref: "Consultation" },
-		],
 
 		isActive: { type: Boolean, default: true },
 	},
-	{
-		timestamps: true,
-		minimize: false,
-	},
+	{ timestamps: true },
 );
 
 export default mongoose.model("Patient", patientSchema);

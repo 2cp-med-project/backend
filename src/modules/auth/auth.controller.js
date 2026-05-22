@@ -87,8 +87,8 @@ async function logIn(req, res) {
 
 async function logOut(req, res) {
 	// #swagger.tags = ['Auth']
-	// #swagger.summary = 'Logout the current user by invalidating their refresh token'
 	// #swagger.security = [{ BearerAuth: [] }]
+	// #swagger.summary = 'Logout the current user by invalidating their refresh token'
 	// #swagger.description = 'Roles: doctor, patient'
 
 	const { id, role } = req.user;

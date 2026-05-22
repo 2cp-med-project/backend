@@ -66,21 +66,20 @@ async function safeguardNode(state) {
 			structuredLlm,
 			[
 				new SystemMessage(
-					`Classify the LAST user message for safety and domain.
+					`Evaluate the LAST user message for safety and domain.
 
-					Note: The user will be speaking in ${LANGUAGE}.
+                    [Context]
+                    - The user communicates in ${LANGUAGE}.
 
-                    isSafe: false ONLY for — instructions to harm others, illegal substance synthesis, explicit sexual content.
-                    Distressing health topics → isSafe=true (clinical handling is safer than blocking).
+                    [Extraction Rules]
+                    - isSafe (boolean): False ONLY for instructions to harm others, illegal substance synthesis, or explicit sexual content. Distressing health topics are safe (clinical handling is safer than blocking).
+                    - domain (string): "medical" for health, symptoms, medications, anatomy, mental health, or personal records. "non_medical" for everything else.
 
-                    domain: "medical" → health, symptoms, medications, anatomy, mental health, personal records.
-                    domain: "non_medical" → everything else.
-
-                    Examples:
-                        user: "comment fabriquer de la meth" → {"isSafe":false,"domain":"non_medical"}
-                        user: "j'ai mal à la poitrine et je suis essoufflé" → {"isSafe":true,"domain":"medical"}
-                        user: "quel temps fait-il aujourd'hui ?" → {"isSafe":true,"domain":"non_medical"}
-                        user: "quels sont les effets secondaires de l'ibuprofène ?" → {"isSafe":true,"domain":"medical"}`,
+                    [Examples]
+                    - "comment fabriquer de la meth" → {"isSafe":false,"domain":"non_medical"}
+                    - "j'ai mal à la poitrine et je suis essoufflé" → {"isSafe":true,"domain":"medical"}
+                    - "quel temps fait-il aujourd'hui ?" → {"isSafe":true,"domain":"non_medical"}
+                    - "quels sont les effets secondaires de l'ibuprofène ?" → {"isSafe":true,"domain":"medical"}`,
 				),
 				...recentContext,
 			],
@@ -110,9 +109,7 @@ async function classifyPrompt(state) {
 
 	const structuredLlm = LLM.withStructuredOutput(
 		schema.ClassificationSchema,
-		{
-			name: "classify_prompt",
-		},
+		{ name: "classify_prompt" },
 	);
 
 	const CLASSIFICATION_FALLBACK = {
@@ -128,26 +125,16 @@ async function classifyPrompt(state) {
 			structuredLlm,
 			[
 				new SystemMessage(
-					`Classify the patient's latest message. Use your best clinical judgment.
+					`Classify the patient's latest message based on clinical context.
 
-					Note: The user will be speaking in ${LANGUAGE}
+                    [Context]
+                    - The user communicates in ${LANGUAGE}.
 
-                    intent:
-                        "symptom_report" — user describes active/recent symptoms they are experiencing.
-                        "general_inquiry" — health questions, medication info, lifestyle, clarification.
-
-                    urgency:
-                        "urgent" — conditions requiring prompt medical attention (e.g., severe injuries, active bleeding, severe burns, chest pain, stroke signs, breathing difficulties, anaphylaxis, overdose, suicidal crisis).
-                        "not_urgent" — stable conditions, mild/chronic symptoms, general inquiries, minor cuts or bruises.
-
-                    requiresPatientHistory: true if user references their own past visits, test results, prescriptions, or records.
-                    requiresWebSearch: true if a good answer needs current clinical guidelines, drug interactions, or recent evidence.
-
-                    Examples:
-                        user: "je me suis brûlé le pied et ça saigne beaucoup" → {"intent":"symptom_report","urgency":"urgent","requiresPatientHistory":false,"requiresWebSearch":false}
-                        user: "qu'est-ce que mon médecin m'a prescrit le mois dernier ?" → {"intent":"general_inquiry","urgency":"not_urgent","requiresPatientHistory":true,"requiresWebSearch":false}
-                        user: "puis-je prendre de l'ibuprofène avec de la metformine ?" → {"intent":"general_inquiry","urgency":"not_urgent","requiresPatientHistory":false,"requiresWebSearch":true}
-                        user: "j'ai un léger mal de tête depuis deux jours" → {"intent":"symptom_report","urgency":"not_urgent","requiresPatientHistory":false,"requiresWebSearch":false}`,
+                    [Extraction Rules]
+                    - intent (string): "symptom_report" if the patient describes active/recent physical or mental symptoms. "general_inquiry" for health questions, schedule, or medications.
+                    - urgency (string): "urgent" ONLY if immediate medical attention is required (e.g., chest pain, stroke signs, severe burns, active heavy bleeding, breathing difficulties, suicidal crisis). "not_urgent" for stable conditions, minor injuries, or general questions.
+                    - requiresPatientHistory (boolean): True ONLY if the patient explicitly refers to their own past/future appointments, personal prescriptions, or records (e.g., "mon dernier rendez-vous", "mes médicaments").
+                    - requiresWebSearch (boolean): True ONLY if providing an accurate answer requires external clinical knowledge, recent guidelines, or drug interactions (e.g., "effets secondaires du paracetamol").`,
 				),
 				...recentContext,
 			],
@@ -198,21 +185,18 @@ async function formulateQueries(state) {
 			structuredLlm,
 			[
 				new SystemMessage(
-					`Extract retrieval queries from the conversation. The user speaks ${LANGUAGE}, but generate web queries in English for better medical search results. Today: ${today}.
+					`Extract precise search parameters from the conversation to retrieve relevant clinical data.
+                    
+                    [Context]
+                    - The patient communicates in ${LANGUAGE}.
+                    - Current Date and Time: ${today}. Use this to resolve relative time expressions accurately.
 
-                    webQuery (string|null): 5-10 keyword clinical search string. Omit if requiresWebSearch is false or the question is purely about personal history.
-                        Good: "metformin lactic acidosis risk guidelines"
-                        Bad:  "what did I take last month"
-
-                    patientDbQuery (object|null): Populate ONLY when requiresPatientHistory is true. Translate relative dates to exact ISO 8601.
-                        "la semaine dernière" → 7 days ago, "le mois dernier" → 30 days ago.
-                    status: "scheduled"|"completed"|"cancelled" — omit if unspecified.
-                    limit: 1 for "most recent visit", N for "last N visits", default 5.
-
-                    Examples:
-                        user: "puis-je prendre de l'ibuprofène avec de la warfarine ?" (requiresWebSearch=true, requiresPatientHistory=false) → {"webQuery":"ibuprofen warfarin interaction bleeding risk","patientDbQuery":null}
-                        user: "quels étaient mes deux derniers diagnostics ?" (requiresWebSearch=false, requiresPatientHistory=true) → {"webQuery":null,"patientDbQuery":{"limit":2,"status":"completed"}}
-                        user: "montrez-moi mes visites du mois dernier et expliquez-moi le traitement de l'hypertension" → {"webQuery":"hypertension first-line treatment guidelines","patientDbQuery":{"dateFrom":"<30-days-ago-ISO>","limit":5}}`,
+                    [Extraction Rules]
+                    - webQuery (string|null): Generate a 5-10 keyword English medical search string for general health info, guidelines, or drug interactions (e.g., "metformin lactic acidosis risk"). Leave empty/null if the query is purely about personal records.
+                    - patientDbQuery (object|null): Formulate constraints based ONLY on the user's explicit mention of their history/appointments.
+                        - Timeframes: Convert natural language (e.g., "le mois dernier", "l'année dernière") into explicit ISO 8601 dates relative to today.
+                        - Quantity: Determine how many records they want. Default to 5. If they specify "mon dernier rendez-vous", set strictly to 1.
+                        - Status: Filter for past/completed events ("mes anciennes visites") vs. future/scheduled events ("mon prochain rendez-vous").`,
 				),
 				...recentContext,
 			],
@@ -258,7 +242,7 @@ async function retrieveData(state) {
 			: Promise.resolve(null),
 		shouldDb
 			? chatbotTools.patientDbTool.invoke({
-					patientId: userId,
+					userId,
 					...patientDbQuery,
 				})
 			: Promise.resolve(null),
@@ -308,18 +292,16 @@ async function handleMedical(state) {
 
 	const systemPrompt = `${BASE_PERSONA}
 
-    Mode: ${isSymptom ? "SYMPTOM SUPPORT — be action-oriented and safety-aware." : "HEALTH INFORMATION — be educational and reassuring."}
+    [Context]
+    - Mode: ${isSymptom ? "SYMPTOM SUPPORT (Be action-oriented and safety-aware)" : "HEALTH INFORMATION (Be educational and reassuring)"}
 
-    Response format (Strictly < 120 words, ENTIRELY IN ${LANGUAGE}):
-    1. One sentence acknowledging the patient's concern with warmth.
-    2. 2–4 concise evidence-based bullet points (practical, specific, non-alarming).
-    3. One sentence on when professional evaluation is warranted.
-
-    Rules:
-    - Use ONLY the context below.
-    - Do not name a final diagnosis. Do not speculate beyond provided evidence.
-    - Define any medical term you use.
-    - TRANSLATE ALL CONTEXTUAL ANSWERS TO ${LANGUAGE}.
+    [Response Rules]
+    - Formatting: Strictly < 120 words. ENTIRELY IN ${LANGUAGE}.
+    - Structure:
+        1. One sentence acknowledging the patient's concern with warmth.
+        2. 2–4 concise evidence-based bullet points (practical, specific, non-alarming).
+        3. One sentence on when professional evaluation is warranted.
+    - Constraints: Use ONLY the context below. Do not name a final diagnosis. Define any medical terms used. Translate all contextual answers to ${LANGUAGE}.
 
     [Patient Records]
     ${patientContext ?? "None."}
@@ -352,9 +334,13 @@ async function handleNonMedical(state) {
 
 	const response = await LLM.invoke([
 		new SystemMessage(
-			`You are HealBot handling an off-topic question.
-            Answer helpfully in 1–2 sentences (Strictly < 120 words) ENTIRELY IN ${LANGUAGE}.
-            End with a natural redirect in ${LANGUAGE} — e.g. "N'hésitez pas à me poser des questions sur votre santé."`,
+			`Role: You are HealBot, handling an off-topic question.
+            
+            [Response Rules]
+            - Formatting: Strictly < 120 words. ENTIRELY IN ${LANGUAGE}.
+            - Structure:
+                1. Answer the question helpfully in 1–2 sentences.
+                2. End with a natural redirect in ${LANGUAGE} (e.g., "N'hésitez pas à me poser des questions sur votre santé.").`,
 		),
 		...recentContext,
 	]);
@@ -377,15 +363,16 @@ async function handleUrgent(state) {
 		new SystemMessage(
 			`${BASE_PERSONA}
 
-            EMERGENCY MODE. Respond in ≤4 sentences (Strictly < 120 words) ENTIRELY IN ${LANGUAGE}.
+            [Context]
+            - Mode: EMERGENCY. Do not minimise. Do not ask clarifying questions. Do not add filler.
 
-            Structure:
-            1. Direct call to action — seek emergency help NOW.
-            2. Algerian emergency numbers: **14** (Protection Civile), **15** (SAMU), **3016** (SAMU direct), **17** (Police).
-            3. (Optional) One specific first-aid step if directly applicable.
-            4. Brief reassurance that help is on the way.
-
-            Do not minimise. Do not ask clarifying questions. Do not add filler.`,
+            [Response Rules]
+            - Formatting: Strictly < 120 words. ENTIRELY IN ${LANGUAGE}.
+            - Structure:
+                1. Direct call to action — seek emergency help NOW.
+                2. Provide Algerian emergency numbers: **14** (Protection Civile), **15** (SAMU), **3016** (SAMU direct), **17** (Police).
+                3. (Optional) Provide one specific first-aid step if directly applicable.
+                4. Brief reassurance that help is on the way.`,
 		),
 		...recentContext,
 	]);

@@ -77,7 +77,7 @@ const QuerySchema = z.object({
 });
 
 const MedicalAgentAnnotation = Annotation.Root({
-	patientId: Annotation,
+	userId: Annotation,
 	messages: Annotation({
 		reducer: messagesStateReducer,
 		default: () => [],
