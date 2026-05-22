@@ -4,7 +4,7 @@ const doctorSchema = new Schema(
 	{
 		firstName: { type: String, required: true, trim: true },
 		lastName: { type: String, required: true, trim: true },
-		gender: { type: String, enum: ["male", "female"], required: true },
+		gender: { type: String, enum: ["male", "female"] },
 		phone: { type: String, required: true, trim: true },
 
 		email: {
@@ -23,7 +23,7 @@ const doctorSchema = new Schema(
 		},
 		refreshToken: { type: String, unique: true, sparse: true },
 
-		specialization: { type: String, required: true, trim: true },
+		specialization: { type: String, trim: true },
 		licenseNumber: {
 			type: String,
 			unique: true,
