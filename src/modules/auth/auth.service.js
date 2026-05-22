@@ -22,10 +22,11 @@ async function checkPassword(plainPassword, phone, role) {
 
 function verifyToken(token) {
 	let payload;
+
 	try {
 		payload = jwt.verify(token, process.env.JWT_SECRET);
 	} catch (error) {
-		throw new Error("Invalid token");
+		throw new Error("Invalid token", { cause: error });
 	}
 
 	if (

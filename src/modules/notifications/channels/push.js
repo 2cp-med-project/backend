@@ -19,12 +19,7 @@ async function sendPushNotification(fcmToken, title, body, data = {}) {
 		data,
 	};
 
-	try {
-		const response = await admin.messaging().send(message);
-		return response;
-	} catch (error) {
-		throw error;
-	}
+	return admin.messaging().send(message);
 }
 
 export default { sendPushNotification };

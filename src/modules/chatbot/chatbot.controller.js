@@ -1,7 +1,6 @@
 import { HumanMessage } from "@langchain/core/messages";
 
 import { medicalAgentApp } from "../../app.js";
-import chatbotTools from "./chatbot.tools.js";
 import Conversation from "./conversation.model.js";
 import LLM from "../../config/llm.js";
 
