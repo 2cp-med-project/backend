@@ -29,9 +29,10 @@ async function generate(phone, role) {
 
 		console.log(`OTP sent to ${phone}, status: ${verification.status}`);
 		return verification.status; // e.g., "pending"
-	} catch (err) {
-		console.error("Twilio OTP error:", err.message);
-		throw new Error("Failed to send OTP");
+	} catch (error) {
+		console.error("Twilio OTP error:", error.message);
+
+		throw new Error("Failed to send OTP", { cause: error });
 	}
 }
 
@@ -60,9 +61,9 @@ async function verify(phone, code, role) {
 		} else {
 			throw new Error("Invalid OTP");
 		}
-	} catch (err) {
-		console.error("Twilio verify error:", err.message);
-		throw new Error("OTP verification failed");
+	} catch (error) {
+		console.error("Twilio verify error:", error.message);
+		throw new Error("OTP verification failed", { cause: error });
 	}
 }
 
