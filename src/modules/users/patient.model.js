@@ -29,25 +29,15 @@ const patientSchema = new Schema(
 		cardQRCode: { type: String, default: null },
 		medicalResume: { type: String, trim: true },
 
-		emergencyContacts: [
-			{
-				name: { type: String, trim: true },
-				phone: { type: String, trim: true },
-				relation: { type: String, trim: true },
-			},
-		],
+		emergencyContact: {
+			name: { type: String, trim: true },
+			phone: { type: String, trim: true },
+			relation: { type: String, trim: true },
+		},
 
-		doctorsAccess: [
-			{
-				doctorId: {
-					type: mongoose.Schema.Types.ObjectId,
-					ref: "Doctor",
-				},
-				accepted: { type: Boolean, default: false },
-				requestedAt: { type: Date, default: Date.now },
-			},
-		],
-
+		otpVerified: { type: Boolean, default: false },
+		fcmtoken: { type: String, default: null },
+		
 		isActive: { type: Boolean, default: true },
 	},
 	{ timestamps: true },
