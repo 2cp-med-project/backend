@@ -1,48 +1,33 @@
+import { createServer } from "http";
+
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import "dotenv/config";
+import { Server as SocketIOServer } from "socket.io";
+import swaggerUi from "swagger-ui-express";
+import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
 
 import connectDB from "./config/db.js";
-
-import { createServer } from "http";
-import { Server as SocketIOServer } from "socket.io";
-import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
-import { workflow } from "./modules/chatbot/chatbot.service.js";
-
 import routes from "./routes.js";
 import socketController from "./modules/chat/socket.controller.js";
-
-import swaggerUi from "swagger-ui-express";
+import { workflow } from "./modules/chatbot/chatbot.service.js";
 import swaggerDoc from "../swagger.json" with { type: "json" };
 
-// Initialize app
 const app = express();
-
-// Middlewares
-app.use(express.json());
-app.use(cors());
-
-// Connect to MongoDB
-export const client = await connectDB();
-
-// Initialize MongoDB checkpointer
-const checkpointer = new MongoDBSaver({ client });
-
-// Initialize AI Agent
-export const medicalAgentApp = workflow.compile({
-	checkpointer,
-});
-
-// Initialize HTTP Server
 const httpServer = createServer(app);
-
-// Initialize SocketIO Server
 const io = new SocketIOServer(httpServer, {
 	cors: { origin: "*", methods: ["GET", "POST"] },
 });
 
-// Handle Socket Connection
-socketController.handleSocketConnection(io);
+export const client = await connectDB();
+const checkpointer = new MongoDBSaver({ client });
+
+export const medicalAgentApp = workflow.compile({
+	checkpointer,
+});
+
+app.use(express.json());
+app.use(cors());
 
 const swaggerUiOptions = {
 	customCssUrl:
@@ -53,16 +38,21 @@ const swaggerUiOptions = {
 	],
 };
 
+app.use("/api", (req, res) => {
+	res.status(200).json({ message: "API is running..." });
+});
+
 app.use(
 	"/api-docs",
 	swaggerUi.serve,
 	swaggerUi.setup(swaggerDoc, swaggerUiOptions),
 );
 
-// Load Main Routes
 app.use("/api", routes);
+socketController.handleSocketConnection(io);
 
-// Start Server
-httpServer.listen(process.env.PORT, () =>
-	console.log(`Server running on port ${process.env.PORT}`),
-);
+const PORT = process.env.PORT || 3000;
+
+httpServer.listen(PORT, () => {
+	console.log(`Server running on port ${PORT}`);
+});

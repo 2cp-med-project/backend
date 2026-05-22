@@ -1,10 +1,10 @@
-import { Schema, model, mongoose } from "mongoose";
+import mongoose from "mongoose";
 
-const doctorSchema = new Schema(
+const doctorSchema = new mongoose.Schema(
 	{
 		firstName: { type: String, required: true, trim: true },
 		lastName: { type: String, required: true, trim: true },
-		gender: { type: String, enum: ["male", "female"], required: true },
+		gender: { type: String, enum: ["male", "female"] },
 		phone: { type: String, required: true, trim: true },
 
 		email: {
@@ -23,26 +23,25 @@ const doctorSchema = new Schema(
 		},
 		refreshToken: { type: String, unique: true, sparse: true },
 
-		specialization: { type: String, required: true, trim: true },
+		specialization: { type: String, trim: true },
 		licenseNumber: {
 			type: String,
-			unique: true,
 			trim: true,
+			default: undefined,
+			index: {
+				unique: true,
+				sparse: true,
+			},
 		},
 
 		patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Patient" }],
 
 		otpVerified: { type: Boolean, default: false },
-		otpCode: { type: String, default: null },
-		otpExpiresAt: { type: Date, default: null },
 
 		isActive: { type: Boolean, default: true },
 		socketId: { type: String, default: null },
 	},
-	{
-		timestamps: true,
-		minimize: false,
-	},
+	{ timestamps: true },
 );
 
 export default mongoose.model("Doctor", doctorSchema);

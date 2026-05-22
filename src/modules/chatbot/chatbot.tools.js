@@ -37,37 +37,30 @@ function formatConsultation(c) {
 		);
 	}
 
-	const r = c.report;
-	if (!r) {
-		lines.push("(No report attached)");
-		return lines.join("\n");
-	}
-
-	if (r.typeOfVisit) lines.push(`Visit type: ${r.typeOfVisit}`);
-	if (r.motive) lines.push(`Reason: ${r.motive}`);
-	if (r.symptoms)
+	// Access fields directly from the Consultation model
+	if (c.typeofvisit) lines.push(`Visit type: ${c.typeofvisit}`);
+	if (c.motive) lines.push(`Reason: ${c.motive}`);
+	if (c.symptoms)
 		lines.push(
-			`Symptoms: ${r.symptoms}${r.severity ? ` (${r.severity})` : ""}`,
+			`Symptoms: ${c.symptoms}${c.severity ? ` (${c.severity})` : ""}`,
 		);
-	if (r.systemReview) lines.push(`System review: ${r.systemReview}`);
+	if (c.systemReview) lines.push(`System review: ${c.systemReview}`);
 
-	if (r.vitals) {
-		const v = r.vitals;
-		const parts = [
-			v.bloodPressure && `BP: ${v.bloodPressure}`,
-			v.heartRate && `HR: ${v.heartRate}`,
-			v.respiratoryRate && `RR: ${v.respiratoryRate}`,
-			v.temperature && `Temp: ${v.temperature}`,
-			v.weight && `Weight: ${v.weight}`,
-		].filter(Boolean);
-		if (parts.length) lines.push(`Vitals: ${parts.join(" | ")}`);
-	}
+	// Group vitals
+	const vitals = [
+		c.bloodPressure && `BP: ${c.bloodPressure}`,
+		c.heartRate && `HR: ${c.heartRate}`,
+		c.respiratoryRate && `RR: ${c.respiratoryRate}`,
+		c.temperature && `Temp: ${c.temperature}`,
+		c.weight && `Weight: ${c.weight}`,
+	].filter(Boolean);
 
-	if (r.diagnosis) lines.push(`Diagnosis: ${r.diagnosis}`);
-	if (r.notes) lines.push(`Notes: ${r.notes}`);
-	if (r.treatmentPlan) lines.push(`Treatment: ${r.treatmentPlan}`);
-	if (r.additionalTests) lines.push(`Tests: ${r.additionalTests}`);
-	if (r.followUp) lines.push("Follow-up required: Yes");
+	if (vitals.length > 0) lines.push(`Vitals: ${vitals.join(" | ")}`);
+
+	if (c.diagnosis) lines.push(`Diagnosis: ${c.diagnosis}`);
+	if (c.notes) lines.push(`Notes: ${c.notes}`);
+	if (c.treatmentPlan) lines.push(`Treatment: ${c.treatmentPlan}`);
+	if (c.additionalTests) lines.push(`Tests: ${c.additionalTests}`);
 
 	return lines.join("\n");
 }
@@ -79,7 +72,7 @@ async function runStructuredQuery({
 	status,
 	limit,
 }) {
-	const matchStage = { _id: { $in: patient.medicalConsultations } };
+	const matchStage = { patientId: { $eq: patient._id } };
 
 	if (dateFrom || dateTo) {
 		matchStage.date = {};
@@ -92,37 +85,27 @@ async function runStructuredQuery({
 		{ $match: matchStage },
 		{ $sort: { date: -1 } },
 		{ $limit: limit },
-		{
-			$lookup: {
-				from: "reports",
-				localField: "reportId",
-				foreignField: "_id",
-				as: "report",
-			},
-		},
-		{
-			$unwind: {
-				path: "$report",
-				preserveNullAndEmptyArrays: true,
-			},
-		},
+		// Removed the $lookup and $unwind stages for the 'reports' collection
 		{
 			$project: {
 				_id: 0,
 				date: 1,
 				status: 1,
 				followUpDate: 1,
-				"report.typeOfVisit": 1,
-				"report.motive": 1,
-				"report.symptoms": 1,
-				"report.severity": 1,
-				"report.diagnosis": 1,
-				"report.notes": 1,
-				"report.treatmentPlan": 1,
-				"report.additionalTests": 1,
-				"report.systemReview": 1,
-				"report.vitals": 1,
-				"report.followUp": 1,
+				typeofvisit: 1,
+				motive: 1,
+				symptoms: 1,
+				severity: 1,
+				systemReview: 1,
+				bloodPressure: 1,
+				heartRate: 1,
+				respiratoryRate: 1,
+				temperature: 1,
+				weight: 1,
+				diagnosis: 1,
+				treatmentPlan: 1,
+				additionalTests: 1,
+				notes: 1,
 			},
 		},
 	]);
@@ -131,12 +114,10 @@ async function runStructuredQuery({
 }
 
 const patientDbTool = tool(
-	async ({ patientId, dateFrom, dateTo, status, limit = 5 }) => {
+	async ({ userId, dateFrom, dateTo, status, limit = 5 }) => {
 		try {
-			const patient = await Patient.findById(patientId).lean();
+			const patient = await Patient.findById(userId).lean();
 			if (!patient) return "Patient record not found.";
-			if (!patient.medicalConsultations?.length)
-				return "No consultations on record.";
 
 			const results = await runStructuredQuery({
 				patient,
@@ -146,8 +127,7 @@ const patientDbTool = tool(
 				limit,
 			});
 
-			if (!results.length)
-				return "No consultations found for the given filters.";
+			if (!results.length) return "No consultations found.";
 
 			return results.join("\n\n---\n\n");
 		} catch (err) {
@@ -160,7 +140,7 @@ const patientDbTool = tool(
 		description:
 			"Query the patient's consultation history. Use for any question about past visits, diagnoses, symptoms, treatment plans, vitals, prescriptions, follow-ups, or test results.",
 		schema: z.object({
-			patientId: z
+			userId: z
 				.string()
 				.describe("The patient's MongoDB ObjectId as a string."),
 			dateFrom: z
@@ -172,7 +152,7 @@ const patientDbTool = tool(
 				.optional()
 				.describe("ISO 8601 end date. Omit to default to now."),
 			status: z
-				.enum(["scheduled", "completed", "cancelled"])
+				.enum(["scheduled", "in-progress", "completed", "cancelled"]) // Updated to match your schema exactly
 				.optional()
 				.describe("Filter by consultation status."),
 			limit: z

@@ -14,6 +14,10 @@
   "paths": {
     "/api/": {
       "get": {
+        "tags": [
+          "Health Check"
+        ],
+        "summary": "Check API health status",
         "description": "",
         "responses": {
           "200": {
@@ -560,34 +564,11 @@
     },
     "/api/chatbot/{thread_id}": {
       "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "thread_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
+        "tags": [
+          "Chatbot"
         ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        }
-      },
-      "post": {
-        "description": "",
+        "summary": "Fetch the entire message history and title of a specific chat thread",
+        "description": "Roles: patient",
         "parameters": [
           {
             "name": "thread_id",
@@ -595,7 +576,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "The ID of the conversation thread to retrieve."
           }
         ],
         "responses": {
@@ -612,6 +594,48 @@
             "description": "Internal Server Error"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Chatbot"
+        ],
+        "summary": "Send a new message to an existing chat thread and get the agent\\'s response",
+        "description": "Roles: patient",
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The ID of the conversation thread."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -628,7 +652,11 @@
         }
       },
       "delete": {
-        "description": "",
+        "tags": [
+          "Chatbot"
+        ],
+        "summary": "Permanently delete a chat thread from the database and clear the agent checkpoint state",
+        "description": "Roles: patient",
         "parameters": [
           {
             "name": "thread_id",
@@ -636,7 +664,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "The ID of the conversation thread to delete."
           }
         ],
         "responses": {
@@ -652,12 +681,21 @@
           "500": {
             "description": "Internal Server Error"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
     "/api/chatbot/": {
       "post": {
-        "description": "",
+        "tags": [
+          "Chatbot"
+        ],
+        "summary": "Initialize a new chat thread with the AI agent",
+        "description": "Roles: patient",
         "responses": {
           "200": {
             "description": "OK"
@@ -669,6 +707,11 @@
             "description": "Internal Server Error"
           }
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
