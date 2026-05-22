@@ -6,11 +6,13 @@ const consultationSchema = new mongoose.Schema(
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "Doctor",
 			required: true,
+			index: true,
 		},
 		patientId: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "Patient",
 			required: true,
+			index: true,
 		},
 
 		date: { type: Date, required: true },
@@ -44,10 +46,7 @@ const consultationSchema = new mongoose.Schema(
 
 		followUpDate: { type: Date, default: null },
 	},
-	{
-		timestamps: true,
-		minimize: false,
-	},
+	{ timestamps: true },
 );
 
 export default mongoose.model("Consultation", consultationSchema);
