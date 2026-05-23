@@ -26,7 +26,7 @@ app.use(cors());
 
 app.use("/api", routes);
 // Swagger Docs
-const specs = swaggerJsdoc({
+/*const specs = swaggerJsdoc({
   definition: swaggerOptions.definition,
   apis: swaggerOptions.apis,
 });
@@ -40,7 +40,7 @@ const swaggerUiOptions = {
   ],
 };
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, swaggerUiOptions));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, swaggerUiOptions));*/
 
 // Load Main Routes
 app.use("/api", routes);
