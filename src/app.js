@@ -9,7 +9,7 @@ import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
 
 import connectDB from "./config/db.js";
 import routes from "./routes.js";
-import socketController from "./modules/chat/socket.controller.js";
+import handleSockets from "./modules/chat/chat.socket.js";
 import { workflow } from "./modules/chatbot/chatbot.service.js";
 import swaggerDoc from "../swagger.json" with { type: "json" };
 
@@ -18,6 +18,8 @@ const httpServer = createServer(app);
 const io = new SocketIOServer(httpServer, {
 	cors: { origin: "*", methods: ["GET", "POST"] },
 });
+
+app.set("io", io);
 
 export const client = await connectDB();
 const checkpointer = new MongoDBSaver({ client });
@@ -38,19 +40,17 @@ const swaggerUiOptions = {
 	],
 };
 
-app.use("/api", (req, res) => {
-	res.status(200).json({ message: "API is running..." });
-});
-
+app.use("/api", routes);
 app.use(
 	"/api-docs",
 	swaggerUi.serve,
 	swaggerUi.setup(swaggerDoc, swaggerUiOptions),
 );
+app.get("/api", (req, res) => {
+	res.status(200).json({ message: "API is running..." });
+});
 
-app.use("/api", routes);
-socketController.handleSocketConnection(io);
-
+handleSockets(io);
 const PORT = process.env.PORT || 3000;
 
 httpServer.listen(PORT, () => {
