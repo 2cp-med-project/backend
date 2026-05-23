@@ -3,6 +3,8 @@ import OTPService from "./otp.service.js";
 import Doctor from "../users/doctor.model.js";
 import Patient from "../users/patient.model.js";
 
+import { redisClient } from "../../app.js";
+
 async function signUp(req, res) {
 	// #swagger.tags = ['Auth']
 	// #swagger.summary = 'Register a new user (doctor or patient)'
@@ -70,11 +72,11 @@ async function logIn(req, res) {
 	const { phone, password, role } = req.body || {};
 	try {
 		const user = await authService.checkPassword(password, phone, role);
+
 		const refreshToken = authService.generateToken(user.id, role, "30d");
 		user.refreshToken = refreshToken;
 
 		await user.save();
-
 		res.status(200).json({ userId: user.id, refreshToken });
 	} catch (error) {
 		if (error.message === "Invalid credentials") {
@@ -82,6 +84,19 @@ async function logIn(req, res) {
 		} else {
 			res.status(500).json({ message: error.message });
 		}
+	}
+}
+
+async function blacklistToken(token) {
+	const { jti, exp } = token;
+
+	const now = Math.floor(Date.now() / 1000);
+	const remainingTime = exp - now;
+
+	if (remainingTime > 0) {
+		await redisClient.set(`blacklist:jti:${jti}`, "true", {
+			EX: remainingTime,
+		});
 	}
 }
 
@@ -97,13 +112,15 @@ async function logOut(req, res) {
 			role === "doctor"
 				? await Doctor.findById(id)
 				: await Patient.findById(id);
+
 		if (!user) {
-			res.status(404).json({ message: "User not found" });
-			return;
+			return res.status(404).json({ message: "User not found" });
 		}
+
 		user.refreshToken = null;
 		user.otpVerified = false; // require OTP verification on next login
-		await user.save();
+
+		await Promise.all([user.save(), blacklistToken(req.user)]);
 		res.status(200).json({ message: "Logged out successfully" });
 	} catch (error) {
 		res.status(500).json({ message: error.message });
@@ -145,11 +162,11 @@ async function refreshToken(req, res) {
 			payload.role,
 			"30d",
 		);
+
 		user.refreshToken = newRefreshToken;
 		await user.save();
 
 		const accessToken = authService.generateToken(user.id, payload.role);
-
 		res.status(200).json({ accessToken, refreshToken: newRefreshToken });
 	} catch (error) {
 		if (error.message === "Invalid token") {

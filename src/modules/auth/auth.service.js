@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import Patient from "../users/patient.model.js";
@@ -43,7 +44,12 @@ function verifyToken(token) {
 
 function generateToken(id, role, time = "30m") {
 	const payload = { id, role };
-	return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: time });
+	const uniqueTokenId = crypto.randomUUID();
+
+	return jwt.sign(payload, process.env.JWT_SECRET, {
+		expiresIn: time,
+		jwtid: uniqueTokenId,
+	});
 }
 
 async function generatehash(password) {
