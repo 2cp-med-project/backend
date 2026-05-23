@@ -2,14 +2,14 @@ import express from "express";
 import controller from "./access.controller.js";
 import validationSchema from "./access.validation.js";
 
-import authenticate from "../../middleware/auth.js"; //authorization middleware
+import authMiddleware from "../../middleware/auth.js";
 import authorize from "../../middleware/role.js";
 import validate from "../../middleware/validation.js";
 
 const router = express.Router();
 
 // Apply authentication middleware to all routes
-router.use(authenticate);
+router.use(authMiddleware.authenticate);
 
 router.post(
 	"/request",

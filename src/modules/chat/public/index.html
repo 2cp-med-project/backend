@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Chat API Tester</title>
+		<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+		<style>
+			body {
+				font-family: system-ui, sans-serif;
+				max-width: 600px;
+				margin: 2rem auto;
+				padding: 0 1rem;
+			}
+			.section {
+				border: 1px solid #ccc;
+				padding: 1rem;
+				margin-bottom: 1rem;
+				border-radius: 8px;
+			}
+			.hidden {
+				display: none;
+			}
+			input,
+			button {
+				padding: 0.5rem;
+				margin: 0.25rem 0;
+				width: 100%;
+				box-sizing: border-box;
+				cursor: pointer;
+			}
+			.user-btn {
+				background: #f0f0f0;
+				border: 1px solid #ddd;
+				text-align: left;
+			}
+			.user-btn:hover {
+				background: #e0e0e0;
+			}
+			.header-controls {
+				display: flex;
+				justify-content: space-between;
+				gap: 10px;
+				margin-bottom: 10px;
+			}
+			.btn-danger {
+				background: #ff4d4d;
+				color: white;
+				border: none;
+				font-weight: bold;
+			}
+			.btn-danger:hover {
+				background: #cc0000;
+			}
+			.btn-secondary {
+				background: #6c757d;
+				color: white;
+				border: none;
+				font-weight: bold;
+			}
+			.btn-secondary:hover {
+				background: #5a6268;
+			}
+			#chat-box {
+				height: 300px;
+				border: 1px solid #eee;
+				overflow-y: auto;
+				margin-bottom: 1rem;
+				padding: 0.5rem;
+				background: #fafafa;
+				border-radius: 4px;
+			}
+			.msg {
+				margin-bottom: 0.5rem;
+				padding: 0.5rem;
+				background: #e9ecef;
+				border-radius: 4px;
+				word-wrap: break-word;
+			}
+			.msg.self {
+				background: #007bff;
+				color: white;
+				text-align: right;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="auth-section" class="section">
+			<h2>1. Login</h2>
+			<input
+				type="text"
+				id="phone"
+				placeholder="Phone Number"
+				value="1234567890"
+			/>
+			<input
+				type="password"
+				id="password"
+				placeholder="Password"
+				value="StrongPass123#"
+			/>
+			<button onclick="handleLogin()">Login & Connect</button>
+			<p id="auth-status" style="color: red"></p>
+		</div>
+
+		<div id="setup-section" class="section hidden">
+			<h2>2. Select User to Chat</h2>
+			<p>Logged in as: <strong id="current-user-display"></strong></p>
+			<div id="users-list"></div>
+		</div>
+
+		<div id="chat-section" class="section hidden">
+			<h2>3. Live Chat</h2>
+
+			<div class="header-controls">
+				<button class="btn-secondary" onclick="backToUsers()">
+					Back to Users
+				</button>
+				<button class="btn-danger" onclick="deleteCurrentChat()">
+					Delete Chat
+				</button>
+			</div>
+
+			<p style="font-size: 0.85rem; color: #666">
+				Room ID: <span id="display-room-id"></span>
+			</p>
+			<div id="chat-box"></div>
+			<input
+				type="text"
+				id="message-input"
+				placeholder="Type a message..."
+				onkeypress="handleKeyPress(event)"
+			/>
+			<button
+				onclick="sendSocketMessage()"
+				style="
+					background: #28a745;
+					color: white;
+					font-weight: bold;
+					border: none;
+				"
+			>
+				Send
+			</button>
+		</div>
+
+		<script>
+			// --- GLOBAL STATE ---
+			const API_BASE = "http://localhost:5000/api";
+			const SOCKET_URL = "http://localhost:5000";
+
+			let refreshToken = null;
+			let accessToken = null;
+			let currentUserId = null;
+			let roomId = null;
+			let socket = null;
+
+			// --- CUSTOM FETCH WRAPPER ---
+			async function fetchWithAuth(url, options = {}) {
+				if (!options.headers) options.headers = {};
+				options.headers["Authorization"] = `Bearer ${accessToken}`;
+
+				let response = await fetch(url, options);
+
+				if (response.status === 401 || response.status === 403) {
+					console.warn("Token expired. Attempting refresh...");
+					const refreshed = await refreshAccessToken();
+
+					if (refreshed) {
+						options.headers["Authorization"] =
+							`Bearer ${accessToken}`;
+						response = await fetch(url, options);
+					} else {
+						throw new Error(
+							"Session expired. Please log in again.",
+						);
+					}
+				}
+				return response;
+			}
+
+			// --- AUTH FLOW ---
+			async function handleLogin() {
+				const phone = document.getElementById("phone").value;
+				const password = document.getElementById("password").value;
+				const statusMsg = document.getElementById("auth-status");
+				statusMsg.textContent = "Logging in...";
+
+				try {
+					const loginRes = await fetch(`${API_BASE}/auth/login`, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							phone,
+							password,
+							role: "doctor",
+						}),
+					});
+
+					if (!loginRes.ok)
+						throw new Error("Login failed. Check credentials.");
+
+					const loginData = await loginRes.json();
+					if (!loginData.refreshToken)
+						throw new Error("No refresh token received.");
+
+					refreshToken = loginData.refreshToken;
+					currentUserId = loginData.userId;
+
+					document.getElementById(
+						"current-user-display",
+					).textContent = currentUserId;
+
+					const gotAccess = await refreshAccessToken();
+					if (!gotAccess)
+						throw new Error("Failed to secure access token.");
+
+					document
+						.getElementById("auth-section")
+						.classList.add("hidden");
+					fetchUsers();
+				} catch (error) {
+					statusMsg.textContent = error.message;
+				}
+			}
+
+			async function refreshAccessToken() {
+				if (!refreshToken) return false;
+				try {
+					const res = await fetch(`${API_BASE}/auth/refresh-token`, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ refreshToken }),
+					});
+
+					if (!res.ok) return false;
+					const data = await res.json();
+					accessToken = data.accessToken;
+					return true;
+				} catch (error) {
+					console.error("Refresh failed:", error);
+					return false;
+				}
+			}
+
+			// --- USER SELECTION FLOW ---
+			async function fetchUsers() {
+				try {
+					const res = await fetchWithAuth(
+						`${API_BASE}/users/doctors`,
+					);
+					if (!res.ok) throw new Error("Could not fetch users list.");
+
+					const users = await res.json();
+					const listContainer = document.getElementById("users-list");
+					listContainer.innerHTML = "";
+
+					users.forEach((user) => {
+						if (user._id === currentUserId) return;
+
+						const btn = document.createElement("button");
+						btn.className = "user-btn";
+						btn.textContent = `💬 Chat with ${user.firstName}`;
+						btn.onclick = () => startChat(user._id);
+						listContainer.appendChild(btn);
+					});
+
+					document
+						.getElementById("setup-section")
+						.classList.remove("hidden");
+				} catch (error) {
+					alert("Failed to load users. Ensure API is running.");
+				}
+			}
+
+			// --- CHAT SETUP & HTTP CALLS ---
+			async function startChat(targetId) {
+				try {
+					const initRes = await fetchWithAuth(
+						`${API_BASE}/chat/initiate`,
+						{
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({ targetId }),
+						},
+					);
+
+					const roomData = await initRes.json();
+					roomId = roomData.roomId;
+					document.getElementById("display-room-id").textContent =
+						roomId;
+
+					const historyRes = await fetchWithAuth(
+						`${API_BASE}/chat/messages/${roomId}`,
+					);
+					const messages = await historyRes.json();
+
+					const chatBox = document.getElementById("chat-box");
+					chatBox.innerHTML = "";
+					messages.forEach((msg) => appendMessageToUI(msg));
+
+					connectSocket();
+					document
+						.getElementById("setup-section")
+						.classList.add("hidden");
+					document
+						.getElementById("chat-section")
+						.classList.remove("hidden");
+				} catch (error) {
+					console.error("Failed to start chat:", error);
+					alert("Failed to start chat. Check console.");
+				}
+			}
+
+			// --- DELETE CHAT FLOW ---
+			async function deleteCurrentChat() {
+				const confirmed = confirm(
+					"Are you sure you want to completely delete this chat? This cannot be undone.",
+				);
+				if (!confirmed) return;
+
+				try {
+					const res = await fetchWithAuth(
+						`${API_BASE}/chat/${roomId}`,
+						{
+							method: "DELETE",
+						},
+					);
+
+					if (!res.ok)
+						throw new Error("Failed to delete chat on the server.");
+
+					alert("Chat deleted successfully.");
+					backToUsers();
+				} catch (error) {
+					console.error("Delete Error:", error);
+					alert("An error occurred while deleting the chat.");
+				}
+			}
+
+			// --- SOCKET.IO FLOW (Real-Time) ---
+			function connectSocket() {
+				if (!socket) {
+					socket = io(SOCKET_URL, { auth: { token: accessToken } });
+				} else {
+					// Update token and reconnect if socket exists
+					socket.auth.token = accessToken;
+					socket.connect();
+				}
+
+				socket.on("connect", () => {
+					socket.emit("join", { roomId });
+				});
+
+				socket.on("connect_error", async (err) => {
+					const refreshed = await refreshAccessToken();
+					if (refreshed) {
+						socket.auth.token = accessToken;
+						socket.connect();
+					} else {
+						alert(
+							"Session expired permanently. Please reload and log in.",
+						);
+					}
+				});
+
+				socket.on("message", (message) => {
+					appendMessageToUI(message);
+				});
+
+				socket.on("chat_deleted", () => {
+					backToUsers();
+				});
+			}
+
+			function sendSocketMessage() {
+				const input = document.getElementById("message-input");
+				const payload = input.value.trim();
+				if (!payload) return;
+
+				const messagePayload = {
+					roomId,
+					payload,
+					senderId: currentUserId,
+				};
+				socket.emit("message", messagePayload);
+
+				appendMessageToUI(messagePayload);
+				input.value = "";
+			}
+
+			// Quality of life: Press Enter to send
+			function handleKeyPress(event) {
+				if (event.key === "Enter") {
+					sendSocketMessage();
+				}
+			}
+
+			function backToUsers() {
+				if (socket) {
+					socket.off("message");
+					socket.off("chat_deleted");
+					socket.disconnect();
+				}
+				document.getElementById("chat-section").classList.add("hidden");
+				document
+					.getElementById("setup-section")
+					.classList.remove("hidden");
+				roomId = null;
+			}
+
+			// --- UTILS ---
+			function appendMessageToUI(msg) {
+				const chatBox = document.getElementById("chat-box");
+				const div = document.createElement("div");
+
+				const isSelf = msg.senderId === currentUserId;
+				console.log(currentUserId)
+				div.className = `msg ${isSelf ? "self" : ""}`;
+
+				div.textContent = msg.payload;
+
+				chatBox.appendChild(div);
+				chatBox.scrollTop = chatBox.scrollHeight;
+			}
+		</script>
+	</body>
+</html>
