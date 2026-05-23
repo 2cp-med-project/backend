@@ -1,6 +1,6 @@
-import { Schema, model, mongoose } from "mongoose";
+import mongoose from "mongoose";
 
-const doctorSchema = new Schema(
+const doctorSchema = new mongoose.Schema(
 	{
 		firstName: { type: String, required: true, trim: true },
 		lastName: { type: String, required: true, trim: true },
@@ -26,8 +26,12 @@ const doctorSchema = new Schema(
 		specialization: { type: String, trim: true },
 		licenseNumber: {
 			type: String,
-			unique: true,
 			trim: true,
+			default: undefined,
+			index: {
+				unique: true,
+				sparse: true,
+			},
 		},
 
 		patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Patient" }],
@@ -37,10 +41,7 @@ const doctorSchema = new Schema(
 		isActive: { type: Boolean, default: true },
 		socketId: { type: String, default: null },
 	},
-	{
-		timestamps: true,
-		minimize: false,
-	},
+	{ timestamps: true },
 );
 
 export default mongoose.model("Doctor", doctorSchema);

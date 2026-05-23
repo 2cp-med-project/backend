@@ -8,12 +8,8 @@ import usersRoutes from "./modules/users/users.routes.js";
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  res.status(200).json({ message: "API is running..." });
-});
-
-router.use("/access/", accessRoutes);
-router.use("/auth/", authRoutes);
+router.use("/access", accessRoutes);
+router.use("/auth", authRoutes);
 router.use("/chat", chatRoutes);
 router.use("/chatbot", chatbotRoutes);
 router.use("/records", recordsRoutes);

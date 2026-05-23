@@ -37,13 +37,10 @@ const patientSchema = new Schema(
 
 		otpVerified: { type: Boolean, default: false },
 		fcmtoken: { type: String, default: null },
-
+		
 		isActive: { type: Boolean, default: true },
 	},
-	{
-		timestamps: true,
-		minimize: false,
-	},
+	{ timestamps: true },
 );
 
 export default mongoose.model("Patient", patientSchema);

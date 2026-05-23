@@ -1,9 +1,9 @@
-import { Schema, model } from "mongoose";
+import mongoose from "mongoose";
 
-const ConversationSchema = new Schema(
+const ConversationSchema = new mongoose.Schema(
 	{
 		userId: { type: String, required: true, index: true },
-		title: { type: String, default: "New Conversation" },
+		title: { type: String, default: "Nouvelle conversation" },
 	},
 	{
 		timestamps: true,
@@ -11,4 +11,4 @@ const ConversationSchema = new Schema(
 	},
 );
 
-export const Conversation = model("Conversation", ConversationSchema);
+export default mongoose.model("Conversation", ConversationSchema);
