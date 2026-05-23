@@ -1,3 +1,8 @@
 node_modules
-package-lock.json
+.env.sample
+.git
+.gitignore
+Dockerfile
+.dockerignore
 eslint.config.js
+README.md
