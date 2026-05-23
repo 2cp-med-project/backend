@@ -46,10 +46,7 @@ const consultationSchema = new mongoose.Schema(
 
 		followUpDate: { type: Date, default: null },
 	},
-	{
-		timestamps: true,
-		minimize: false,
-	},
+	{ timestamps: true },
 );
 
 export default mongoose.model("Consultation", consultationSchema);

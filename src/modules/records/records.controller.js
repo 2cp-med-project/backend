@@ -11,7 +11,6 @@ async function createConsultation(req, res) {
 	const { id, patients } = req.user || {};
 
 	const {
-		doctorId,
 		patientId,
 		date,
 		status,
@@ -32,24 +31,15 @@ async function createConsultation(req, res) {
 		additionalTests,
 	} = req.body || {};
 
-	if (doctorId !== id) {
-		res.status(403).json({
-			message:
-				"Unauthorized: Doctor ID does not match authenticated user",
-		});
-		return;
-	}
-
 	if (!patients.includes(patientId)) {
-		res.status(403).json({
+		return res.status(403).json({
 			message:
 				"Unauthorized: Doctor does not have access to this patient",
 		});
-		return;
 	}
 
 	try {
-		const doctor = await Doctor.findById(doctorId, { _id: 1 });
+		const doctor = await Doctor.findById(id, { _id: 1 });
 		const patient = await Patient.findById(patientId, { _id: 1 });
 
 		if (!doctor) {
@@ -63,7 +53,7 @@ async function createConsultation(req, res) {
 		}
 
 		const consultation = new Consultation({
-			doctorId,
+			doctorId: id,
 			patientId,
 			date,
 			status,
@@ -83,6 +73,7 @@ async function createConsultation(req, res) {
 			systemReview,
 			additionalTests,
 		});
+
 		await consultation.save();
 		res.status(201).json(consultation);
 	} catch (error) {

@@ -12,17 +12,14 @@ if (!admin.apps.length) {
 	});
 }
 
-export async function sendPushNotification(fcmToken, title, body, data = {}) {
+async function sendPushNotification(fcmToken, title, body, data = {}) {
 	const message = {
 		token: fcmToken,
 		notification: { title, body },
 		data,
 	};
 
-	try {
-		const response = await admin.messaging().send(message);
-		return response;
-	} catch (error) {
-		throw error;
-	}
+	return admin.messaging().send(message);
 }
+
+export default { sendPushNotification };

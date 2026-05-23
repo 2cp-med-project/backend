@@ -1,17 +1,16 @@
 import { Router } from "express";
-import {
-  getRoomMessages,
-  joinRoom,
-  sendMessage,
-  initiateChat,
-} from "./room.controller.js";
+
+import authorize from "../../middleware/role.js";
+import authMiddleware from "../../middleware/auth.js";
+import chatController from "./chat.controller.js";
 
 const router = Router();
 
-router.post("/initiate", initiateChat);
+router.use(authMiddleware.authenticate);
+router.use(authorize("doctor"));
 
-router.post("/join", joinRoom);
-router.post("/message", sendMessage);
-router.get("/messages/:roomId", getRoomMessages);
+router.post("/initiate", chatController.initiateChat);
+router.get("/messages/:roomId", chatController.getRoomMessages);
+router.delete("/:roomId", chatController.deleteChat);
 
 export default router;
