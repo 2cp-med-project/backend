@@ -32,12 +32,6 @@ const patientSchema = new mongoose.Schema({
       accepted: { type: Boolean, default: false },
     },
   ],
-
-  // ----------------- OTP Fields -----------------
-  otpVerified: { type: Boolean, default: false },
-  otpCode: String,
-  otpExpiresAt: Date,
-
   createdAt: { type: Date, default: Date.now },
   // apppointment field
   appointments: [
