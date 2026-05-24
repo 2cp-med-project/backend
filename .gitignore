@@ -1,5 +1,6 @@
 node_modules
-.dockerignore
 package-lock.json
+.dockerignore
 eslint.config.js
+.gitignore
 README.md
