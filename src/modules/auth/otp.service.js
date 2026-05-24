@@ -11,70 +11,60 @@ const VERIFY_SERVICE_SID = process.env.TWILIO_VERIFY_SERVICE_SID;
 
 // -------- REQUEST OTP --------
 async function generate(phone, role) {
-  if (!phone || !role || !["doctor", "patient"].includes(role)) {
-    throw new Error("Missing required fields");
-  }
+	// check user exists
+	const user =
+		role === "doctor"
+			? await Doctor.findOne({ phone })
+			: await Patient.findOne({ phone });
+	if (!user) throw new Error("User not found");
 
-  // check user exists
-  const user =
-    role === "doctor"
-      ? await Doctor.findOne({ phone })
-      : await Patient.findOne({ phone });
-  if (!user) throw new Error("User not found");
+	try {
+		// request OTP via Twilio Verify
+		const verification = await client.verify.v2
+			.services(VERIFY_SERVICE_SID)
+			.verifications.create({
+				to: phone,
+				channel: "sms",
+			});
 
-  try {
-    // request OTP via Twilio Verify
-    const verification = await client.verify.v2
-      .services(VERIFY_SERVICE_SID)
-      .verifications.create({
-        to: phone,
-        channel: "sms",
-      });
+		console.log(`OTP sent to ${phone}, status: ${verification.status}`);
+		return verification.status; // e.g., "pending"
+	} catch (error) {
+		console.error("Twilio OTP error:", error.message);
 
-    console.log(`OTP sent to ${phone}, status: ${verification.status}`);
-    return verification.status; // e.g., "pending"
-  } catch (err) {
-    console.error("Twilio OTP error:", err.message);
-    throw new Error("Failed to send OTP");
-  }
+		throw new Error("Failed to send OTP", { cause: error });
+	}
 }
 
 // -------- VERIFY OTP --------
 async function verify(phone, code, role) {
-  if (!phone || !code || !role || !["doctor", "patient"].includes(role)) {
-    throw new Error("Missing required fields");
-  }
+	
+	let verificationCheck;
+	try {
+		verificationCheck = await client.verify.v2
+			.services(VERIFY_SERVICE_SID)
+			.verificationChecks.create({ to: phone, code });
+	} catch (error) {
+		console.error("Twilio verify error:", error.message);
 
-  // check user exists
-  const user =
-    role === "doctor"
-      ? await Doctor.findOne({ phone })
-      : await Patient.findOne({ phone });
-  if (!user) throw new Error("User not found");
+		if (error.status === 404) {
+			throw new Error("OTP expired or not requested", { cause: error });
+		} else if (error.status === 429) {
+			throw new Error("Too many attempts, please try again later", {
+				cause: error,
+			});
+		}
 
-  try {
-    const verificationCheck = await client.verify.v2
-      .services(VERIFY_SERVICE_SID)
-      .verificationChecks.create({
-        to: phone,
-        code,
-      });
+		throw new Error("OTP verification service failed", { cause: error });
+	}
 
-    if (verificationCheck.status === "approved") {
-      // mark user as verified in DB
-      user.otpVerified = true;
-      await user.save();
-      return true;
-    } else {
-      throw new Error("Invalid OTP");
-    }
-  } catch (err) {
-    console.error("Twilio verify error:", err.message);
-    throw new Error("OTP verification failed");
-  }
+	if (verificationCheck.status === "approved") {
+		user.otpVerified = true;
+		await user.save();
+	}
+
+	throw new Error("Invalid OTP");
 }
 
-export default {
-  generate,
-  verify,
-};
+export default { generate, verify };
+

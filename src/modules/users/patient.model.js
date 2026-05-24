@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 const patientSchema = new mongoose.Schema({
@@ -45,10 +44,10 @@ const patientSchema = new mongoose.Schema({
     date: { type: Date, required: true },
     status: { 
       type: String, 
-      enum: ["scheduled", "done", "cancelled"], 
+      enum: ["scheduled", "done"], 
       default: "scheduled" 
     },
-    location: String, 
+    doctername: String, 
     time:{type:String, required:true},
     appointmentnotes: String,
     reminders: [
@@ -58,8 +57,16 @@ const patientSchema = new mongoose.Schema({
       }
     ]
   }
-]
-
-});
+],
+otpVerified: { type: Boolean, default: false },
+fcmtoken: { type: String, default: null },
+isActive: { type: Boolean, default: true },
+	},
+	{ timestamps: true },
+);
 
 export default mongoose.model("Patient", patientSchema);
+
+
+
+
