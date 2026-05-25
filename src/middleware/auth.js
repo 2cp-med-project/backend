@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { redisClient } from "../app.js";
+import { redisClient } from "../config/redis.js";
 
 async function verifyUserToken(token) {
 	const decoded = jwt.verify(token, process.env.JWT_SECRET);
