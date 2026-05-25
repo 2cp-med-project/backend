@@ -3,8 +3,6 @@ import OTPService from "./otp.service.js";
 import Doctor from "../users/doctor.model.js";
 import Patient from "../users/patient.model.js";
 
-import { redisClient } from "../../app.js";
-
 async function signUp(req, res) {
 	// #swagger.tags = ['Auth']
 	// #swagger.summary = 'Register a new user (doctor or patient)'
@@ -87,19 +85,6 @@ async function logIn(req, res) {
 	}
 }
 
-async function blacklistToken(token) {
-	const { jti, exp } = token;
-
-	const now = Math.floor(Date.now() / 1000);
-	const remainingTime = exp - now;
-
-	if (remainingTime > 0) {
-		await redisClient.set(`blacklist:jti:${jti}`, "true", {
-			EX: remainingTime,
-		});
-	}
-}
-
 async function logOut(req, res) {
 	// #swagger.tags = ['Auth']
 	// #swagger.security = [{ BearerAuth: [] }]
@@ -120,7 +105,7 @@ async function logOut(req, res) {
 		user.refreshToken = null;
 		user.otpVerified = false; // require OTP verification on next login
 
-		await Promise.all([user.save(), blacklistToken(req.user)]);
+		await Promise.all([user.save(), authService.blacklistToken(req.user)]);
 		res.status(200).json({ message: "Logged out successfully" });
 	} catch (error) {
 		res.status(500).json({ message: error.message });

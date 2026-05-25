@@ -13,6 +13,12 @@ This directory contains the core source code for the backend API, including:
 
 To start the Docker container in the background, run the following command:
 
+for development build:
 ```bash
-docker compose up -d
+docker compose up backend-dev
+```
+
+for production build:
+```bash
+docker compose up backend-prod --build
 ```
