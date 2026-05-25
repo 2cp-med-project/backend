@@ -1,12 +1,16 @@
-FROM node:22-alpine
-
-ENV NODE_ENV=production
+FROM node:22-alpine AS base
 
 WORKDIR /usr/src/app
 
+RUN chown node:node /usr/src/app
+
+
+
+FROM base AS dev
+
 COPY --chown=node:node package*.json ./
 
-RUN npm ci --omit=dev
+RUN npm install
 
 COPY --chown=node:node . .
 
@@ -14,4 +18,20 @@ USER node
 
 EXPOSE 5000
 
-CMD ["node", "src/app.js"]
+CMD ["npm", "run", "dev"]
+
+
+
+FROM base AS prod
+
+COPY --chown=node:node package*.json ./
+
+RUN npm ci --omit=dev && npm cache clean --force
+
+COPY --chown=node:node . .
+
+USER node
+
+EXPOSE 5000
+
+CMD [ "node", "src/app.js" ]

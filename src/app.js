@@ -62,6 +62,8 @@ app.use("/api", routes);
 app.get("/api", (req, res) =>
 	res.status(200).json({ message: "API is running..." }),
 );
+
+app.get("/ping", (req, res) => res.status(200).json({ message: "Pong" }));
 app.get("/health", (req, res) =>
 	res.status(200).json({ status: "OK", timestamp: new Date() }),
 );

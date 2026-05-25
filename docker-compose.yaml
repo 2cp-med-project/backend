@@ -1,10 +1,30 @@
 services:
-    backend:
-        build: .
+    backend-dev:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: dev
         ports:
             - "5000:5000"
         environment:
             - REDIS_URL=redis://redis:6379
+            - NODE_ENV=developement
+        depends_on:
+            - redis
+        volumes:
+            - .:/usr/src/app:z
+            - /usr/src/app/node_modules
+
+    backend-prod:
+        build:
+            context: .
+            dockerfile: Dockerfile
+            target: prod
+        ports:
+            - "5000:5000"
+        environment:
+            - REDIS_URL=redis://redis:6379
+            - NODE_ENV=production
         depends_on:
             - redis
 
