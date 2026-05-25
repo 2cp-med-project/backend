@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import Patient from "../users/patient.model.js";
 import Doctor from "../users/doctor.model.js";
-import { redisClient } from "../../app.js";
+import { redisClient } from "../../config/redis.js";
 
 async function checkPassword(plainPassword, phone, role) {
 	const user =

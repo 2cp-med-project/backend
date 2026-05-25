@@ -1,6 +1,6 @@
 import { HumanMessage } from "@langchain/core/messages";
 
-import { medicalAgentApp } from "../../app.js";
+import { getMedicalAgentApp } from "../../config/agent.js";
 import Conversation from "./conversation.model.js";
 import LLM from "../../config/llm.js";
 
@@ -25,6 +25,8 @@ async function startChat(req, res) {
 
 	const { id } = req.user;
 	const { prompt } = req.body;
+
+	const medicalAgentApp = getMedicalAgentApp();
 
 	if (!id) return res.status(400).json({ error: "patient id is required" });
 	if (!prompt) return res.status(400).json({ error: "prompt is required" });
@@ -90,6 +92,8 @@ async function handleChat(req, res) {
 	const { thread_id } = req.params;
 	const { prompt } = req.body;
 
+	const medicalAgentApp = getMedicalAgentApp();
+
 	if (!thread_id)
 		return res.status(400).json({ error: "thread_id is required" });
 	if (!prompt) return res.status(400).json({ error: "prompt is required" });
@@ -142,10 +146,12 @@ async function retrieveChat(req, res) {
 	// #swagger.description = 'Roles: patient'
 	// #swagger.parameters['thread_id'] = { description: 'The ID of the conversation thread to retrieve.' }
 
-	try {
-		const { id } = req.user;
-		const { thread_id } = req.params;
+	const { id } = req.user;
+	const { thread_id } = req.params;
 
+	const medicalAgentApp = getMedicalAgentApp();
+
+	try {
 		if (!thread_id)
 			return res.status(400).json({ error: "thread_id is required" });
 
@@ -174,10 +180,12 @@ async function deleteChat(req, res) {
 	// #swagger.description = 'Roles: patient'
 	// #swagger.parameters['thread_id'] = { description: 'The ID of the conversation thread to delete.' }
 
-	try {
-		const { id } = req.user;
-		const { thread_id } = req.params;
+	const { id } = req.user;
+	const { thread_id } = req.params;
 
+	const medicalAgentApp = getMedicalAgentApp();
+
+	try {
 		if (!thread_id)
 			return res.status(400).json({ error: "thread_id is required" });
 
