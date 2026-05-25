@@ -15,10 +15,10 @@ To start the Docker container in the background, run the following command:
 
 for development build:
 ```bash
-docker compose up backend-dev --attach-dependencies
+docker compose up backend-dev
 ```
 
 for production build:
 ```bash
-docker compose up backend-prod --build --attach-dependencies
+docker compose up backend-prod --build
 ```
