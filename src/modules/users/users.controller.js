@@ -272,7 +272,7 @@ async function updateProfile(req, res) {
 			return;
 		}
 
-		const opts = { new: true, runValidators: true };
+		const opts = { returnDocument: "after", runValidators: true }; // use returnDocument: "after" instead of new: true
 
 		const updatedUser =
 			role === "doctor"

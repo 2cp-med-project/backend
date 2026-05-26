@@ -53,7 +53,6 @@ async function verify(phone, code, role) {
 	} catch (error) {
 		console.error("Twilio verify error:", error.message);
 
-		// Map specific Twilio errors to better messages if desired
 		if (error.status === 404) {
 			throw new Error("OTP expired or not requested", { cause: error });
 		} else if (error.status === 429) {
@@ -66,12 +65,10 @@ async function verify(phone, code, role) {
 	}
 
 	if (verificationCheck.status === "approved") {
-		// mark user as verified in DB
 		user.otpVerified = true;
 		await user.save();
 	}
 
-	// This now correctly propagates without being swallowed by the catch block
 	throw new Error("Invalid OTP");
 }
 

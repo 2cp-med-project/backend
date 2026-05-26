@@ -1,12 +1,12 @@
 import { Router } from "express";
 
 import authorize from "../../middleware/role.js";
-import authMiddleware from "../../middleware/auth.js";
+import { authenticate } from "../../middleware/auth.js";
 import chatController from "./chat.controller.js";
 
 const router = Router();
 
-router.use(authMiddleware.authenticate);
+router.use(authenticate);
 router.use(authorize("doctor"));
 
 router.post("/initiate", chatController.initiateChat);
