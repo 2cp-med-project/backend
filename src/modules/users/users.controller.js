@@ -210,7 +210,7 @@ async function getProfile(req, res) {
 						emergencyContact: 1,
 						medicalResume: 1,
 						createdAt: 1,
-					}; //TODO: add the list of consultations
+					};
 
 		const user =
 			role === "doctor"

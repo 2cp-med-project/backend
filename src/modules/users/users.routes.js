@@ -24,15 +24,14 @@ router.get(
 	doctorAccess,
 	validate(validationSchema.getUserByIdSchema),
 	controller.getPatientById,
-	controller.getProfile, //added this
-	controller.updateProfile, //and this
 );
 
-// router.get(
-//   "/patients",
-//   authorize("doctor"),
-//   controller.getPatients,
-// );
+router.get(
+	"/patients",
+	authorize("admin"),
+	validate(validationSchema.getPatientsSchema),
+	controller.getPatients,
+);
 // WARN: This endpoint is not protected by doctorAccess middleware, so it will return all patients in the system. Use with caution.
 
 router.get(
