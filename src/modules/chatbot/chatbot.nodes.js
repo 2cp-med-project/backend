@@ -5,7 +5,7 @@ import {
 } from "@langchain/core/messages";
 import { END, Command } from "@langchain/langgraph";
 
-import LLM from "../../config/llm.js";
+import { LLM } from "../../config/llm.js";
 import schema from "./chatbot.schema.js";
 import chatbotTools from "./chatbot.tools.js";
 

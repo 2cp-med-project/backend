@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import Patient from "../users/patient.model.js";
 import Doctor from "../users/doctor.model.js";
+// import { redisClient } from "../../config/redis.js";
 
 async function checkPassword(plainPassword, phone, role) {
 	const user =
@@ -52,6 +53,19 @@ function generateToken(id, role, time = "30m") {
 	});
 }
 
+// async function blacklistToken(token) {
+// 	const { jti, exp } = token;
+
+// 	const now = Math.floor(Date.now() / 1000);
+// 	const remainingTime = exp - now;
+
+// 	if (remainingTime > 0) {
+// 		await redisClient.set(`blacklist:jti:${jti}`, "true", {
+// 			EX: remainingTime,
+// 		});
+// 	}
+// }
+
 async function generatehash(password) {
 	return await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS) || 10);
 }
@@ -61,4 +75,5 @@ export default {
 	generateToken,
 	generatehash,
 	verifyToken,
+	// blacklistToken,
 };

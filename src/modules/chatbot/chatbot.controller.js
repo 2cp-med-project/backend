@@ -1,8 +1,8 @@
 import { HumanMessage } from "@langchain/core/messages";
 
-import { medicalAgentApp } from "../../app.js";
+import { getMedicalAgentApp } from "../../config/agent.js";
+import { LLM } from "../../config/llm.js";
 import Conversation from "./conversation.model.js";
-import LLM from "../../config/llm.js";
 
 const getConfig = (thread_id) => ({ configurable: { thread_id } });
 
@@ -28,6 +28,8 @@ async function startChat(req, res) {
 
 	if (!id) return res.status(400).json({ error: "patient id is required" });
 	if (!prompt) return res.status(400).json({ error: "prompt is required" });
+
+	const medicalAgentApp = getMedicalAgentApp();
 
 	const conversation = new Conversation({
 		userId: id,
@@ -99,6 +101,8 @@ async function handleChat(req, res) {
 		return res.status(404).json({ error: "Conversation not found" });
 	}
 
+	const medicalAgentApp = getMedicalAgentApp();
+
 	const config = getConfig(thread_id);
 	const preRunState = await medicalAgentApp.getState(config);
 
@@ -142,10 +146,10 @@ async function retrieveChat(req, res) {
 	// #swagger.description = 'Roles: patient'
 	// #swagger.parameters['thread_id'] = { description: 'The ID of the conversation thread to retrieve.' }
 
-	try {
-		const { id } = req.user;
-		const { thread_id } = req.params;
+	const { id } = req.user;
+	const { thread_id } = req.params;
 
+	try {
 		if (!thread_id)
 			return res.status(400).json({ error: "thread_id is required" });
 
@@ -153,7 +157,7 @@ async function retrieveChat(req, res) {
 		if (!conversation || String(conversation.userId) !== String(id)) {
 			return res.status(404).json({ error: "Conversation not found" });
 		}
-
+		const medicalAgentApp = getMedicalAgentApp();
 		const state = await medicalAgentApp.getState(getConfig(thread_id));
 
 		return res.status(200).json({
@@ -174,10 +178,10 @@ async function deleteChat(req, res) {
 	// #swagger.description = 'Roles: patient'
 	// #swagger.parameters['thread_id'] = { description: 'The ID of the conversation thread to delete.' }
 
-	try {
-		const { id } = req.user;
-		const { thread_id } = req.params;
+	const { id } = req.user;
+	const { thread_id } = req.params;
 
+	try {
 		if (!thread_id)
 			return res.status(400).json({ error: "thread_id is required" });
 
@@ -190,6 +194,7 @@ async function deleteChat(req, res) {
 			return res.status(404).json({ error: "Conversation not found" });
 		}
 
+		const medicalAgentApp = getMedicalAgentApp();
 		await medicalAgentApp.checkpointer.deleteThread(thread_id);
 
 		console.log(`${logTag()} 🗑️  deleteChat: thread=${thread_id}`);
