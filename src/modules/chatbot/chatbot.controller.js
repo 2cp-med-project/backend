@@ -35,8 +35,8 @@ async function startChat(req, res) {
 		userId: id,
 		title: "Nouvelle conversation",
 	});
-	const thread_id = conversation.id;
-	const config = getConfig(thread_id);
+	const threadId = conversation.id;
+	const config = getConfig(threadId);
 
 	try {
 		const titlePrompt = `Générez un titre court (3 à 5 mots) pour cette conversation. Ne renvoyez QUE le titre.\nMessage : ${prompt}`;
@@ -58,10 +58,10 @@ async function startChat(req, res) {
 			titleResponse.content.toString().trim() || "Nouvelle conversation";
 		await conversation.save();
 
-		console.log(`${logTag()} 🚀 startChat: thread=${thread_id}`);
+		console.log(`${logTag()} 🚀 startChat: thread=${threadId}`);
 
 		return res.json({
-			thread_id,
+			threadId,
 			title: conversation.title,
 			response: response.content,
 		});
@@ -72,7 +72,7 @@ async function startChat(req, res) {
 		);
 
 		try {
-			await medicalAgentApp.checkpointer.deleteThread(thread_id);
+			await medicalAgentApp.checkpointer.deleteThread(threadId);
 		} catch (cleanupErr) {
 			console.error(
 				"[startChat] Failed to clean up checkpointer:",
@@ -89,24 +89,24 @@ async function handleChat(req, res) {
 	// #swagger.security = [{ bearerAuth: [] }]
 	// #swagger.summary = 'Send a new message to an existing chat thread and get the agent\'s response'
 	// #swagger.description = 'Roles: patient'
-	// #swagger.parameters['thread_id'] = { description: 'The ID of the conversation thread.' }
+	// #swagger.parameters['threadId'] = { description: 'The ID of the conversation thread.' }
 
 	const { id } = req.user;
-	const { thread_id } = req.params;
+	const { threadId } = req.params;
 	const { prompt } = req.body;
 
-	if (!thread_id)
-		return res.status(400).json({ error: "thread_id is required" });
+	if (!threadId)
+		return res.status(400).json({ error: "threadId is required" });
 	if (!prompt) return res.status(400).json({ error: "prompt is required" });
 
-	const conversation = await Conversation.findById(thread_id).lean();
+	const conversation = await Conversation.findById(threadId).lean();
 	if (!conversation || String(conversation.userId) !== String(id)) {
 		return res.status(404).json({ error: "Conversation not found" });
 	}
 
 	const medicalAgentApp = getMedicalAgentApp();
 
-	const config = getConfig(thread_id);
+	const config = getConfig(threadId);
 	const preRunState = await medicalAgentApp.getState(config);
 
 	try {
@@ -118,10 +118,10 @@ async function handleChat(req, res) {
 		const response = state.messages?.at(-1);
 		if (!response) throw new Error("Agent returned no response");
 
-		console.log(`${logTag()} 💬 handleChat: thread=${thread_id}`);
+		console.log(`${logTag()} 💬 handleChat: thread=${threadId}`);
 
 		return res.json({
-			thread_id,
+			threadId,
 			title: conversation.title,
 			response: response.content,
 		});
@@ -135,7 +135,7 @@ async function handleChat(req, res) {
 			if (preRunState && preRunState.values) {
 				await medicalAgentApp.updateState(config, preRunState.values);
 			} else {
-				await medicalAgentApp.checkpointer.deleteThread(thread_id);
+				await medicalAgentApp.checkpointer.deleteThread(threadId);
 			}
 		} catch (cleanupErr) {
 			console.error("[handleChat] Failed to revert state:", cleanupErr);
@@ -145,29 +145,52 @@ async function handleChat(req, res) {
 	}
 }
 
+async function retrieveAllChats(req, res) {
+	// #swagger.tags = ['Chatbot']
+	// #swagger.security = [{ bearerAuth: [] }]
+	// #swagger.summary = 'Retrieve user chat history'
+	// #swagger.description = 'Roles: patient'
+
+	const { id } = req.user;
+
+	try {
+		const conversations = await Conversation.find({ userId: id })
+			.select("_id userId title")
+			.sort({ updatedAt: -1 })
+			.lean();
+
+		return res
+			.status(200)
+			.json({ success: true, chats: conversations || [] });
+	} catch (error) {
+		console.error("[retrieveAllChats] error:", error);
+		return res.status(500).json({ error: "Internal Server Error" });
+	}
+}
+
 async function retrieveChat(req, res) {
 	// #swagger.tags = ['Chatbot']
 	// #swagger.security = [{ bearerAuth: [] }]
 	// #swagger.summary = 'Fetch the entire message history and title of a specific chat thread'
 	// #swagger.description = 'Roles: patient'
-	// #swagger.parameters['thread_id'] = { description: 'The ID of the conversation thread to retrieve.' }
+	// #swagger.parameters['threadId'] = { description: 'The ID of the conversation thread to retrieve.' }
 
 	const { id } = req.user;
-	const { thread_id } = req.params;
+	const { threadId } = req.params;
 
 	try {
-		if (!thread_id)
-			return res.status(400).json({ error: "thread_id is required" });
+		if (!threadId)
+			return res.status(400).json({ error: "threadId is required" });
 
-		const conversation = await Conversation.findById(thread_id).lean();
+		const conversation = await Conversation.findById(threadId).lean();
 		if (!conversation || String(conversation.userId) !== String(id)) {
 			return res.status(404).json({ error: "Conversation not found" });
 		}
 		const medicalAgentApp = getMedicalAgentApp();
-		const state = await medicalAgentApp.getState(getConfig(thread_id));
+		const state = await medicalAgentApp.getState(getConfig(threadId));
 
 		return res.status(200).json({
-			thread_id,
+			threadId,
 			title: conversation.title,
 			history: formatMessages(state.values?.messages || []),
 		});
@@ -182,17 +205,17 @@ async function deleteChat(req, res) {
 	// #swagger.security = [{ bearerAuth: [] }]
 	// #swagger.summary = 'Permanently delete a chat thread from the database and clear the agent checkpoint state'
 	// #swagger.description = 'Roles: patient'
-	// #swagger.parameters['thread_id'] = { description: 'The ID of the conversation thread to delete.' }
+	// #swagger.parameters['threadId'] = { description: 'The ID of the conversation thread to delete.' }
 
 	const { id } = req.user;
-	const { thread_id } = req.params;
+	const { threadId } = req.params;
 
 	try {
-		if (!thread_id)
-			return res.status(400).json({ error: "thread_id is required" });
+		if (!threadId)
+			return res.status(400).json({ error: "threadId is required" });
 
 		const conversation = await Conversation.findOneAndDelete({
-			_id: thread_id,
+			_id: threadId,
 			userId: id,
 		});
 
@@ -201,9 +224,9 @@ async function deleteChat(req, res) {
 		}
 
 		const medicalAgentApp = getMedicalAgentApp();
-		await medicalAgentApp.checkpointer.deleteThread(thread_id);
+		await medicalAgentApp.checkpointer.deleteThread(threadId);
 
-		console.log(`${logTag()} 🗑️  deleteChat: thread=${thread_id}`);
+		console.log(`${logTag()} 🗑️  deleteChat: thread=${threadId}`);
 
 		return res.json({ success: true });
 	} catch (error) {
@@ -216,4 +239,10 @@ function logTag() {
 	return `[${new Date().toLocaleTimeString()}]`;
 }
 
-export default { startChat, handleChat, retrieveChat, deleteChat };
+export default {
+	retrieveAllChats,
+	retrieveChat,
+	startChat,
+	handleChat,
+	deleteChat,
+};

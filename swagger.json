@@ -611,6 +611,77 @@
         ]
       }
     },
+    "/api/chatbot/": {
+      "get": {
+        "tags": [
+          "Chatbot"
+        ],
+        "summary": "Retrieve user chat history",
+        "description": "Roles: patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Chatbot"
+        ],
+        "summary": "Initialize a new chat thread with the AI agent",
+        "description": "Roles: patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "prompt": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/chatbot/{threadId}": {
       "get": {
         "tags": [
@@ -775,51 +846,6 @@
             "bearerAuth": []
           }
         ]
-      }
-    },
-    "/api/chatbot/": {
-      "post": {
-        "tags": [
-          "Chatbot"
-        ],
-        "summary": "Initialize a new chat thread with the AI agent",
-        "description": "Roles: patient",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
-          },
-          "500": {
-            "description": "Internal Server Error"
-          }
-        },
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "prompt": {
-                    "example": "any"
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/api/records/consultation": {
