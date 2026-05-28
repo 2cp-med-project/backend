@@ -642,7 +642,7 @@
         "tags": [
           "Chatbot"
         ],
-        "summary": "Initialize a new chat thread with the AI agent",
+        "summary": "Start a new chat",
         "description": "Roles: patient",
         "responses": {
           "200": {
@@ -687,7 +687,7 @@
         "tags": [
           "Chatbot"
         ],
-        "summary": "Fetch the entire message history and title of a specific chat thread",
+        "summary": "Fetch the entire message history and title of a specific chat",
         "description": "Roles: patient",
         "parameters": [
           {
@@ -696,15 +696,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "thread_id",
-            "description": "The ID of the conversation thread to retrieve.",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
+            },
+            "description": "The ID of the conversation thread to retrieve."
           }
         ],
         "responses": {
@@ -737,7 +730,7 @@
         "tags": [
           "Chatbot"
         ],
-        "summary": "Send a new message to an existing chat thread and get the agent\\'s response",
+        "summary": "Send a new message to an existing chat and get the agent's response",
         "description": "Roles: patient",
         "parameters": [
           {
@@ -746,15 +739,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "thread_id",
-            "description": "The ID of the conversation thread.",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
+            },
+            "description": "The ID of the conversation thread."
           }
         ],
         "responses": {
@@ -801,7 +787,7 @@
         "tags": [
           "Chatbot"
         ],
-        "summary": "Permanently delete a chat thread from the database and clear the agent checkpoint state",
+        "summary": "Permanently delete a chat from the database",
         "description": "Roles: patient",
         "parameters": [
           {
@@ -810,15 +796,8 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "thread_id",
-            "description": "The ID of the conversation thread to delete.",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
+            },
+            "description": "The ID of the conversation thread to delete."
           }
         ],
         "responses": {
