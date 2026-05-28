@@ -24,10 +24,12 @@ const patientSchema = new Schema(
 			enum: ["patient"],
 			immutable: true,
 		},
-		refreshToken: { type: String, unique: true, sparse: true },
 
 		cardQRCode: { type: String, default: null },
-		medicalResume: { type: String, trim: true },
+
+		refreshToken: { type: String, unique: true, sparse: true },
+		otpVerified: { type: Boolean, default: false },
+		fcmtoken: { type: String, default: null },
 
 		emergencyContact: {
 			name: { type: String, trim: true },
@@ -35,9 +37,6 @@ const patientSchema = new Schema(
 			relation: { type: String, trim: true },
 		},
 
-		otpVerified: { type: Boolean, default: false },
-		fcmtoken: { type: String, default: null },
-		
 		isActive: { type: Boolean, default: true },
 	},
 	{ timestamps: true },

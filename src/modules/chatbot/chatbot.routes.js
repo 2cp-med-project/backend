@@ -8,9 +8,9 @@ const router = express.Router();
 router.use(authenticate);
 router.use(authorize("patient"));
 
-router.get("/:thread_id", chatbotController.retrieveChat);
+router.get("/:threadId", chatbotController.retrieveChat);
 router.post("/", chatbotController.startChat);
-router.post("/:thread_id", chatbotController.handleChat);
-router.delete("/:thread_id", chatbotController.deleteChat);
+router.post("/:threadId", chatbotController.handleChat);
+router.delete("/:threadId", chatbotController.deleteChat);
 
 export default router;

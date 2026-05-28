@@ -65,8 +65,11 @@ async function startChat(req, res) {
 			title: conversation.title,
 			response: response.content,
 		});
-	} catch (err) {
-		console.error("[startChat] error, rolling back:", err);
+	} catch (error) {
+		console.error(
+			"[startChat] error, rolling back graph state:",
+			error.message,
+		);
 
 		try {
 			await medicalAgentApp.checkpointer.deleteThread(thread_id);
@@ -122,8 +125,11 @@ async function handleChat(req, res) {
 			title: conversation.title,
 			response: response.content,
 		});
-	} catch (err) {
-		console.error("[handleChat] error, rolling back graph state:", err);
+	} catch (error) {
+		console.error(
+			"[handleChat] error, rolling back graph state:",
+			error.message,
+		);
 
 		try {
 			if (preRunState && preRunState.values) {
@@ -165,8 +171,8 @@ async function retrieveChat(req, res) {
 			title: conversation.title,
 			history: formatMessages(state.values?.messages || []),
 		});
-	} catch (err) {
-		console.error("[retrieveChat] error:", err);
+	} catch (error) {
+		console.error("[retrieveChat] error:", error.message);
 		return res.status(500).json({ error: "Internal Server Error" });
 	}
 }
@@ -200,8 +206,8 @@ async function deleteChat(req, res) {
 		console.log(`${logTag()} 🗑️  deleteChat: thread=${thread_id}`);
 
 		return res.json({ success: true });
-	} catch (err) {
-		console.error("[deleteChat] error:", err);
+	} catch (error) {
+		console.error("[deleteChat] error:", error.message);
 		return res.status(500).json({ error: "Internal Server Error" });
 	}
 }
