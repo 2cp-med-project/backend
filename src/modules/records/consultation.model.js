@@ -44,6 +44,8 @@ const consultationSchema = new mongoose.Schema(
 		notes: { type: String, trim: true },
 		attachments: [{ type: String }],
 
+		resume: { type: String, trim: true, default: null },
+
 		followUpDate: { type: Date, default: null },
 	},
 	{ timestamps: true },
