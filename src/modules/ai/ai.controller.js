@@ -1,1 +1,0 @@
-//Handles: AI summary of medical file (add resume AI ,consult file resumetation, AI diagnosis suggestions...)

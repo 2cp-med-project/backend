@@ -20,4 +20,4 @@ function authorize(...allowedRoles) {
 	};
 }
 
-export default authorize;
+export { authorize };

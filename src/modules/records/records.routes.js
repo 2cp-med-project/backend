@@ -2,10 +2,10 @@ import express from "express";
 import controller from "./records.controller.js";
 import validationschema from "./records.validation.js";
 
-import authorize from "../../middleware/role.js";
 import { authenticate } from "../../middleware/auth.js";
-import doctorAccess from "../../middleware/doctorAccess.js";
+import { authorize } from "../../middleware/role.js";
 import { validate } from "../../middleware/validation.js";
+import { doctorAccess } from "../../middleware/doctorAccess.js";
 
 const router = express.Router();
 
