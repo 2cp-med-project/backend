@@ -6,7 +6,4 @@ const router = express.Router();
 router.use(authenticate); 
 // FCM token registration
 router.post("/register-fcmtoken",authenticate, controller.registerFcmToken);
-// Patient response to doctor access request
-router.post("/patient-response",authenticate ,controller.patientResponse);
-
 export default router;

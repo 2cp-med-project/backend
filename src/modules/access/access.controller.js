@@ -1,5 +1,5 @@
 import Access from "./access.model.js";
-
+import notifService from "../notifications/notif.service.js";
 //Doctor sends access request
 
 async function requestAccess(req, res) {
@@ -24,6 +24,11 @@ async function requestAccess(req, res) {
     }
 
     const access = await Access.create(payload);
+	// 2. Trigger notification without awaiting (fire-and-forget)to not block the response related to the access save operation. Any errors in the notification will be logged but won't affect the API response.
+	 notifService.sendAccessRequestNotification(doctorId, patientId).catch(err =>
+      console.error("Unhandled notification error:", err)
+    );
+
 
     res.status(201).json(access);
   } catch (error) {
@@ -74,6 +79,9 @@ async function respondAccess(req, res) {
 
     access.status = status;
     await access.save();
+	sendPatientResponseNotification(patientId, access.doctor, accepted).catch(err =>
+      console.error("Unhandled notification error:", err)
+    );
 
     res.json(access);
   } catch (error) {

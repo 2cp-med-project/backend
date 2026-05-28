@@ -21,35 +21,8 @@ async function registerFcmToken(req, res) {
   }
 }
 
-//patient response to doctor access request
-async function patientResponse(req, res) {
-  //swagger.security = [{ "BearerAuth": [] }]
-  try {
-    const patientId = req.user.id; 
-    const { doctorId, accepted } = req.body;
 
-    if (!doctorId || accepted === undefined) {
-      return res.status(400).json({
-        error: "doctorId and accepted are required",
-      });
-    }
-
-    const acceptedBool = accepted === true || accepted === "true";
-
-    await service.sendPatientResponseNotification(
-      patientId,
-      doctorId,
-      acceptedBool
-    );
-
-    return res.status(200).json({
-      message: "Notification sent to doctor",
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-}
 export default {
   registerFcmToken,
-  patientResponse,
+  
 };

@@ -10,7 +10,7 @@ import { io, onlineUsers } from "./channels/socket.js";
     { $set: { fcmToken } }
   );
 }
- // Yahiaaaaa here add it to access
+ // Notify patient when doctor requests access to their medical record                                                                                                                                                            
 async function sendAccessRequestNotification(doctorId, patientId) {
   const doctor = await Doctor.findById(doctorId);
   if (!doctor) throw new Error("Doctor not found");

@@ -11,7 +11,7 @@ export async function addAppointment(req, res) {
       type,
       date,
       time,
-       location, appointmentnotes,
+      doctername, appointmentnotes,
     });
 
     res.status(201).json({ message: "Appointment added", appointment });
