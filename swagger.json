@@ -611,7 +611,7 @@
         ]
       }
     },
-    "/api/chatbot/{thread_id}": {
+    "/api/chatbot/{threadId}": {
       "get": {
         "tags": [
           "Chatbot"
@@ -620,13 +620,20 @@
         "description": "Roles: patient",
         "parameters": [
           {
-            "name": "thread_id",
+            "name": "threadId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
-            },
-            "description": "The ID of the conversation thread to retrieve."
+            }
+          },
+          {
+            "name": "thread_id",
+            "description": "The ID of the conversation thread to retrieve.",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -663,13 +670,20 @@
         "description": "Roles: patient",
         "parameters": [
           {
-            "name": "thread_id",
+            "name": "threadId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
-            },
-            "description": "The ID of the conversation thread."
+            }
+          },
+          {
+            "name": "thread_id",
+            "description": "The ID of the conversation thread.",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -720,13 +734,20 @@
         "description": "Roles: patient",
         "parameters": [
           {
-            "name": "thread_id",
+            "name": "threadId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
-            },
-            "description": "The ID of the conversation thread to delete."
+            }
+          },
+          {
+            "name": "thread_id",
+            "description": "The ID of the conversation thread to delete.",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1063,6 +1084,57 @@
         ]
       }
     },
+    "/api/summary/{consultationId}": {
+      "post": {
+        "tags": [
+          "Summary"
+        ],
+        "summary": "Summarize a consultation",
+        "description": "Roles: doctor, patient",
+        "parameters": [
+          {
+            "name": "consultationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/api/users/me": {
       "get": {
         "tags": [
@@ -1131,8 +1203,8 @@
         "tags": [
           "Users"
         ],
-        "summary": "Update the current logged-in user details",
-        "description": "Roles: doctor, patient",
+        "summary": "Get patient details by ID",
+        "description": "Roles: doctor",
         "parameters": [
           {
             "name": "id",
@@ -1158,6 +1230,75 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/users/patients": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get a paginated list of patients",
+        "description": "Roles: doctor, patient",
+        "parameters": [
+          {
+            "name": "page",
+            "description": "Page number (starting from 0)",
+            "default": 0,
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "description": "Number of items per page",
+            "default": 10,
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "order",
+            "description": "Sort order (asc or desc)",
+            "default": "asc",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "description": "Field to sort by",
+            "default": "firstName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           },
           "500": {
             "description": "Internal Server Error"

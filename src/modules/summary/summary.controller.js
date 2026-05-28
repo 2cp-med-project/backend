@@ -8,6 +8,11 @@ import { formatConsultation } from "../records/consultation.service.js";
 const LANGUAGE = "FRENCH";
 
 async function summarize(req, res) {
+	// #swagger.tags = ['Summary']
+	// #swagger.security = [{ bearerAuth: [] }]
+	// #swagger.summary = 'Summarize a consultation'
+	// #swagger.description = 'Roles: doctor, patient'
+
 	const { id } = req.user;
 	const { consultationId } = req.params;
 
