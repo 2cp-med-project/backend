@@ -1,11 +1,11 @@
+import authMiddleware from "../../middleware/auth.js";
 import Doctor from "../users/doctor.model.js";
 import Message from "./message.model.js";
-import { socketAuthenticate } from "../../middleware/auth.js";
 
 const tag = () => `[${new Date().toLocaleTimeString()}]`;
 
 function handleSockets(io) {
-	io.use(socketAuthenticate);
+	io.use(authMiddleware.socketAuthenticate);
 
 	io.on("connection", (socket) => {
 		console.log(`${tag()} 🔌 connection: User connected [${socket.id}]`);

@@ -1,7 +1,7 @@
 import { HumanMessage } from "@langchain/core/messages";
 
-import { getMedicalAgentApp } from "../../config/agent.js";
 import { LLM } from "../../config/llm.js";
+import agent from "../../config/agent.js";
 import Conversation from "./conversation.model.js";
 
 const getConfig = (thread_id) => ({ configurable: { thread_id } });
@@ -29,7 +29,7 @@ async function startChat(req, res) {
 	if (!id) return res.status(400).json({ error: "patient id is required" });
 	if (!prompt) return res.status(400).json({ error: "prompt is required" });
 
-	const medicalAgentApp = getMedicalAgentApp();
+	const medicalAgentApp = agent.getMedicalAgentApp();
 
 	const conversation = new Conversation({
 		userId: id,
@@ -104,7 +104,7 @@ async function handleChat(req, res) {
 		return res.status(404).json({ error: "Conversation not found" });
 	}
 
-	const medicalAgentApp = getMedicalAgentApp();
+	const medicalAgentApp = agent.getMedicalAgentApp();
 
 	const config = getConfig(threadId);
 	const preRunState = await medicalAgentApp.getState(config);
@@ -186,7 +186,7 @@ async function retrieveChat(req, res) {
 		if (!conversation || String(conversation.userId) !== String(id)) {
 			return res.status(404).json({ error: "Conversation not found" });
 		}
-		const medicalAgentApp = getMedicalAgentApp();
+		const medicalAgentApp = agent.getMedicalAgentApp();
 		const state = await medicalAgentApp.getState(getConfig(threadId));
 
 		return res.status(200).json({
@@ -223,7 +223,7 @@ async function deleteChat(req, res) {
 			return res.status(404).json({ error: "Conversation not found" });
 		}
 
-		const medicalAgentApp = getMedicalAgentApp();
+		const medicalAgentApp = agent.getMedicalAgentApp();
 		await medicalAgentApp.checkpointer.deleteThread(threadId);
 
 		console.log(`${logTag()} 🗑️  deleteChat: thread=${threadId}`);

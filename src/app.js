@@ -4,14 +4,14 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
-import connectDB from "./config/db.js";
+import { catchInvalidJSON } from "./utils/helper.js";
+import { connectDB } from "./config/db.js";
 import { createSocketServer } from "./config/socket.js";
 // import { redisClient, connectRedis } from "./config/redis.js";
 import { registerSwagger } from "./config/swagger.js";
-import { initializeMedicalAgentApp } from "./config/agent.js";
-import routes from "./routes.js";
+import agent from "./config/agent.js";
 import handleSockets from "./modules/chat/chat.socket.js";
-import { catchInvalidJSON } from "./middleware/validation.js";
+import routes from "./routes.js";
 
 const PORT = 5000;
 const app = express();
@@ -22,7 +22,7 @@ app.set("io", io);
 
 const client = await connectDB();
 
-initializeMedicalAgentApp(client);
+agent.initializeMedicalAgentApp(client);
 
 // connectRedis(redisClient);
 
