@@ -20,4 +20,4 @@ async function connectRedis(client) {
 	await client.connect().catch(console.error);
 }
 
-export { redisClient, connectRedis };
+export default { redisClient, connectRedis };

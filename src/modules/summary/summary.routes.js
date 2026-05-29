@@ -1,9 +1,14 @@
 import express from "express";
+
+import authMiddleware from "../../middleware/auth.js";
 import summaryController from "./summary.controller.js";
-import { authenticate } from "../../middleware/auth.js";
 
 const router = express.Router();
 
-router.post("/:consultationId", authenticate, summaryController.summarize);
+router.post(
+	"/:consultationId",
+	authMiddleware.authenticate,
+	summaryController.summarize,
+);
 
 export default router;

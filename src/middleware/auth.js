@@ -60,4 +60,4 @@ async function socketAuthenticate(socket, next) {
 	}
 }
 
-export { authenticate, socketAuthenticate };
+export default { authenticate, socketAuthenticate };

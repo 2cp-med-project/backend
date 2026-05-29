@@ -19,4 +19,4 @@ function getMedicalAgentApp() {
 	return medicalAgentApp;
 }
 
-export { initializeMedicalAgentApp, getMedicalAgentApp };
+export default { initializeMedicalAgentApp, getMedicalAgentApp };

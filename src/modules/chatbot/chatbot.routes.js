@@ -1,11 +1,12 @@
 import express from "express";
-import chatbotController from "./chatbot.controller.js";
+
 import { authorize } from "../../middleware/role.js";
-import { authenticate } from "../../middleware/auth.js";
+import authMiddleware from "../../middleware/auth.js";
+import chatbotController from "./chatbot.controller.js";
 
 const router = express.Router();
 
-router.use(authenticate);
+router.use(authMiddleware.authenticate);
 router.use(authorize("patient"));
 
 router.get("/", chatbotController.retrieveAllChats);
