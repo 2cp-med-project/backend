@@ -7,7 +7,7 @@ import cors from "cors";
 import catchInvalidJSON from "./utils/helper.js";
 import connectDB from "./config/db.js";
 import createSocketServer from "./config/socket.js";
-import redis from "./config/redis.js";
+// import redis from "./config/redis.js";
 import registerSwagger from "./config/swagger.js";
 import agent from "./config/agent.js";
 import handleSockets from "./modules/chat/chat.socket.js";
@@ -24,7 +24,7 @@ const client = await connectDB();
 
 agent.initializeMedicalAgentApp(client);
 
-redis.connectRedis(redis.redisClient);
+// redis.connectRedis(redis.redisClient);
 
 app.use(express.json());
 app.use(cors());
