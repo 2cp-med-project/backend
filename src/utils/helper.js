@@ -13,4 +13,4 @@ function catchInvalidJSON(err, req, res, next) {
 	next();
 }
 
-export { catchInvalidJSON };
+export default catchInvalidJSON;

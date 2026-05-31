@@ -1,6 +1,6 @@
 import express from "express";
 
-import { validate } from "../../middleware/validation.js";
+import validate from "../../middleware/validation.js";
 import authMiddleware from "../../middleware/auth.js";
 import controller from "./auth.controller.js";
 import validationschema from "./auth.validation.js";

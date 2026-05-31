@@ -2,8 +2,8 @@ import { SystemMessage } from "@langchain/core/messages";
 
 import Consultation from "../records/consultation.model.js";
 
-import { LLM } from "../../config/llm.js";
-import { formatConsultation } from "../records/consultation.service.js";
+import LLM from "../../config/llm.js";
+import formatConsultation from "../records/consultation.service.js";
 
 const LANGUAGE = "FRENCH";
 

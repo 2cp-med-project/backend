@@ -37,4 +37,4 @@ function formatConsultation(c) {
 	return lines.join("\n");
 }
 
-export { formatConsultation };
+export default formatConsultation;

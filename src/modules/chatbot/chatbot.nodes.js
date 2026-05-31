@@ -5,7 +5,7 @@ import {
 } from "@langchain/core/messages";
 import { END, Command } from "@langchain/langgraph";
 
-import { LLM } from "../../config/llm.js";
+import LLM from "../../config/llm.js";
 import { tag, invokeStructured } from "./chatbot.service.js";
 import chatbotSchema from "./chatbot.schema.js";
 import chatbotTools from "./chatbot.tools.js";
@@ -159,7 +159,7 @@ async function formulateQueries(state) {
 			[
 				new SystemMessage(
 					`Extract precise search parameters from the conversation to retrieve relevant clinical data.
-                    
+
                     [Context]
                     - The patient communicates in ${LANGUAGE}.
                     - Current Date and Time: ${today}. Use this to resolve relative time expressions accurately.
@@ -308,7 +308,7 @@ async function handleNonMedical(state) {
 	const response = await LLM.invoke([
 		new SystemMessage(
 			`Role: You are HealBot, handling an off-topic question.
-            
+
             [Response Rules]
             - Formatting: Strictly < 120 words. ENTIRELY IN ${LANGUAGE}.
             - Structure:
