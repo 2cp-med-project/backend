@@ -6,4 +6,4 @@ function createSocketServer(httpServer) {
 	});
 }
 
-export { createSocketServer };
+export default createSocketServer;

@@ -18,4 +18,4 @@ function registerSwagger(app) {
 	);
 }
 
-export { registerSwagger };
+export default registerSwagger;

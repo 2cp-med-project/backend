@@ -28,4 +28,4 @@ async function doctorAccess(req, res, next) {
 	}
 }
 
-export { doctorAccess };
+export default doctorAccess;

@@ -10,4 +10,4 @@ const LLM = new ChatOpenAI({
 	},
 });
 
-export { LLM };
+export default LLM;

@@ -1,6 +1,6 @@
 import { HumanMessage } from "@langchain/core/messages";
 
-import { LLM } from "../../config/llm.js";
+import LLM from "../../config/llm.js";
 import agent from "../../config/agent.js";
 import Conversation from "./conversation.model.js";
 

@@ -5,7 +5,7 @@ import { z } from "zod";
 import Patient from "../users/patient.model.js";
 import Consultation from "../records/consultation.model.js";
 
-import { formatConsultation } from "../records/consultation.service.js";
+import formatConsultation from "../records/consultation.service.js";
 
 const searchTool = new TavilySearch({
 	maxResults: 3,

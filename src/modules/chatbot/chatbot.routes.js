@@ -1,6 +1,6 @@
 import express from "express";
 
-import { authorize } from "../../middleware/role.js";
+import authorize from "../../middleware/role.js";
 import authMiddleware from "../../middleware/auth.js";
 import chatbotController from "./chatbot.controller.js";
 
