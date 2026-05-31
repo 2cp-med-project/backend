@@ -6,15 +6,17 @@ let medicalAgentApp;
 function initializeMedicalAgentApp(client) {
 	const checkpointer = new MongoDBSaver({ client });
 	medicalAgentApp = workflow.compile({ checkpointer });
-	console.log("✅ Medical Agent App initialized.");
+
+	console.log("✅ Medical Agent App initialized");
 	return medicalAgentApp;
 }
 
 function getMedicalAgentApp() {
 	if (!medicalAgentApp) {
-		throw new Error("Medical Agent App not initialized.");
+		throw new Error("Medical Agent App not initialized");
 	}
+
 	return medicalAgentApp;
 }
 
-export { initializeMedicalAgentApp, getMedicalAgentApp };
+export default { initializeMedicalAgentApp, getMedicalAgentApp };

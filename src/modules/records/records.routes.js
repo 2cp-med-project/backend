@@ -3,9 +3,9 @@ import controller from "./records.controller.js";
 import validationschema from "./records.validation.js";
 
 import authorize from "../../middleware/role.js";
-import authMiddleware from "../../middleware/auth.js";
 import doctorAccess from "../../middleware/doctorAccess.js";
 import validate from "../../middleware/validation.js";
+import authMiddleware from "../../middleware/auth.js";
 
 const router = express.Router();
 

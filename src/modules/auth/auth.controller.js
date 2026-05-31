@@ -105,7 +105,8 @@ async function logOut(req, res) {
 		user.refreshToken = null;
 		user.otpVerified = false; // require OTP verification on next login
 
-		await Promise.all([user.save(), authService.blacklistToken(req.user)]);
+		// await Promise.all([user.save(), authService.blacklistToken(req.user)]);
+		await user.save();
 		res.status(200).json({ message: "Logged out successfully" });
 	} catch (error) {
 		res.status(500).json({ message: error.message });

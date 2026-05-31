@@ -4,13 +4,14 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
+import catchInvalidJSON from "./utils/helper.js";
 import connectDB from "./config/db.js";
 import createSocketServer from "./config/socket.js";
-import { redisClient, connectRedis } from "./config/redis.js";
+// import redis from "./config/redis.js";
 import registerSwagger from "./config/swagger.js";
-import { initializeMedicalAgentApp } from "./config/agent.js";
-import routes from "./routes.js";
+import agent from "./config/agent.js";
 import handleSockets from "./modules/chat/chat.socket.js";
+import routes from "./routes.js";
 
 const PORT = 5000;
 const app = express();
@@ -21,20 +22,17 @@ app.set("io", io);
 
 const client = await connectDB();
 
-initializeMedicalAgentApp(client);
+agent.initializeMedicalAgentApp(client);
 
-connectRedis(redisClient);
+// redis.connectRedis(redis.redisClient);
 
 app.use(express.json());
 app.use(cors());
 
 registerSwagger(app);
 
+app.use(catchInvalidJSON);
 app.use("/api", routes);
-app.get("/ping", (req, res) => res.status(200).json({ message: "Pong" }));
-app.get("/health", (req, res) =>
-	res.status(200).json({ status: "OK", timestamp: new Date() }),
-);
 
 handleSockets(io);
 httpServer.listen(PORT, () => {
@@ -44,9 +42,9 @@ httpServer.listen(PORT, () => {
 process.on("SIGINT", async () => {
 	console.log("🛑 Shutting down gracefully...");
 
-	if (redisClient.isOpen) {
-		await redisClient.quit();
-	}
+	// if (redisClient.isOpen) {
+	// 	await redisClient.quit();
+	// }
 
 	httpServer.close(() => {
 		console.log("HTTP server closed.");

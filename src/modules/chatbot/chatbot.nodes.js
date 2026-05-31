@@ -6,7 +6,8 @@ import {
 import { END, Command } from "@langchain/langgraph";
 
 import LLM from "../../config/llm.js";
-import schema from "./chatbot.schema.js";
+import { tag, invokeStructured } from "./chatbot.service.js";
+import chatbotSchema from "./chatbot.schema.js";
 import chatbotTools from "./chatbot.tools.js";
 
 const MEMORY_WINDOW = 6;
@@ -19,44 +20,16 @@ Vous êtes HealBot, un assistant clinique virtuel sur la plateforme Healio.
 - Basez chaque affirmation sur le contexte fourni. Ne fabriquez jamais d'informations.
 - Gardez vos réponses courtes (moins de 120 mots).`;
 
-const tag = () => `[${new Date().toLocaleTimeString()}]`;
-
-async function invokeStructured(
-	structuredLlm,
-	messages,
-	{ maxAttempts = 3, label = "structured" } = {},
-) {
-	let lastError;
-	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-		try {
-			const result = await structuredLlm.invoke(messages);
-			if (
-				!result ||
-				typeof result !== "object" ||
-				!Object.keys(result).length
-			) {
-				throw new Error("Empty structured output");
-			}
-			return result;
-		} catch (err) {
-			lastError = err;
-			console.warn(
-				`${tag()} ⚠️  ${label} attempt ${attempt}/${maxAttempts} failed: ${err.message}`,
-			);
-			if (attempt < maxAttempts)
-				await new Promise((r) => setTimeout(r, 500 * attempt));
-		}
-	}
-	throw lastError;
-}
-
 async function safeguardNode(state) {
 	const { messages } = state;
 	const recentContext = messages.slice(-MEMORY_WINDOW);
 
-	const structuredLlm = LLM.withStructuredOutput(schema.SafeguardSchema, {
-		name: "evaluate_safety_and_domain",
-	});
+	const structuredLlm = LLM.withStructuredOutput(
+		chatbotSchema.SafeguardSchema,
+		{
+			name: "evaluate_safety_and_domain",
+		},
+	);
 
 	const SAFEGUARD_FALLBACK = { isSafe: false, domain: "medical" };
 
@@ -108,7 +81,7 @@ async function classifyPrompt(state) {
 	const recentContext = messages.slice(-MEMORY_WINDOW);
 
 	const structuredLlm = LLM.withStructuredOutput(
-		schema.ClassificationSchema,
+		chatbotSchema.ClassificationSchema,
 		{ name: "classify_prompt" },
 	);
 
@@ -172,7 +145,7 @@ async function formulateQueries(state) {
 	const { classification, messages } = state;
 	const recentContext = messages.slice(-MEMORY_WINDOW);
 
-	const structuredLlm = LLM.withStructuredOutput(schema.QuerySchema, {
+	const structuredLlm = LLM.withStructuredOutput(chatbotSchema.QuerySchema, {
 		name: "generate_search_queries",
 	});
 
@@ -186,7 +159,7 @@ async function formulateQueries(state) {
 			[
 				new SystemMessage(
 					`Extract precise search parameters from the conversation to retrieve relevant clinical data.
-                    
+
                     [Context]
                     - The patient communicates in ${LANGUAGE}.
                     - Current Date and Time: ${today}. Use this to resolve relative time expressions accurately.
@@ -335,7 +308,7 @@ async function handleNonMedical(state) {
 	const response = await LLM.invoke([
 		new SystemMessage(
 			`Role: You are HealBot, handling an off-topic question.
-            
+
             [Response Rules]
             - Formatting: Strictly < 120 words. ENTIRELY IN ${LANGUAGE}.
             - Structure:

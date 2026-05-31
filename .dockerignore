@@ -1,9 +1,7 @@
-node_modules
-.env.sample
-.git
 .gitignore
-Dockerfile
-docker-compose.yaml
 .dockerignore
+docker-compose.yaml
+Dockerfile
 eslint.config.js
+node_modules
 README.md

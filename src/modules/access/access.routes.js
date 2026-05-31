@@ -1,10 +1,10 @@
 import express from "express";
-import controller from "./access.controller.js";
-import validationSchema from "./access.validation.js";
 
-import authMiddleware from "../../middleware/auth.js";
 import authorize from "../../middleware/role.js";
 import validate from "../../middleware/validation.js";
+import authMiddleware from "../../middleware/auth.js";
+import controller from "./access.controller.js";
+import validationSchema from "./access.validation.js";
 
 const router = express.Router();
 

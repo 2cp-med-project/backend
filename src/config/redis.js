@@ -16,7 +16,8 @@ async function connectRedis(client) {
 		console.log("✅ Redis client is already connected");
 		return;
 	}
+
 	await client.connect().catch(console.error);
 }
 
-export { redisClient, connectRedis };
+export default { redisClient, connectRedis };

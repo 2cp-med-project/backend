@@ -1,8 +1,11 @@
-import Patient from "../users/patient.model.js";
-import Consultation from "../records/consultation.model.js";
 import { TavilySearch } from "@langchain/tavily";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
+
+import Patient from "../users/patient.model.js";
+import Consultation from "../records/consultation.model.js";
+
+import formatConsultation from "../records/consultation.service.js";
 
 const searchTool = new TavilySearch({
 	maxResults: 3,
@@ -25,46 +28,6 @@ const searchTool = new TavilySearch({
 	],
 });
 
-function formatConsultation(c) {
-	const lines = [
-		`Date: ${new Date(c.date).toLocaleDateString("en-GB", { dateStyle: "long" })}`,
-		`Status: ${c.status}`,
-	];
-
-	if (c.followUpDate) {
-		lines.push(
-			`Follow-up: ${new Date(c.followUpDate).toLocaleDateString("en-GB", { dateStyle: "long" })}`,
-		);
-	}
-
-	// Access fields directly from the Consultation model
-	if (c.typeofvisit) lines.push(`Visit type: ${c.typeofvisit}`);
-	if (c.motive) lines.push(`Reason: ${c.motive}`);
-	if (c.symptoms)
-		lines.push(
-			`Symptoms: ${c.symptoms}${c.severity ? ` (${c.severity})` : ""}`,
-		);
-	if (c.systemReview) lines.push(`System review: ${c.systemReview}`);
-
-	// Group vitals
-	const vitals = [
-		c.bloodPressure && `BP: ${c.bloodPressure}`,
-		c.heartRate && `HR: ${c.heartRate}`,
-		c.respiratoryRate && `RR: ${c.respiratoryRate}`,
-		c.temperature && `Temp: ${c.temperature}`,
-		c.weight && `Weight: ${c.weight}`,
-	].filter(Boolean);
-
-	if (vitals.length > 0) lines.push(`Vitals: ${vitals.join(" | ")}`);
-
-	if (c.diagnosis) lines.push(`Diagnosis: ${c.diagnosis}`);
-	if (c.notes) lines.push(`Notes: ${c.notes}`);
-	if (c.treatmentPlan) lines.push(`Treatment: ${c.treatmentPlan}`);
-	if (c.additionalTests) lines.push(`Tests: ${c.additionalTests}`);
-
-	return lines.join("\n");
-}
-
 async function runStructuredQuery({
 	patient,
 	dateFrom,
@@ -85,7 +48,6 @@ async function runStructuredQuery({
 		{ $match: matchStage },
 		{ $sort: { date: -1 } },
 		{ $limit: limit },
-		// Removed the $lookup and $unwind stages for the 'reports' collection
 		{
 			$project: {
 				_id: 0,
