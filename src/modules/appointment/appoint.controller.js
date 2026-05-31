@@ -5,7 +5,7 @@ export async function addAppointment(req, res) {
   //swagger.security = [{ "BearerAuth": [] }]
   try {
     const patientId = req.user.id; 
-    const { type,  date,time, location, appointmentnotes} = req.body;
+    const { type,  date,time, doctername, appointmentnotes} = req.body;
 
     let appointment = await Service.createAppointment(patientId, {
       type,

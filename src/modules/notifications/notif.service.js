@@ -4,11 +4,12 @@ import Doctor from "../users/doctor.model.js";
 import { io, onlineUsers } from "./channels/socket.js";
  async function saveFcmToken(userId, fcmToken) {
   
+const result = await Patient.updateOne(
+  { _id: userId },
+  { $set: { fcmToken } }
+);
 
-  await Patient.updateOne(
-    { _id: userId },
-    { $set: { fcmToken } }
-  );
+console.log(result);
 }
  // Notify patient when doctor requests access to their medical record                                                                                                                                                            
 async function sendAccessRequestNotification(doctorId, patientId) {
@@ -74,8 +75,7 @@ async function sendAppointmentReminders() {
 
     for (const appointment of patient.appointments || []) {
 
-      const doctor = await Doctor.findById(appointment.doctorId);
-      if (!doctor) continue;
+      
 
       const appointmentTime = new Date(appointment.date).getTime();
 
@@ -117,12 +117,12 @@ async function sendAppointmentReminders() {
           if (diffHours > 24) {
             const diffDays = Math.ceil(diffHours / 24);
 
-            message = `Vous avez ${actionText} avec Dr ${doctor.firstName} ${doctor.lastName} dans ${diffDays} jours à ${appointment.time}.`;
+            message = `Vous avez ${actionText} avec Dr ${appointment.doctername} dans ${diffDays} jours à ${appointment.time}.`;
           } else {
             const when =
               diffHours > 0 ? "demain" : "aujourd'hui";
 
-            message = `Rappel : vous avez ${actionText} ${when} à ${appointment.time} avec Dr ${doctor.firstName} ${doctor.lastName} à ${appointment.location}.`;
+            message = `Rappel : vous avez ${actionText} ${when} à ${appointment.time} avec Dr ${appointment.doctername}.`;
           }
 
           if (patient.fcmToken) {

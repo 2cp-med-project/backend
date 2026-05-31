@@ -59,7 +59,7 @@ const patientSchema = new mongoose.Schema({
   }
 ],
 otpVerified: { type: Boolean, default: false },
-fcmtoken: { type: String, default: null },
+fcmToken: { type: String, default: null },
 isActive: { type: Boolean, default: true },
 	},
 	{ timestamps: true },
