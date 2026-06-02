@@ -94,6 +94,43 @@ const updateProfileSchema = {
 		isIn: { options: [["male", "female"]] },
 		errorMessage: "Gender must be either male or female if provided",
 	},
+	CIN: {
+		...optionalStringSchema,
+		errorMessage: "CIN must be a string if provided",
+	},
+	bloodtype: {
+		in: "body",
+		optional: { options: { nullable: true } },
+		isString: true,
+		isIn: { options: [["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]] },
+		errorMessage:
+			"Blood type must be one of A+, A-, B+, B-, AB+, AB-, O+, O- if provided",
+	},
+	allergies: {
+		in: "body",
+		optional: { options: { nullable: true } },
+		isArray: true,
+		errorMessage: "Allergies must be an array of strings if provided",
+	},
+	"allergies.*": {
+		in: "body",
+		optional: { options: { nullable: true } },
+		isString: true,
+		errorMessage: "Each allergy must be a string",
+	},
+	chronicDiseases: {
+		in: "body",
+		optional: { options: { nullable: true } },
+		isArray: true,
+		errorMessage:
+			"Chronic diseases must be an array of strings if provided",
+	},
+	"chronicDiseases.*": {
+		in: "body",
+		optional: { options: { nullable: true } },
+		isString: true,
+		errorMessage: "Each chronic disease must be a string",
+	},
 	address: {
 		...optionalStringSchema,
 		errorMessage: "Address must be a string if provided",

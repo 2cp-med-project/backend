@@ -8,6 +8,13 @@ const patientSchema = new Schema(
 		dateOfBirth: { type: Date },
 		placeOfBirth: { type: String, trim: true },
 		address: { type: String, trim: true },
+		CIN: { type: String, trim: true },
+		bloodtype: {
+			type: String,
+			enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+		},
+		allergies: [{ type: String, trim: true }],
+		chronicDiseases: [{ type: String, trim: true }],
 
 		email: {
 			type: String,
@@ -24,8 +31,6 @@ const patientSchema = new Schema(
 			enum: ["patient"],
 			immutable: true,
 		},
-
-		cardQRCode: { type: String, default: null },
 
 		refreshToken: { type: String, unique: true, sparse: true },
 		otpVerified: { type: Boolean, default: false },

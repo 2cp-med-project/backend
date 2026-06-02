@@ -120,21 +120,34 @@ async function getPatientById(req, res) {
 
 	const { id } = req.params || {};
 	const patients = req.user.patients || [];
-	const returnedFields = {
+	const hasAccess = patients.includes(id);
+
+	const baseFields = {
 		firstName: 1,
 		lastName: 1,
 		email: 1,
+		bloodtype: 1,
 		phone: 1,
 		dateOfBirth: 1,
 		placeOfBirth: 1,
 		gender: 1,
 	};
 
-	try {
-		if (!patients.includes(id)) {
-			return res.status(403).json({ message: "Access denied" });
-		}
+	const returnedFields = hasAccess
+		? {
+				...baseFields,
+				CIN: 1,
+				allergies: 1,
+				chronicDiseases: 1,
+				address: 1,
+				emergencyContact: 1,
+				medicalResume: 1,
+			}
+		: {
+				...baseFields,
+			};
 
+	try {
 		const patient = await Patient.findById(id, returnedFields);
 
 		if (!patient) {
@@ -203,6 +216,10 @@ async function getProfile(req, res) {
 						lastName: 1,
 						email: 1,
 						phone: 1,
+						CIN: 1,
+						bloodtype: 1,
+						allergies: 1,
+						chronicDiseases: 1,
 						address: 1,
 						dateOfBirth: 1,
 						placeOfBirth: 1,
@@ -250,6 +267,10 @@ async function updateProfile(req, res) {
 			: [
 					"firstName",
 					"lastName",
+					"CIN",
+					"bloodtype",
+					"allergies",
+					"chronicDiseases",
 					"email",
 					"phone",
 					"gender",
