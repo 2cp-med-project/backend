@@ -1,6 +1,7 @@
 import Access from "./access.model.js";
 import Patient from "../users/patient.model.js";
 import Doctor from "../users/doctor.model.js";
+import mongoose from "mongoose";
 // TODO: import notification service
 
 //Doctor sends access request
@@ -87,7 +88,7 @@ async function getPatientRequests(req, res) {
 	try {
 		const requests = await Access.find(
 			{
-				patient: patientId,
+				patient: new mongoose.Types.ObjectId(patientId),
 				status: { $in: ["pending", "active"] },
 			},
 			{ patient: 1, createdAt: 1 },
@@ -145,7 +146,7 @@ async function getDoctorPatients(req, res) {
 	try {
 		const accesses = await Access.find(
 			{
-				doctor: doctorId,
+				doctor: new mongoose.Types.ObjectId(doctorId),
 				status: "active",
 			},
 			{ patient: 1, createdAt: 1 },
@@ -169,7 +170,7 @@ async function getPatientDoctors(req, res) {
 	try {
 		const accesses = await Access.find(
 			{
-				patient: patientId,
+				patient: new mongoose.Types.ObjectId(patientId),
 				status: "active",
 			},
 			{ doctor: 1, createdAt: 1 },
@@ -204,7 +205,7 @@ async function removeAccess(req, res) {
 
 		await access.deleteOne();
 
-		res.json({ message: "Doctor removed successfully" });
+		res.json({ message: "Doctor access removed successfully" });
 	} catch (error) {
 		res.status(500).json({ message: error.message });
 	}
