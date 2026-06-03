@@ -1,61 +1,50 @@
-import Doctor from "../users/doctor.model.js";
+import reviewService from "./review.service.js";
 
-async function addOrUpdateReview(doctorId, patientId, reviewData) {
-  const { rating, comment } = reviewData;
+const addReview = async (req, res) => {
+  try {
+    const { ratings, comment } = req.body;
+    const patientId = req.user.id;
+    const doctorId = req.params.doctorId;
 
-  // Validate rating
-  if (rating < 0 || rating > 5) {
-    throw new Error("Rating must be between 0 and 5");
-  }
+    // Check active access
+    const access = await Access.findOne({ doctor: doctorId, patient: patientId, status: "active" });
+    if (!access) {
+      return res.status(403).json({ message: "Vous ne pouvez pas noter ce médecin (pas d'accès actif)." });
+    }
 
-  // Find doctor
-  const doctor = await Doctor.findById(doctorId);
-  if (!doctor) throw new Error("Doctor not found");
+    // Validate ratings exist
+    if (!ratings || typeof ratings !== 'object') {
+      return res.status(400).json({ message: "Les notes sont requises." });
+    }
 
-  // Check if the patient already reviewed
-  const existingReviewIndex = doctor.review.findIndex(
-    r => r.patientId.toString() === patientId.toString()
-  );
+    const { punctuality, communication, expertise, listening } = ratings;
+    if ([punctuality, communication, expertise, listening].some(r => r < 1 || r > 5)) {
+      return res.status(400).json({ message: "Les notes doivent être comprises entre 1 et 5." });
+    }
 
-  let review;
-  if (existingReviewIndex !== -1) {
-    // Update existing review
-    doctor.review[existingReviewIndex].rating = rating;
-    doctor.review[existingReviewIndex].comment = comment;
-    doctor.review[existingReviewIndex].updatedAt = new Date();
-    review = doctor.review[existingReviewIndex];
-  } else {
-    // Add new review
-    review = {
+    const average = (punctuality + communication + expertise + listening) / 4;
+    const finalRating = Math.round(average * 10) / 10;
+
+    const review = await reviewService.addOrUpdateReview(
+      doctorId,
       patientId,
-      rating,
-      comment,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    doctor.review.push(review);
+      { rating: finalRating, comment }
+    );
+
+    res.status(201).json({ message: "Review added", review });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
-
-  // Update total reviews count
-  doctor.totalReviews = doctor.review.length;
-
-  // Calculate average rating
-  const sum = doctor.review.reduce((acc, r) => acc + r.rating, 0);
-  doctor.averageRating = sum / doctor.totalReviews;
-
-  // Save doctor document
-  await doctor.save();
-
-  return review;
-}
-
-async function getDoctorReviews(doctorId) {
-  const doctor = await Doctor.findById(doctorId);
-  if (!doctor) throw new Error("Doctor not found");
-  return doctor.review;
-}
-
-export default {
-  addOrUpdateReview,
-  getDoctorReviews
 };
+
+const getReviews = async (req, res) => {
+  try {
+    const { doctorId } = req.params;
+    const reviews = await reviewService.getDoctorReviews(doctorId);
+    res.status(200).json({ reviews });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+export default { addReview, getReviews };

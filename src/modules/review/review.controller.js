@@ -1,55 +1,50 @@
-import reviewService from "../services/review.service.js";
+import reviewService from "./review.service.js";
 
-// Add a new review - tout dans body sauf patientId
-async function addReview(req, res) {
-  // #swagger.tags=['auth'];
+const addReview = async (req, res) => {
   try {
-    const { rating, comment } = req.body;
-    const patientId = req.user.id; // Vient du middleware authenticate
+    const { ratings, comment } = req.body;
+    const patientId = req.user.id;
     const doctorId = req.params.doctorId;
 
-    // 1. Vérifier que l'accès actif existe
-    const access = await Access.findOne({
-      doctor: doctorId,
-      patient: patientId,
-      status: "active"
-    });
-
+    // Check active access
+    const access = await Access.findOne({ doctor: doctorId, patient: patientId, status: "active" });
     if (!access) {
-      return res.status(403).json({
-        message: "Vous ne pouvez pas noter ce médecin (pas d'accès actif)."
-      });
+      return res.status(403).json({ message: "Vous ne pouvez pas noter ce médecin (pas d'accès actif)." });
     }
 
-    // 2. Préparer les données de l'avis
-    const reviewData = {
-      patientId,
-      rating,
-      comment
-    };
+    // Validate ratings exist
+    if (!ratings || typeof ratings !== 'object') {
+      return res.status(400).json({ message: "Les notes sont requises." });
+    }
 
-    // 3. Ajouter ou mettre à jour l'avis
-    const review = await reviewService.addOrUpdateReview(doctorId, reviewData);
+    const { punctuality, communication, expertise, listening } = ratings;
+    if ([punctuality, communication, expertise, listening].some(r => r < 1 || r > 5)) {
+      return res.status(400).json({ message: "Les notes doivent être comprises entre 1 et 5." });
+    }
+
+    const average = (punctuality + communication + expertise + listening) / 4;
+    const finalRating = Math.round(average * 10) / 10;
+
+    const review = await reviewService.addOrUpdateReview(
+      doctorId,
+      patientId,
+      { rating: finalRating, comment }
+    );
 
     res.status(201).json({ message: "Review added", review });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
-}
-// Get all reviews for a doctor - doctorId dans params
-async function getReviews(req, res) {
-  // #swagger.tags=['auth'];
+};
+
+const getReviews = async (req, res) => {
   try {
     const { doctorId } = req.params;
-
     const reviews = await reviewService.getDoctorReviews(doctorId);
     res.status(200).json({ reviews });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
-}
-
-export default {
-  addReview,
-  getReviews
 };
+
+export default { addReview, getReviews };
