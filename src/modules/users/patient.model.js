@@ -33,8 +33,34 @@ const patientSchema = new Schema(
 		},
 
 		refreshToken: { type: String, unique: true, sparse: true },
+		// apppointment field
+		appointments: [
+			{
+				type: {
+					type: String,
+					enum: ["IRM-RADIO-SCANNER", "ANALYSE", "CONSULTATION"],
+					required: true,
+				},
+
+				date: { type: Date, required: true },
+				status: {
+					type: String,
+					enum: ["scheduled", "done"],
+					default: "scheduled",
+				},
+				doctername: String,
+				time: { type: String, required: true },
+				appointmentnotes: String,
+				reminders: [
+					{
+						date: { type: Date, required: true }, // when to send the reminder
+						sent: { type: Boolean, default: false }, // to track if reminder was sent
+					},
+				],
+			},
+		],
 		otpVerified: { type: Boolean, default: false },
-		fcmtoken: { type: String, default: null },
+		fcmToken: { type: String, default: null },
 
 		emergencyContact: {
 			name: { type: String, trim: true },
