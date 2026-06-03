@@ -1,9 +1,9 @@
 import express from "express";
 import controller from "./notif.controller.js";
 import service from "./notif.service.js";
-import authenticate from "../../middleware/auth.js";
+import authMiddleware from "../../middleware/auth.js";
 const router = express.Router();
-router.use(authenticate);
+router.use(authMiddleware.authenticate);
 // FCM token registration
-router.post("/register-fcmtoken",authenticate, controller.registerFcmToken);
+router.post("/register-fcmtoken", controller.registerFcmToken);
 export default router;
