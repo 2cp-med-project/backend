@@ -1,24 +1,47 @@
 import mongoose from "mongoose";
 
-const doctorSchema = new mongoose.Schema({
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, default: "doctor" },
-  licenseNumber: { type: String, required: true, unique: true }, //scanning diplomat
-  refreshToken: String, // for token refresh
-  specialization: String,
-  phone: String,
-  Address: String, // optional or could be hospital location
-  patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Patient" }],
+const doctorSchema = new mongoose.Schema(
+	{
+		firstName: { type: String, required: true, trim: true },
+		lastName: { type: String, required: true, trim: true },
+		gender: { type: String, enum: ["male", "female"] },
+		phone: { type: String, required: true, trim: true },
 
-  // ----------------- OTP Fields -----------------
-  otpVerified: { type: Boolean, default: false },
-  otpCode: String,
-  otpExpiresAt: Date,
+		email: {
+			type: String,
+			required: true,
+			unique: true,
+			lowercase: true,
+			trim: true,
+		},
+		password: { type: String, required: true },
+		role: {
+			type: String,
+			default: "doctor",
+			enum: ["doctor"],
+			immutable: true,
+		},
+		refreshToken: { type: String, unique: true, sparse: true },
 
-  createdAt: { type: Date, default: Date.now },
-});
+		specialization: { type: String, trim: true },
+		licenseNumber: {
+			type: String,
+			trim: true,
+			default: undefined,
+			index: {
+				unique: true,
+				sparse: true,
+			},
+		},
+
+		patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "Patient" }],
+
+		otpVerified: { type: Boolean, default: false },
+
+		isActive: { type: Boolean, default: true },
+		socketId: { type: String, default: null },
+	},
+	{ timestamps: true },
+);
 
 export default mongoose.model("Doctor", doctorSchema);

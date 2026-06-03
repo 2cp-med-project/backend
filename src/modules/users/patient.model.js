@@ -1,72 +1,50 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-const patientSchema = new mongoose.Schema({
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
+const patientSchema = new Schema(
+	{
+		firstName: { type: String, required: true, trim: true },
+		lastName: { type: String, required: true, trim: true },
+		gender: { type: String, enum: ["male", "female"] },
+		dateOfBirth: { type: Date },
+		placeOfBirth: { type: String, trim: true },
+		address: { type: String, trim: true },
+		CIN: { type: String, trim: true },
+		bloodtype: {
+			type: String,
+			enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+		},
+		allergies: [{ type: String, trim: true }],
+		chronicDiseases: [{ type: String, trim: true }],
 
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  refreshToken: String, // for token refresh
-  dateOfBirth: Date,
-  placeOfBirth: String,
-  gender: { type: String, enum: ["male", "female"] },
-  phone: String,
-  address: String,
-  role: { type: String, default: "patient" },
+		email: {
+			type: String,
+			required: true,
+			unique: true,
+			lowercase: true,
+			trim: true,
+		},
+		password: { type: String, required: true },
+		phone: { type: String, trim: true },
+		role: {
+			type: String,
+			default: "patient",
+			enum: ["patient"],
+			immutable: true,
+		},
 
-  emergencyContacts: [
-    {
-      name: String,
-      phone: String,
-      relation: String,
-    },
-  ],
+		refreshToken: { type: String, unique: true, sparse: true },
+		otpVerified: { type: Boolean, default: false },
+		fcmtoken: { type: String, default: null },
 
-  medicalResume: String, // summary of health history
-  cardQRCode: String, // id
+		emergencyContact: {
+			name: { type: String, trim: true },
+			phone: { type: String, trim: true },
+			relation: { type: String, trim: true },
+		},
 
-  doctorsAccess: [
-    {
-      doctorId: { type: mongoose.Schema.Types.ObjectId, ref: "Doctor" }, //or name/email
-      accepted: { type: Boolean, default: false },
-    },
-  ],
-  createdAt: { type: Date, default: Date.now },
-  // apppointment field
-  appointments: [
-  {
-    type: { 
-      type: String, 
-      enum: ["IRM-RADIO-SCANNER", "ANALYSE", "CONSULTATION"], 
-      required: true 
-    },
-  
-    date: { type: Date, required: true },
-    status: { 
-      type: String, 
-      enum: ["scheduled", "done"], 
-      default: "scheduled" 
-    },
-    doctername: String, 
-    time:{type:String, required:true},
-    appointmentnotes: String,
-    reminders: [
-      {
-        date: { type: Date, required: true }, // when to send the reminder
-        sent: { type: Boolean, default: false } // to track if reminder was sent
-      }
-    ]
-  }
-],
-otpVerified: { type: Boolean, default: false },
-fcmToken: { type: String, default: null },
-isActive: { type: Boolean, default: true },
+		isActive: { type: Boolean, default: true },
 	},
 	{ timestamps: true },
 );
 
 export default mongoose.model("Patient", patientSchema);
-
-
-
-

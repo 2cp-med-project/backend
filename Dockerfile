@@ -1,15 +1,19 @@
-FROM node:20 
-# Set the working directory in the container
-WORKDIR /app
+FROM node:22-alpine AS base
+WORKDIR /usr/src/app
+RUN chown node:node /usr/src/app
 
-COPY package*.json ./
-# install dependencies
+FROM base AS dev
+COPY --chown=node:node package*.json ./
 RUN npm install
-# copy the rest of the application code
-COPY . .
-# set environment variables
-ENV PORT=5000
-# expose the port the app runs on
+COPY --chown=node:node . .
+USER node
 EXPOSE 5000
-# start the application
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
+
+FROM base AS prod
+COPY --chown=node:node package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+COPY --chown=node:node . .
+USER node
+EXPOSE 5000
+CMD [ "node", "src/app.js" ]

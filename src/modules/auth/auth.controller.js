@@ -2,34 +2,7 @@ import authService from "./auth.service.js";
 import OTPService from "./otp.service.js";
 import Doctor from "../users/doctor.model.js";
 import Patient from "../users/patient.model.js";
-function formatAlgerianPhoneNumber(raw) {
-    // Remove all non-digit characters
-    let digits = raw.replace(/\D/g, '');
-    
-    // If the number already has the country code 213 at the start (9 digits after +213)
-    if (digits.startsWith('213') && digits.length === 12) {
-        return '+' + digits; // +213XXXXXXXXX
-    }
-    
-    // If the number has the leading 0 (e.g., 0556123456 -> 10 digits)
-    if (digits.length === 10 && digits.startsWith('0')) {
-        return '+213' + digits.slice(1);
-    }
-    
-    // If the number has no leading 0 (e.g., 556123456 -> 9 digits)
-    if (digits.length === 9) {
-        return '+213' + digits;
-    }
-    
-    // Otherwise invalid
-    throw new Error('Invalid Algerian phone number');
-}
 
-// Example usage:
-console.log(formatAlgerianPhoneNumber("0556123456"));   // +213556123456
-console.log(formatAlgerianPhoneNumber("556123456"));    // +213556123456
-console.log(formatAlgerianPhoneNumber("+213556123456"));// +213556123456
-console.log(formatAlgerianPhoneNumber("05 56 12 34 56"));// +213556123456
 async function signUp(req, res) {
 	// #swagger.tags = ['Auth']
 	// #swagger.summary = 'Register a new user (doctor or patient)'
@@ -132,7 +105,8 @@ async function logOut(req, res) {
 		user.refreshToken = null;
 		user.otpVerified = false; // require OTP verification on next login
 
-		await Promise.all([user.save(), authService.blacklistToken(req.user)]);
+		// await Promise.all([user.save(), authService.blacklistToken(req.user)]);
+		await user.save();
 		res.status(200).json({ message: "Logged out successfully" });
 	} catch (error) {
 		res.status(500).json({ message: error.message });
@@ -196,7 +170,6 @@ async function requestOTP(req, res) {
 
 	const { phone, role } = req.body || {};
 	try {
-		 const phone = formatAlgerianPhoneNumber(phone);
 		await OTPService.generate(phone, role);
 		res.status(200).json({ message: "OTP sent" });
 	} catch (e) {
@@ -215,7 +188,6 @@ async function verifyOTP(req, res) {
 
 	const { phone, code, role } = req.body || {};
 	try {
-		 const phone = formatAlgerianPhoneNumber(phone);
 		await OTPService.verify(phone, code, role);
 		res.status(200).json({ verified: true });
 	} catch (e) {

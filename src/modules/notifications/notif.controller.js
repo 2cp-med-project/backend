@@ -24,5 +24,5 @@ async function registerFcmToken(req, res) {
 
 export default {
   registerFcmToken,
-  
+
 };

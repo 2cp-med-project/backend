@@ -1,9 +1,9 @@
-import Patient from "../users/patient.model.js"; 
+import Patient from "../users/patient.model.js";
 import admin from "firebase-admin";
 import Doctor from "../users/doctor.model.js";
 import { io, onlineUsers } from "./channels/socket.js";
  async function saveFcmToken(userId, fcmToken) {
-  
+
 const result = await Patient.updateOne(
   { _id: userId },
   { $set: { fcmToken } }
@@ -11,7 +11,7 @@ const result = await Patient.updateOne(
 
 console.log(result);
 }
- // Notify patient when doctor requests access to their medical record                                                                                                                                                            
+ // Notify patient when doctor requests access to their medical record
 async function sendAccessRequestNotification(doctorId, patientId) {
   const doctor = await Doctor.findById(doctorId);
   if (!doctor) throw new Error("Doctor not found");
@@ -75,7 +75,7 @@ async function sendAppointmentReminders() {
 
     for (const appointment of patient.appointments || []) {
 
-      
+
 
       const appointmentTime = new Date(appointment.date).getTime();
 

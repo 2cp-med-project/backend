@@ -1,450 +1,1442 @@
 {
-  "definition": {
-    "openapi": "3.0.0",
-    "info": {
-      "title": "Medical Access API",
-      "version": "1.0.0",
-      "description": "Doctor - Patient Medical Platform with Access Control"
-    },
-    "servers": [
-      {
-        "url": "http://localhost:5000/api-docs"
-      }
-    ],
-    "paths": {
-      "/auth/register/doctor": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Register a user",
-          "description": "Register a new patient or doctor. If userType is 'doctor', licenseNumber is required.",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/RegisterUser"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "User registered successfully.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "message": {
-                        "type": "string",
-                        "example": "User registered successfully"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Missing required fields, invalid user type, or email already registered."
-            }
-          }
-        }
-      },
-      "/auth/login": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Login",
-          "description": "Authenticate a patient or doctor and return a refresh token.",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LoginUser"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Login successful. Returns a refresh token.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "refreshToken": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Missing required fields or invalid credentials."
-            }
-          }
-        }
-      },
-      "/auth/logout": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Logout",
-          "description": "Log out a user by clearing their stored refresh token.",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "email": {
-                      "type": "string"
-                    },
-                    "userType": {
-                      "type": "string",
-                      "enum": ["patient", "doctor"]
-                    }
-                  },
-                  "required": ["email", "userType"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Logged out successfully.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "message": {
-                        "type": "string",
-                        "example": "Logged out successfully"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Missing required fields."
-            },
-            "404": {
-              "description": "Email not found."
-            }
-          }
-        }
-      },
-      "/auth/refresh-token": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Refresh access token",
-          "description": "Issue a new short-lived access token using a valid refresh token.",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "refreshToken": {
-                      "type": "string"
-                    }
-                  },
-                  "required": ["refreshToken"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "New access token issued.",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "accessToken": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Missing or invalid refresh token."
-            }
-          }
-        }
-      },
-      "/auth/verify-otp": {
-        "post": {
-          "tags": ["Auth"],
-          "summary": "Verify OTP",
-          "description": "Verify a one-time password sent to the user's email.",
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "email": {
-                      "type": "string"
-                    },
-                    "otp": {
-                      "type": "string"
-                    }
-                  },
-                  "required": ["email", "otp"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "OTP verified successfully."
-            },
-            "400": {
-              "description": "Invalid or expired OTP."
-            }
-          }
-        }
-      },
-      "/patients/{id}": {
-        "get": {
-          "summary": "Get patient profile",
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Patient profile",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Patient"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Patient not found."
-            }
-          }
-        }
-      },
-      "/doctors": {
-        "get": {
-          "summary": "List all doctors",
-          "responses": {
-            "200": {
-              "description": "List of doctors",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Doctor"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/medical-card/scan/{cardId}": {
-        "get": {
-          "summary": "Scan digital health card",
-          "parameters": [
-            {
-              "name": "cardId",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Patient data retrieved",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/MedicalCardResponse"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Card not found."
-            }
-          }
-        }
-      },
-      "/ai/specialty": {
-        "post": {
-          "tags": ["Access"],
-          "summary": "Doctor requests access to patient",
-          "security": [{ "bearerAuth": [] }],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SymptomRequest"
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Specialty predicted",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/SpecialtyPrediction"
-                  }
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": { "description": "Access updated" }
+  "openapi": "3.0.0",
+  "info": {
+    "title": "2CP API Documentation",
+    "version": "1.0.0",
+    "description": "API documentation for the 2CP project"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/api/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
     },
-    "components": {
-      "schemas": {
-        "RegisterUser": {
-          "type": "object",
-          "properties": {
-            "firstName": {
-              "type": "string"
-            },
-            "lastName": {
-              "type": "string"
-            },
-            "email": {
-              "type": "string"
-            },
-            "password": {
-              "type": "string"
-            },
-            "userType": {
-              "type": "string",
-              "enum": ["patient", "doctor"]
-            },
-            "licenseNumber": {
-              "type": "string",
-              "description": "Required if userType is 'doctor'"
-            }
+    "/api/access/request": {
+      "post": {
+        "tags": [
+          "Access"
+        ],
+        "summary": "Doctor sends access request to a patient",
+        "description": "Roles: patient",
+        "responses": {
+          "201": {
+            "description": "Created"
           },
-          "required": ["firstName", "lastName", "email", "password", "userType"]
-        },
-        "LoginUser": {
-          "type": "object",
-          "properties": {
-            "email": {
-              "type": "string"
-            },
-            "password": {
-              "type": "string"
-            },
-            "userType": {
-              "type": "string",
-              "enum": ["patient", "doctor"]
-            }
+          "400": {
+            "description": "Bad Request"
           },
-          "required": ["email", "password", "userType"]
-        },
-        "Patient": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "fullName": {
-              "type": "string"
-            },
-            "email": {
-              "type": "string"
-            }
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         },
-        "Doctor": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "fullName": {
-              "type": "string"
-            },
-            "specialty": {
-              "type": "string"
-            },
-            "location": {
-              "type": "string"
-            }
-          }
-        },
-        "MedicalCardResponse": {
-          "type": "object",
-          "properties": {
-            "patientId": {
-              "type": "string"
-            },
-            "fullName": {
-              "type": "string"
-            },
-            "age": {
-              "type": "number"
-            },
-            "medicalHistory": {
-              "type": "array",
-              "items": {
-                "type": "string"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "patientId": {
+                    "example": "any"
+                  }
+                }
               }
             }
           }
-        },
-        "SymptomRequest": {
-          "type": "object",
-          "properties": {
-            "symptoms": {
+        }
+      }
+    },
+    "/api/access/patient/requests": {
+      "get": {
+        "tags": [
+          "Access"
+        ],
+        "summary": "Patient sees pending access requests",
+        "description": "Roles: patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/access/{id}/respond": {
+      "put": {
+        "tags": [
+          "Access"
+        ],
+        "summary": "Patient approves or rejects an access request",
+        "description": "Roles: patient",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
               "type": "string"
             }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           },
-          "required": ["symptoms"]
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
         },
-        "SpecialtyPrediction": {
-          "type": "object",
-          "properties": {
-            "predictedSpecialty": {
-              "type": "string"
-            },
-            "confidence": {
-              "type": "number"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "accepted": {
+                    "example": "any"
+                  }
+                }
+              }
             }
           }
         }
+      }
+    },
+    "/api/access/doctor/patients": {
+      "get": {
+        "tags": [
+          "Access"
+        ],
+        "summary": "Doctor sees approved patients",
+        "description": "Roles: doctor",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/access/patient/doctors": {
+      "get": {
+        "tags": [
+          "Access"
+        ],
+        "summary": "Patient sees approved doctors",
+        "description": "Roles: patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/access/{id}": {
+      "delete": {
+        "tags": [
+          "Access"
+        ],
+        "summary": "Patient removes a doctor (deletes access)",
+        "description": "Roles: patient",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/auth/signup": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Register a new user (doctor or patient)",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": {
+                    "example": "any"
+                  },
+                  "lastName": {
+                    "example": "any"
+                  },
+                  "email": {
+                    "example": "any"
+                  },
+                  "phone": {
+                    "example": "any"
+                  },
+                  "password": {
+                    "example": "any"
+                  },
+                  "role": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Login a user (doctor or patient) and return a refresh token",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "example": "any"
+                  },
+                  "password": {
+                    "example": "any"
+                  },
+                  "role": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Logout the current user by invalidating their refresh token",
+        "description": "Roles: doctor, patient",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/auth/refresh-token": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Refresh access token using a valid refresh token",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/request-otp": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Request a One-Time Password (OTP) for phone verification",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "example": "any"
+                  },
+                  "role": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/verify-otp": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Verify a One-Time Password (OTP) for phone verification",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "example": "any"
+                  },
+                  "code": {
+                    "example": "any"
+                  },
+                  "role": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/initiate": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Initiate the chat with another doctor",
+        "description": "Roles: doctor",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "targetId": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/messages/{roomId}": {
+      "get": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Retrieve an existing chat with another doctor",
+        "description": "Roles: doctor",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/chat/{roomId}": {
+      "delete": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Delete a chat thread with another doctor",
+        "description": "Roles: doctor",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/chatbot/": {
+      "get": {
+        "tags": [
+          "Chatbot"
+        ],
+        "summary": "Retrieve user chat history",
+        "description": "Roles: patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Chatbot"
+        ],
+        "summary": "Start a new chat",
+        "description": "Roles: patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "prompt": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chatbot/{threadId}": {
+      "get": {
+        "tags": [
+          "Chatbot"
+        ],
+        "summary": "Fetch the entire message history and title of a specific chat",
+        "description": "Roles: patient",
+        "parameters": [
+          {
+            "name": "threadId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The ID of the conversation thread to retrieve."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Chatbot"
+        ],
+        "summary": "Send a new message to an existing chat and get the agent's response",
+        "description": "Roles: patient",
+        "parameters": [
+          {
+            "name": "threadId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The ID of the conversation thread."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "prompt": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Chatbot"
+        ],
+        "summary": "Permanently delete a chat from the database",
+        "description": "Roles: patient",
+        "parameters": [
+          {
+            "name": "threadId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The ID of the conversation thread to delete."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/records/consultation": {
+      "post": {
+        "tags": [
+          "Consultations"
+        ],
+        "summary": "Create a new consultation record",
+        "description": "Roles: doctor. only doctors who have access to the patient can create consultations for that patient",
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "patientId": {
+                    "example": "any"
+                  },
+                  "date": {
+                    "example": "any"
+                  },
+                  "status": {
+                    "example": "any"
+                  },
+                  "typeofvisit": {
+                    "example": "any"
+                  },
+                  "motive": {
+                    "example": "any"
+                  },
+                  "symptoms": {
+                    "example": "any"
+                  },
+                  "severity": {
+                    "example": "any"
+                  },
+                  "followUpDate": {
+                    "example": "any"
+                  },
+                  "diagnosis": {
+                    "example": "any"
+                  },
+                  "treatmentPlan": {
+                    "example": "any"
+                  },
+                  "notes": {
+                    "example": "any"
+                  },
+                  "bloodPressure": {
+                    "example": "any"
+                  },
+                  "heartRate": {
+                    "example": "any"
+                  },
+                  "respiratoryRate": {
+                    "example": "any"
+                  },
+                  "temperature": {
+                    "example": "any"
+                  },
+                  "weight": {
+                    "example": "any"
+                  },
+                  "systemReview": {
+                    "example": "any"
+                  },
+                  "additionalTests": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/records/consultation/{consultationId}": {
+      "patch": {
+        "tags": [
+          "Consultations"
+        ],
+        "summary": "Update a consultation record",
+        "description": "Roles: doctor. Only the doctor who created the consultation and have access to the patient can update it. Only specific fields can be updated",
+        "parameters": [
+          {
+            "name": "consultationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Consultations"
+        ],
+        "summary": "Get a consultation by ID",
+        "description": "Roles: doctor, patient. Doctors can only access consultations of patients they have access to. Patients can only access their own consultations",
+        "parameters": [
+          {
+            "name": "consultationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/records/{patientId}": {
+      "get": {
+        "tags": [
+          "Consultations"
+        ],
+        "summary": "Get consultations for a patient with pagination and sorting",
+        "description": "Roles: doctor, patient.",
+        "parameters": [
+          {
+            "name": "patientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "description": "Page number (starting from 0)",
+            "default": 0,
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "description": "Number of items per page",
+            "default": 10,
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "order",
+            "description": "Sort order (asc or desc)",
+            "default": "asc",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "description": "Field to sort by",
+            "default": "firstName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/summary/{consultationId}": {
+      "post": {
+        "tags": [
+          "Summary"
+        ],
+        "summary": "Summarize a consultation",
+        "description": "Roles: doctor, patient",
+        "parameters": [
+          {
+            "name": "consultationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/users/me": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get the current logged-in user details",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update the current logged-in user details",
+        "description": "Roles: doctor, patient",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/users/patient/{id}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get patient details by ID",
+        "description": "Roles: doctor",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/users/patients": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get a paginated list of patients",
+        "description": "Roles: doctor, patient",
+        "parameters": [
+          {
+            "name": "page",
+            "description": "Page number (starting from 0)",
+            "default": 0,
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "description": "Number of items per page",
+            "default": 10,
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "order",
+            "description": "Sort order (asc or desc)",
+            "default": "asc",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "description": "Field to sort by",
+            "default": "firstName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/users/doctor/{id}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get doctor details by ID",
+        "description": "Roles: any",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/users/doctors": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get a paginated list of doctors",
+        "description": "Roles: any",
+        "parameters": [
+          {
+            "name": "page",
+            "description": "Page number (starting from 0)",
+            "default": 0,
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "description": "Number of items per page",
+            "default": 10,
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "order",
+            "description": "Sort order (asc or desc)",
+            "default": "asc",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "description": "Field to sort by",
+            "default": "firstName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
       }
     }
   },
-  "apis": ["./src/modules/**/routes.js"]
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
 }

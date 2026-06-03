@@ -1,54 +1,53 @@
+import { createServer } from "http";
+import "dotenv/config";
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
+
+import catchInvalidJSON from "./utils/helper.js";
 import connectDB from "./config/db.js";
-
-import swaggerJsdoc from "swagger-jsdoc";
-import swaggerUi from "swagger-ui-express";
-
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const swaggerOptions = require("../swagger.json");
-
+import createSocketServer from "./config/socket.js";
+// import redis from "./config/redis.js";
+import registerSwagger from "./config/swagger.js";
+import agent from "./config/agent.js";
+import handleSockets from "./modules/chat/chat.socket.js";
 import routes from "./routes.js";
 
-// Load ENV
-dotenv.config();
-
-// Connect to MongoDB
-connectDB();
-
+const PORT = 5000;
 const app = express();
 
-// Middlewares
+const httpServer = createServer(app);
+const io = createSocketServer(httpServer);
+app.set("io", io);
+
+const client = await connectDB();
+
+agent.initializeMedicalAgentApp(client);
+
+// redis.connectRedis(redis.redisClient);
+
 app.use(express.json());
 app.use(cors());
 
-app.use("/api", routes);
-// Swagger Docs
-const specs = swaggerJsdoc({
-  definition: swaggerOptions.definition,
-  apis: swaggerOptions.apis,
-});
+registerSwagger(app);
 
-const swaggerUiOptions = {
-  customCssUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css",
-  customJs: [
-    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js",
-  ],
-};
-
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs, swaggerUiOptions));
-
-// Load Main Routes
+app.use(catchInvalidJSON);
 app.use("/api", routes);
 
-// Test Route
-app.get("/", (req, res) => {
-  res.send("API is running...");
+handleSockets(io);
+httpServer.listen(PORT, () => {
+	console.log(`🚀 Server running on port ${PORT}`);
 });
 
+process.on("SIGINT", async () => {
+	console.log("🛑 Shutting down gracefully...");
 
-export default app;
+	// if (redisClient.isOpen) {
+	// 	await redisClient.quit();
+	// }
+
+	httpServer.close(() => {
+		console.log("HTTP server closed.");
+		process.exit(0);
+	});
+});

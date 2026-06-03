@@ -3,8 +3,8 @@ import Doctor from "../users/doctor.model.js";
 import twilio from "twilio";
 
 const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
+	process.env.TWILIO_ACCOUNT_SID,
+	process.env.TWILIO_AUTH_TOKEN,
 );
 
 const VERIFY_SERVICE_SID = process.env.TWILIO_VERIFY_SERVICE_SID;
@@ -38,7 +38,13 @@ async function generate(phone, role) {
 
 // -------- VERIFY OTP --------
 async function verify(phone, code, role) {
-	
+	// check user exists
+	const user =
+		role === "doctor"
+			? await Doctor.findOne({ phone })
+			: await Patient.findOne({ phone });
+	if (!user) throw new Error("User not found");
+
 	let verificationCheck;
 	try {
 		verificationCheck = await client.verify.v2
@@ -67,4 +73,3 @@ async function verify(phone, code, role) {
 }
 
 export default { generate, verify };
-

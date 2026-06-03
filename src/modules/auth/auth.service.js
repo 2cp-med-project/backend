@@ -1,72 +1,79 @@
-//Contains logic: generate token, check password
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import Doctor from "../users/doctor.model.js";
 import Patient from "../users/patient.model.js";
-
+import Doctor from "../users/doctor.model.js";
+// import { redisClient } from "../../config/redis.js";
 
 async function checkPassword(plainPassword, phone, role) {
-  if (
-    !plainPassword ||
-    !phone ||
-    !role ||
-    !["doctor", "patient"].includes(role)
-  ) {
-    throw new Error("Missing required fields");
-  }
+	const user =
+		role === "doctor"
+			? await Doctor.findOne({ phone })
+			: await Patient.findOne({ phone });
 
-  const user =
-    role === "doctor"
-      ? await Doctor.findOne({ phone })
-      : await Patient.findOne({ phone });
-      console.log("User found:", user);
+	if (!user) {
+		throw new Error("Invalid credentials");
+	}
+	const valid = await bcrypt.compare(plainPassword, user.password);
 
-  if (!user) {
-    throw new Error("Invalid credentials");
-  }
-  const valid = await bcrypt.compare(plainPassword, user.password);
-console.log("Password valid:",  user.password, plainPassword, valid);
-  if (!valid) {
-    throw new Error("Invalid credentials");
-  }
-  return user;
+	if (!valid) {
+		throw new Error("Invalid credentials");
+	}
+	return user;
 }
 
 function verifyToken(token) {
-  if (!token) {
-    throw new Error("Token is required");
-  }
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+	let payload;
 
-    if (!payload || !payload.id || !payload.role) {
-      throw new Error("Invalid token payload");
-    }
+	try {
+		payload = jwt.verify(token, process.env.JWT_SECRET);
+	} catch (error) {
+		throw new Error("Invalid token", { cause: error });
+	}
 
-    return payload;
-  } catch (error) {
-    throw new Error("Invalid token");
-  }
+	if (
+		!payload ||
+		!payload.id ||
+		!payload.role ||
+		!["doctor", "patient"].includes(payload.role)
+	) {
+		throw new Error("Invalid token");
+	}
+
+	return payload;
 }
 
-function generateToken(id, role, time = "10m") {
-  if (!id || !role || !["doctor", "patient"].includes(role)) {
-    throw new Error("Invalid user or role");
-  }
-  const payload = { id, role };
-  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: time });
+function generateToken(id, role, time = "30m") {
+	const payload = { id, role };
+	const uniqueTokenId = crypto.randomUUID();
+
+	return jwt.sign(payload, process.env.JWT_SECRET, {
+		expiresIn: time,
+		jwtid: uniqueTokenId,
+	});
 }
+
+// async function blacklistToken(token) {
+// 	const { jti, exp } = token;
+
+// 	const now = Math.floor(Date.now() / 1000);
+// 	const remainingTime = exp - now;
+
+// 	if (remainingTime > 0) {
+// 		await redisClient.set(`blacklist:jti:${jti}`, "true", {
+// 			EX: remainingTime,
+// 		});
+// 	}
+// }
 
 async function generatehash(password) {
-  if (!password) {
-    throw new Error("Password is required");
-  }
-  return await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS) || 10);
+	return await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS) || 10);
 }
 
 export default {
-  checkPassword,
-  generateToken,
-  generatehash,
-  verifyToken,
+	checkPassword,
+	generateToken,
+	generatehash,
+	verifyToken,
+	// blacklistToken,
 };
