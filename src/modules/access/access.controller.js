@@ -26,11 +26,13 @@ async function requestAccess(req, res) {
 			return;
 		}
 
-    const access = await Access.create(payload);
-	// 2. Trigger notification without awaiting (fire-and-forget)to not block the response related to the access save operation. Any errors in the notification will be logged but won't affect the API response.
-	 notifService.sendAccessRequestNotification(doctorId, patientId).catch(err =>
-      console.error("Unhandled notification error:", err)
-    );
+		const access = await Access.create(payload);
+		// 2. Trigger notification without awaiting (fire-and-forget)to not block the response related to the access save operation. Any errors in the notification will be logged but won't affect the API response.
+		notifService
+			.sendAccessRequestNotification(doctorId, patientId)
+			.catch((err) =>
+				console.error("Unhandled notification error:", err),
+			);
 
 		const patient = await Patient.findById(patientId);
 		const doctor = await Doctor.findById(doctorId);
@@ -95,7 +97,7 @@ async function getPatientRequests(req, res) {
 				patient: new mongoose.Types.ObjectId(patientId),
 				status: { $in: ["pending", "active"] },
 			},
-			{ patient: 1, createdAt: 1 },
+			{ doctor: 1, createdAt: 1 },
 		).lean();
 
 		res.json(requests);
@@ -130,11 +132,13 @@ async function respondAccess(req, res) {
 
 		const status = accepted ? "active" : "rejected";
 
-    access.status = status;
-    await access.save();
-    sendPatientResponseNotification(patientId, access.doctor, accepted).catch(err =>
-      console.error("Unhandled notification error:", err)
-    );
+		access.status = status;
+		await access.save();
+		sendPatientResponseNotification(
+			patientId,
+			access.doctor,
+			accepted,
+		).catch((err) => console.error("Unhandled notification error:", err));
 
 		res.json(access);
 	} catch (error) {
