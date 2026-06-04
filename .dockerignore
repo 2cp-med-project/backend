@@ -5,3 +5,4 @@ Dockerfile
 eslint.config.js
 node_modules
 README.md
+.prettierrc
